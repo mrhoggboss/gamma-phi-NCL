@@ -1,7 +1,8 @@
 # SCOPF CPU gate (N2): one SCOPF-as-MPCC instance on the CPU (ExaModels CPU backend, K2r + MadNLP LDLSolver),
 # one arm, written in a canonical form; `compare` checks it against the research fork / comparator-tree run.
 #
-#   run:     julia +1.11.2 --project=gates/env_scopf gates/scopf_cpu.jl run <arm> <out.txt> <data_dir> [case] [K]
+#   run:     julia +1.11.2 --project=gates/env_scopf gates/scopf_cpu.jl run <arm> <out.txt> <data_dir> [case] [K] [fold_flip]
+#            (fold_flip: invert the arm's fold_dual_regularization — a control showing whether δc fired)
 #   compare: julia gates/scopf_cpu.jl compare <ref.txt> <public.txt>
 #
 # Arms: U6A  power kernel p = 6, λ ≡ 1e-2, MadNLP acceptable_tol = 0
@@ -48,9 +49,13 @@ elseif ARM == "SP"
 else
     error("unknown arm $ARM")
 end
+if length(ARGS) >= 7 && ARGS[7] == "fold_flip"
+    opt = MadNCL.NCLOptions{Float64}(; (f => getfield(opt, f) for f in fieldnames(typeof(opt)))...,
+                                     fold_dual_regularization=!opt.fold_dual_regularization)
+end
 println("NCLOPTS ", join(["$(f)=$(getfield(opt, f))" for f in fieldnames(typeof(opt))], " "))
 slv = MadNCL.NCLSolver(model; ncl_options=opt, kernel=kernel, IPM..., ipm_kw...)
-println("IPMOPTS bound_relax_factor=$(slv.ipm.opt.bound_relax_factor) s_max=$(slv.ipm.opt.s_max) acceptable_tol=$(slv.ipm.opt.acceptable_tol) richardson_tol=$(slv.ipm.opt.richardson_tol)")
+println("IPMOPTS bound_relax_factor=$(slv.ipm.opt.bound_relax_factor) s_max=$(slv.ipm.opt.s_max) acceptable_tol=$(slv.ipm.opt.acceptable_tol) richardson_tol=$(try slv.ipm.iterator.opt.richardson_tol catch; "?" end) richardson_max_iter=$(try slv.ipm.iterator.opt.richardson_max_iter catch; "?" end)")
 dg = Any[]
 t = @elapsed r = MadNCL.solve!(slv; diag=dg)
 open(OUT, "w") do io
@@ -109,17 +114,17 @@ for k in ("status", "iter", "nfact", "rho_final", "x", "obj")
 end
 if !isempty(wa)          # comparator tree (S / SP): per-outer log vs rebuilt quantities
     pb = diag_to_wo22(db, kb)
-    length(wa) == length(pb) || (nd += 1; println("  outer count differs: ref=$(length(wa)) public=$(length(pb))"))
+    length(wa) == length(pb) || (global nd += 1; println("  outer count differs: ref=$(length(wa)) public=$(length(pb))"))
     for j in 1:min(length(wa), length(pb)), (i, name) in enumerate(("branch", "mu_post", "rho_post", "pr", "inner", "cumfact"))
         a, b = wa[j][i], pb[j][i]
         (b == "?" || a == b) && continue
-        nd += 1; println("  outer $j $name: ref=$a public=$b")
+        global nd += 1; println("  outer $j $name: ref=$a public=$b")
     end
     println("  per-outer: $(min(length(wa), length(pb))) records compared (branch, μ/ρ after the update, ‖r‖∞, inner iterations, cumulative factorizations)")
 else                     # research fork (U6A / W): the 13 diag fields
-    length(da) == length(db) || (nd += 1; println("  outer count differs: ref=$(length(da)) public=$(length(db))"))
+    length(da) == length(db) || (global nd += 1; println("  outer count differs: ref=$(length(da)) public=$(length(db))"))
     for j in 1:min(length(da), length(db))
-        da[j] == db[j] || (nd += 1; println("  diag[$j] differs:\n    ref=$(join(da[j], ","))\n    pub=$(join(db[j], ","))"))
+        da[j] == db[j] || (global nd += 1; println("  diag[$j] differs:\n    ref=$(join(da[j], ","))\n    pub=$(join(db[j], ","))"))
     end
     println("  per-outer: $(min(length(da), length(db))) diag records compared (13 fields)")
 end
