@@ -54,21 +54,67 @@ def ordered(configs):
     return [c for c in ORDER if c in configs] + sorted(c for c in configs if c not in ORDER)
 
 
-def solved(r, cap=None):
+# Solvers without a constraint-violation test of their own (MadNLP: LiftedKKT and the augmented system).
+# Their successes are counted only if the returned point's raw all-rows violation (`viol` on the CPU,
+# `pr_res` on the GPU) is within the run's constr_viol_tol: the same guard the MadNCL configurations apply
+# inside their own success test and Ipopt applies through its constr_viol_tol. The unguarded count is
+# printed next to it.
+GUARDED = {"liftedkkt", "madnlp"}
+
+
+def violation(r):
+    v = r.get("viol", r.get("pr_res", "nan"))
+    try:
+        return float(v)
+    except ValueError:
+        return float("nan")
+
+
+def solved(r, cap=None, cvtol=None):
+    """The solver's own success test passed, within the wall-time cap, and (if cvtol is given) with the
+    returned point's raw violation at most cvtol."""
     if r is None or r["status"] not in SUCCESS:
         return False
     if cap is not None:
         try:
-            return float(r.get("time", r.get("wall", "nan"))) <= cap
+            if not float(r.get("time", r.get("wall", "nan"))) <= cap:
+                return False
         except ValueError:
             return False
-    return True
+    return cvtol is None or violation(r) <= cvtol
 
 
-def majority(rows_by_tag, name):
+def success(r, config, cap=None, cvtol=None):
+    """Success as scored in the tables: the post-hoc violation guard applies to the GUARDED solvers only."""
+    return solved(r, cap, cvtol if config in GUARDED else None)
+
+
+def read_cvtol(resdir, opt):
+    """constr_viol_tol of the run, from --cvtol or from the configuration files the drivers wrote."""
+    if "cvtol" in opt:
+        return float(opt["cvtol"])
+    vals = set()
+    for p in glob.glob(os.path.join(resdir, "config*.txt")):
+        m = re.search(r"constr_viol_tol=([0-9.eE+-]+)", open(p).read())
+        if m:
+            vals.add(float(m.group(1)))
+    if len(vals) > 1:
+        raise SystemExit(f"the runs in {resdir} used different constr_viol_tol values {sorted(vals)}; pass --cvtol")
+    if not vals:
+        print("  (no constr_viol_tol in the configuration files: using 1e-4)")
+        return 1e-4
+    return vals.pop()
+
+
+def count_cell(guarded, raw, config):
+    """`guarded (raw)` for the guarded solvers when the guard removed solves, else the count."""
+    return f"{guarded} ({raw})" if config in GUARDED and guarded != raw else str(guarded)
+
+
+def majority(rows_by_tag, name, config=None, cvtol=None):
     """(solved by majority?, median factorization count over the succeeding repetitions, median iterations)."""
     rs = [rows.get(name) for rows in rows_by_tag.values()]
-    ok = [r for r in rs if solved(r)]
+    ok = [r for r in rs if success(r, config, None, cvtol)]
     maj = len(ok) * 2 > len(rs)
     if not ok:
         return maj, float("nan"), float("nan")

@@ -5,11 +5,13 @@ Reads <resdir>/scopf__<config>__<tag>.csv (benchmarks/gpu.jl). With one repetiti
 interior-point iteration count and factorization count; with several, a configuration solves an instance
 when the majority of its repetitions do, and the cell shows the medians over the succeeding repetitions.
 A dash is a non-solve. Footer: solved count and the geometric mean of factorizations over the solved set.
+LiftedKKT (MadNLP) has no constraint-violation test: its solves count only if the returned point's raw
+violation (pr_res) is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses).
 
-Usage: python3 benchmarks/tables/tab_gpu_scopf.py <resdir> [--out=<dir>]
+Usage: python3 benchmarks/tables/tab_gpu_scopf.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
 import sys
-from common import DEFAULT_OUT, NAMES, assert_no_tokens, find, fmt, gm, majority, ordered, read_rows, write
+from common import DEFAULT_OUT, NAMES, assert_no_tokens, find, fmt, gm, majority, ordered, read_cvtol, read_rows, write
 
 # Caption: the manuscript's (overleaf_upload/tables/tab_gpu_scopf.tex), verbatim (captions are Yifan's).
 # TODO(caption, stale items to revise once the new numbers exist):
@@ -32,6 +34,7 @@ def main(argv):
         print(__doc__); return 2
     files = find(pos[0], r"scopf__(.+?)__(.+?)\.csv")
     configs = ordered(files)
+    cvtol = read_cvtol(pos[0], opt)
     data = {c: {t: read_rows(files[c][t], "instance") for t in files[c]} for c in configs}
     names = []
     for c in configs:
@@ -46,21 +49,24 @@ def main(argv):
          " ".join(f"\\cmidrule(lr){{{2 + 2 * i}-{3 + 2 * i}}}" for i in range(k)),
          "instance & " + " & ".join("iter.\\ & fact." for _ in configs) + " \\\\\\midrule"]
     summ = {c: [] for c in configs}
+    raw = {c: sum(1 for n in names if majority(data[c], n)[0]) for c in configs}
     for n in names:
         cells = []
         for c in configs:
-            ok, nf, it = majority(data[c], n)
+            ok, nf, it = majority(data[c], n, c, cvtol)
             if ok:
                 summ[c].append(nf)
                 cells += [f"{it:.0f}", f"{nf:.0f}"]
             else:
                 cells += ["---", "---"]
         T.append(f"{tt(n)} & " + " & ".join(cells) + " \\\\")
-    T.append("\\midrule solved & " + " & ".join(f"\\multicolumn{{2}}{{c}}{{{len(summ[c])}/{len(names)}}}" for c in configs) + " \\\\")
+    T.append("\\midrule solved & " + " & ".join(
+        f"\\multicolumn{{2}}{{c}}{{{len(summ[c])}/{len(names)}" + (f" ({raw[c]})" if raw[c] != len(summ[c]) else "") + "}"
+        for c in configs) + " \\\\")
     T.append("factorizations (geom.\\ mean) & " + " & ".join(f"\\multicolumn{{2}}{{c}}{{{fmt(gm(summ[c]))}}}" for c in configs) + " \\\\")
     T.append("\\bottomrule\\end{tabular}\\end{table}")
     for c in configs:
-        print(f"  {c:<10} solved {len(summ[c])}/{len(names)}  gm fact {gm(summ[c]):.1f}  reps {sorted(data[c])}")
+        print(f"  {c:<10} solved {len(summ[c])}/{len(names)} (unguarded {raw[c]})  gm fact {gm(summ[c]):.1f}  reps {sorted(data[c])}")
     assert_no_tokens("\n".join(T))
     write(opt.get("out", DEFAULT_OUT), "tab_gpu_scopf.tex", T)
     return 0

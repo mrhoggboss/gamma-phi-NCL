@@ -151,7 +151,9 @@ The tolerances are inputs of both drivers: `--tol` (optimality and feasibility, 
 `--cvtol` (constraint violation in the original scaling, default `1e-4`), applied to every
 configuration; Ipopt receives both, while MadNLP (LiftedKKT and the augmented baseline) has no
 constraint-violation test and receives `--tol` only. The violation of every returned point is recorded
-(`viol`, `pr_res`).
+(`viol`, `pr_res`), and the summary and the table emitters count a MadNLP solve only if that violation is
+within the run's `constr_viol_tol` (post-hoc guard, the same test the other solvers apply themselves); the
+unguarded count is printed in parentheses. The result files themselves are left as the solvers returned them.
 
 Data. CUTEst problems are fetched by CUTEst.jl, the PGLIB v23.07 cases by the artifact in
 `benchmarks/Artifacts.toml`, and the COPS models are built by COPSBenchmark.jl. The SCOPF case files

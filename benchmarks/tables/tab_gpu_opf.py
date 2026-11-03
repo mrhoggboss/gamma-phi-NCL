@@ -4,11 +4,13 @@
 Reads <resdir>/opf__<config>__<tag>.csv (benchmarks/gpu.jl, one file per repetition). Per configuration:
 the solved count of every repetition, the per-instance majority over the repetitions, and the geometric
 mean over the majority-solved set of the median factorization count of the succeeding repetitions.
+LiftedKKT (MadNLP) has no constraint-violation test: its successes count only if the returned point's raw
+violation (pr_res) is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses).
 
-Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--out=<dir>]
+Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
 import sys
-from common import DEFAULT_OUT, NAMES, assert_no_tokens, find, fmt, gm, majority, ordered, read_rows, solved, write
+from common import DEFAULT_OUT, NAMES, assert_no_tokens, count_cell, find, fmt, gm, majority, ordered, read_cvtol, read_rows, solved, success, write
 
 # Caption: the manuscript's (overleaf_upload/tables/tab_gpu_opf.tex), verbatim (captions are Yifan's).
 # TODO(caption, stale items to revise once the new numbers exist):
@@ -25,6 +27,7 @@ def main(argv):
     if len(pos) != 1:
         print(__doc__); return 2
     suite = "opf"
+    cvtol = read_cvtol(pos[0], opt)
     files = find(pos[0], suite + r"__(.+?)__(.+?)\.csv")
     configs = ordered(files)
     tags = sorted({t for c in configs for t in files[c]})
@@ -38,12 +41,15 @@ def main(argv):
     for c in configs:
         by = data[c]
         names = sorted(set().union(*[set(r) for r in by.values()]))
-        per = [sum(1 for n in names if solved(by[t].get(n))) if t in by else "--" for t in tags]
-        maj = [majority(by, n) for n in names]
+        per = [count_cell(sum(1 for n in names if success(by[t].get(n), c, None, cvtol)),
+                          sum(1 for n in names if solved(by[t].get(n))), c) if t in by else "--" for t in tags]
+        maj = [majority(by, n, c, cvtol) for n in names]
         nmaj = sum(1 for m in maj if m[0])
+        nraw = sum(1 for m in (majority(by, n) for n in names) if m[0])
         cost = gm([m[1] for m in maj if m[0]])
-        T.append(f"{NAMES.get(c, c)} & " + " & ".join(str(x) for x in per) + f" & \\textbf{{{nmaj}}} & {fmt(cost)} \\\\")
-        print(f"  {c:<10} reps={per} majority={nmaj}/{len(names)} gm(median nfact)={cost:.1f}")
+        mcell = f"\\textbf{{{nmaj}}}" + (f" ({nraw})" if nraw != nmaj else "")
+        T.append(f"{NAMES.get(c, c)} & " + " & ".join(str(x) for x in per) + f" & {mcell} & {fmt(cost)} \\\\")
+        print(f"  {c:<10} reps={per} majority={nmaj} (unguarded {nraw})/{len(names)} gm(median nfact)={cost:.1f}")
     T.append("\\bottomrule\\end{tabular}\\end{table}")
     assert_no_tokens("\n".join(T))
     write(opt.get("out", DEFAULT_OUT), f"tab_gpu_{suite}.tex", T)
