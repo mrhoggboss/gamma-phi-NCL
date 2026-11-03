@@ -147,11 +147,31 @@ python3 benchmarks/tables/tab_scopf_config.py results/gpu
 python3 benchmarks/tables/fig_gpu_scaling.py results/gpu
 ```
 
+The tolerances are inputs of both drivers: `--tol` (optimality and feasibility, default `1e-8`) and
+`--cvtol` (constraint violation in the original scaling, default `1e-4`), applied to every
+configuration; Ipopt receives both, while MadNLP (LiftedKKT and the augmented baseline) has no
+constraint-violation test and receives `--tol` only. The violation of every returned point is recorded
+(`viol`, `pr_res`).
+
 Data. CUTEst problems are fetched by CUTEst.jl, the PGLIB v23.07 cases by the artifact in
 `benchmarks/Artifacts.toml`, and the COPS models are built by COPSBenchmark.jl. The SCOPF case files
-(MATPOWER format: case118, case300, case1354pegase, case2869pegase, case_ACTIVSg200/500/2000, in two
-directories `data/` and `data_mp70/` of different vintages) are **not distributed here**; their source
-versions and redistribution terms are still to be settled.
+(MATPOWER format) are not distributed here; fetch them with
+
+```bash
+benchmarks/instances/fetch_scopf_data.sh <dir>     # then pass --data=<dir> to gpu.jl
+```
+
+which downloads them from github.com/MATPOWER/matpower and checks them against
+`benchmarks/instances/scopf_data.sha256`:
+
+| directory | instances | files and MATPOWER release |
+|---|---|---|
+| `data/` | the 8 of the MadNCL paper | case118, case1354pegase, case2869pegase, case_ACTIVSg200 from MATPOWER 7.0 (identical in every release 7.0–8.1); case300 from MATPOWER 8.1 (it differs from the 7.0 file only in the TAP column of 22 transformer branches, which gives the same SCOPF model) |
+| `data_mp70/` | the 15 further pairs | case118, case300, case1354pegase, case2869pegase, case_ACTIVSg200, case_ACTIVSg500, case_ACTIVSg2000, all from MATPOWER 7.0 |
+
+The SCOPF model (`benchmarks/models/scopf_model.jl`) and the contingency lists
+(`benchmarks/instances/scopf_contingencies.jl`) come from the MadNCL paper's harness and
+github.com/frapac/pscc-scopf (see the attribution in each file).
 
 ## JuMP
 

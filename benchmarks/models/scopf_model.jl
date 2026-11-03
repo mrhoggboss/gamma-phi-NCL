@@ -1,18 +1,19 @@
-# SCOPF-as-MPCC model (paper-era formulation), trimmed for the GPU campaign:
-# JuMP + PowerModels only (the vendored original also imports Ipopt/HSL/NLPModelsJuMP).
+# Security-constrained AC optimal power flow written as an MPCC (SCOPF): multi-scenario polar AC-OPF in
+# which scenario k removes one branch, with generator-recourse and PV/PQ-switching complementarity rows.
+#
+# Source: the SCOPF model of the MadNCL paper's benchmark harness (`benchmarks/OPF/scopf.jl` of the
+# pre-release MadNCL.jl, as vendored in github.com/SanjayJohnson02/ACOPF under acopf_scratch/MadNCL.jl-main),
+# maintained as `models/scopf.jl` in github.com/frapac/pscc-scopf (F. Pacaud) and packaged in
+# github.com/MadNLP/MPCCbenchmark.jl. Modified here: JuMP + PowerModels only (the original also imports
+# Ipopt, HSL and NLPModelsJuMP), and the keyword arguments below.
+#
+#   tau_relax   right-hand side of the complementarity rows ρ·(bound − var) ≤ tau_relax (0: hard product)
+#   scale_obj   objective scaling, scale_cc   scaling of the complementarity rows (applied as in
+#               pscc-scopf `models/scopf.jl`; the defaults 1.0 / 1.0 leave the model unscaled)
 using JuMP
 using PowerModels
 PowerModels.silence()
 
-# SCOPF repro (2026-07-26): tau_relax = the Scholtes/product complementarity relaxation the paper
-# benchmark uses (ρ·(bound−var) ≤ tau_relax; paper tau_relax=1e-5, scale_cc=1.0). Default 0.0 keeps
-# the historical HARD product (≤ 0). The paper's missing 1e-5 relaxation is the confirmed builder delta.
-# WO-45 (Yifan's ruling 2026-08-05): scale_obj / scale_cc ported from the released benchmark
-# pscc-scopf/models/scopf.jl, application sites IDENTICAL (objective multiplied by scale_obj; the
-# four Scholtes CC rows by scale_cc). DEFAULTS ARE OURS, NOT THEIRS -- 1.0/1.0, so an unset caller
-# reproduces every pre-port CSV (their defaults are 1e-4 and 1e-3). The benchmark VALUES are passed
-# by the drivers: scale_obj=1e-4, scale_cc=1.0 (their benchmark overrides its own 1e-3 to 1.0).
-# WO-44 measured scale_obj as the single knob carrying the paper-vs-us iteration gap.
 function scopf_model(file_name, contingencies; load_factor=1.0, adjust=:droop, voltage_control=:none,
                      tau_relax=0.0, scale_obj=1.0, scale_cc=1.0)
     data = PowerModels.parse_file(file_name)
