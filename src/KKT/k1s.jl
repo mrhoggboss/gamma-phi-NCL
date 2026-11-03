@@ -28,6 +28,13 @@ descent direction as
 
 ```
 
+When MadNLP's inertia correction adds a dual regularization ``-δc`` to the (4,4) block (stored
+as `du_diag = -δc`), keeping it in the elimination replaces ``Π`` by
+``Π̃ = (Π⁻¹ + δc)⁻¹ = Π / (1 - Π du_diag)`` in ``Ω`` and in the recovery of ``Δs`` and ``Δy``.
+With `fold_dual_regularization[] == true` (default) the condensed matrix and the recovered step
+use ``Π̃``; with `false` they use ``Π`` (the original MadNCL formulas). The two coincide whenever
+``δc = 0``.
+
 """
 struct K1sAuglagKKTSystem{T, VT, MT, VI, VI32, LS, EXT} <: MadNLP.AbstractKKTSystem{T, VT, MT, MadNLP.ExactHessian{T, VT}}
     hess_callback::VT
@@ -45,6 +52,7 @@ struct K1sAuglagKKTSystem{T, VT, MT, VI, VI32, LS, EXT} <: MadNLP.AbstractKKTSys
     buffer3::VT
     ρk::VT
     θk::VT
+    θtk::VT
     # slack diagonal buffer
     diag_buffer::VT
     dptr::AbstractVector
@@ -75,6 +83,7 @@ struct K1sAuglagKKTSystem{T, VT, MT, VI, VI32, LS, EXT} <: MadNLP.AbstractKKTSys
     nnz_hess::Int
     ext::EXT
     etc::Dict{Symbol, Any}
+    fold_dual_regularization::Base.RefValue{Bool}
 end
 
 # Build KKT system directly from SparseCallback
@@ -136,8 +145,10 @@ function MadNLP.create_kkt_system(
 
     ρk = VT(undef, m)
     θk = VT(undef, m)
+    θtk = VT(undef, m)
     fill!(ρk, zero(T))
     fill!(θk, zero(T))
+    fill!(θtk, zero(T))
 
     # COO matrices
     # Hessian
@@ -183,7 +194,7 @@ function MadNLP.create_kkt_system(
             l_diag, u_diag, l_lower, u_lower,
             pr_diag_reduced,
             buffer1, buffer2, buffer3,
-            ρk, θk,
+            ρk, θk, θtk,
             diag_buffer, dptr, hptr, jptr,
             aug_com,
             hess_raw, hess_com, hess_csc_map,
@@ -192,6 +203,7 @@ function MadNLP.create_kkt_system(
             ind_eq, ind_ineq, cb.ind_lb, cb.ind_ub,
             n_tot, m, nx, nr, nnz_jac, nnz_hess,
             ext, etc,
+            Ref(true),
     )
 end
 
@@ -261,12 +273,19 @@ function MadNLP.build_kkt!(kkt::K1sAuglagKKTSystem)
     Σr = @view kkt.pr_diag[nx+1:nx+nr]
     Σs = @view kkt.pr_diag[nx+nr+1:nx+nr+ns]
     kkt.θk .= (kkt.ρk .+ Σr)
+    # Π̃ = Π / (1 − Π du_diag) (du_diag = −δc); Π̃ = Π when the fold is off
+    if kkt.fold_dual_regularization[]
+        kkt.θtk .= kkt.θk ./ (1 .- kkt.θk .* kkt.du_diag)
+    else
+        kkt.θtk .= kkt.θk
+    end
 
     kkt.pr_diag_reduced[1:nx] .= Σx
     kkt.pr_diag_reduced[nx+1:nx+ns] .= Σs
 
-    kkt.diag_buffer[kkt.ind_eq] .= kkt.θk[kkt.ind_eq]
-    kkt.diag_buffer[kkt.ind_ineq] .= kkt.θk[kkt.ind_ineq] .* Σs ./ (Σs .+ kkt.θk[kkt.ind_ineq])
+    # Ω_eq = Π̃;  Ω_ineq = Π̃ Σs / (Σs + Π̃)
+    kkt.diag_buffer[kkt.ind_eq] .= kkt.θtk[kkt.ind_eq]
+    kkt.diag_buffer[kkt.ind_ineq] .= kkt.θtk[kkt.ind_ineq] .* Σs ./ (Σs .+ kkt.θtk[kkt.ind_ineq])
 
     MadNLP.build_condensed_aug_coord!(kkt)
 end
@@ -290,15 +309,21 @@ function MadNLP.solve_kkt!(kkt::K1sAuglagKKTSystem, w::MadNLP.AbstractKKTVector)
     ws = view(w_, nx+nr+1:nx+nr+ns)
     wy = view(w_, nx+nr+ns+1:nx+nr+ns+m)
 
-    # Remove Δr
-    dy .= kkt.θk .* (wy .- wr ./ θk)
+    fold = kkt.fold_dual_regularization[]
+    # Remove Δr: Π̃ (d4 − Π⁻¹ d2)
+    dy .= kkt.θtk .* (wy .- wr ./ θk)
     # Remove Δy
     mul!(dx, kkt.jt_csc, dy)
     dx .= dx .+ wx
     ds .= ws .- dy[kkt.ind_ineq]
-    # Remove Δs
+    # Remove Δs: inequality-row correction Π (d3 − A) / (Σs + Π − Π Σs du_diag)
     dy .= 0
-    dy[kkt.ind_ineq] .= (kkt.θk[kkt.ind_ineq] .* ds) ./ (Σs .+ kkt.θk[kkt.ind_ineq])
+    if fold
+        dy[kkt.ind_ineq] .= (kkt.θk[kkt.ind_ineq] .* ds) ./
+            (Σs .+ kkt.θk[kkt.ind_ineq] .- kkt.θk[kkt.ind_ineq] .* Σs .* kkt.du_diag[kkt.ind_ineq])
+    else
+        dy[kkt.ind_ineq] .= (kkt.θk[kkt.ind_ineq] .* ds) ./ (Σs .+ kkt.θk[kkt.ind_ineq])
+    end
     mul!(dx, kkt.jt_csc, dy, 1.0, 1.0)
 
     MadNLP.solve_linear_system!(kkt.linear_solver, dx)
@@ -306,12 +331,16 @@ function MadNLP.solve_kkt!(kkt::K1sAuglagKKTSystem, w::MadNLP.AbstractKKTVector)
     # Unpack solution
     # Δx
     wx .= dx
-    # Δs
+    # Δs = (d3 − A + Π̃ J Δx) / (Σs + Π̃)
     mul!(dy, kkt.jt_csc', wx)
-    ws .= (ds .+ kkt.θk[kkt.ind_ineq] .* dy[kkt.ind_ineq]) ./ (Σs + kkt.θk[kkt.ind_ineq])
-    # Δy
+    ws .= (ds .+ kkt.θtk[kkt.ind_ineq] .* dy[kkt.ind_ineq]) ./ (Σs .+ kkt.θtk[kkt.ind_ineq])
+    # Δy = (Π̃/Π) [Π (J Δx − Δs − d4) + d2]
     dy[kkt.ind_ineq] .-= ws
-    wy .= kkt.θk .* (dy .- wy) .+ wr
+    if fold
+        wy .= (kkt.θtk ./ kkt.θk) .* (kkt.θk .* (dy .- wy) .+ wr)
+    else
+        wy .= kkt.θk .* (dy .- wy) .+ wr
+    end
     # Δr
     wr .= (wr .- wy) ./ θk
 

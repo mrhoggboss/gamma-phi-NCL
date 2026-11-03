@@ -37,8 +37,9 @@ Outer loop and tolerances
   `:residual` accepts when ‖r‖∞ ≤ max(η, feas_tol); `:force` accepts when the penalty force
   satisfies ‖γ φ'(−ρ r)‖∞ ≤ ρ · max(η, feas_tol). Both also require the inner solve to have
   converged. The two tests coincide for the quadratic kernel with γ ≡ 1.
-- `fold_dual_regularization`: with `K2rAuglagKKTSystem`, factorize the dual-regularized
-  reduced block (see its docstring). `false` restores the original MadNCL assembly.
+- `fold_dual_regularization`: with `K2rAuglagKKTSystem` and `K1sAuglagKKTSystem`, keep MadNLP's
+  dual regularization in the reduced systems (see their docstrings). `false` restores the
+  original MadNCL assembly.
 
 Success test. The solve terminates when the current primal-dual pair satisfies the KKT
 conditions of the problem solved by the interior-point method (the original problem with the
@@ -177,7 +178,7 @@ function NCLSolver(nlp::NLPModels.AbstractNLPModel{T, VT}; ncl_options=NCLOption
     # Remove regularization variables to work in the original space
     n = MadNLP.n_variables(solver.cb) - m
     @assert solver.m == m
-    if solver.kkt isa K2rAuglagKKTSystem
+    if solver.kkt isa Union{K2rAuglagKKTSystem, K1sAuglagKKTSystem}
         solver.kkt.fold_dual_regularization[] = ncl_options.fold_dual_regularization
     end
     gainws = _build_gain_workspace(ncl, solver, ncl_options)
