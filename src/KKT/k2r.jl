@@ -22,6 +22,13 @@ we obtain the K2r formulation:
 ```
 and we recover ``Δr = θ * (d2 - Δy)``.
 
+When MadNLP's inertia correction adds a dual regularization ``-δc`` to the (4,4) block
+(stored as `du_diag = -δc`), eliminating ``Δr`` gives the reduced (2,2) block
+``-(θ + δc)``. With `fold_dual_regularization[] == true` (default) this regularized block is
+the one factorized, so the factorized matrix agrees with the operator `mul!` (which applies
+`du_diag`). With `false`, the factorized block is ``-θ`` (the original MadNCL assembly).
+The two coincide whenever ``δc = 0``.
+
 """
 struct K2rAuglagKKTSystem{T, VT, MT, VI, VI32, LS} <: MadNLP.AbstractKKTSystem{T, VT, MT, MadNLP.ExactHessian{T, VT}}
     hess_callback::VT
@@ -64,6 +71,7 @@ struct K2rAuglagKKTSystem{T, VT, MT, VI, VI32, LS} <: MadNLP.AbstractKKTSystem{T
     nr::Int
     nnz_jac::Int
     nnz_hess::Int
+    fold_dual_regularization::Base.RefValue{Bool}
 end
 
 # Build KKT system directly from SparseCallback
@@ -197,6 +205,7 @@ function MadNLP.create_kkt_system(
         _linear_solver,
         ind_ineq, cb.ind_lb, cb.ind_ub,
         n_tot, m, nx, nr, nnz_jac, nnz_hess,
+        Ref(true),
     )
 
 end
@@ -256,7 +265,11 @@ function MadNLP.build_kkt!(kkt::K2rAuglagKKTSystem)
     Σr = @view kkt.pr_diag[nx+1:nx+nr]
     Σs = @view kkt.pr_diag[nx+nr+1:nx+nr+ns]
     kkt.θk .= 1.0 ./ (kkt.ρk .+ Σr)
-    kkt.du_diag_reduced .= .-kkt.θk
+    if kkt.fold_dual_regularization[]
+        kkt.du_diag_reduced .= .-kkt.θk .+ kkt.du_diag
+    else
+        kkt.du_diag_reduced .= .-kkt.θk
+    end
     kkt.pr_diag_reduced[1:nx] .= Σx
     kkt.pr_diag_reduced[nx+1:nx+ns] .= Σs
     MadNLP.transfer!(kkt.aug_com, kkt.aug_raw, kkt.aug_csc_map)
