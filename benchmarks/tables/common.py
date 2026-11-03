@@ -8,7 +8,8 @@ import csv, glob, math, os, re, statistics
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_OUT = os.path.join(os.path.dirname(HERE), "out", "tables")
 
-# Paper names. The power-kernel cell's name is not fixed yet (Yifan's call).
+# Paper names. TODO: the power-kernel cell's name is a placeholder, deferred until the shipped variant is
+# confirmed.
 NAMES = {
     "W": "$(\\gamma,\\varphi)$-MadNCL",
     "S": "MadNCL",

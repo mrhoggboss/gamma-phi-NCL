@@ -10,7 +10,10 @@ Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--out=<dir>]
 import sys
 from common import DEFAULT_OUT, NAMES, assert_no_tokens, find, fmt, gm, majority, ordered, read_rows, solved, write
 
-# Caption: the manuscript's (overleaf_upload/tables/tab_gpu_opf.tex), verbatim ("45 cases", "three" are counts).
+# Caption: the manuscript's (overleaf_upload/tables/tab_gpu_opf.tex), verbatim (captions are Yifan's).
+# TODO(caption, stale items to revise once the new numbers exist):
+#   - "45 cases": the harness runs PGLIB 66 by default (instances/pglib66.txt); 45 = instances/pglib45.txt.
+#   - "the majority of the three": the number of repetitions is whatever tags are in the result directory.
 CAPTION = ("PGLIB optimal power flow, 45 cases. Each repetition is an independent run on the same device; "
            "\\emph{solved} is the per-instance majority of the three, and the cost is the geometric mean over that "
            "set of the median factorization count of the succeeding repetitions.")

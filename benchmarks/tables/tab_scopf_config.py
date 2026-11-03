@@ -8,8 +8,12 @@ Usage: python3 benchmarks/tables/tab_scopf_config.py <resdir> [--tag=r1] [--out=
 import math, os, re, sys
 from common import DEFAULT_OUT, write
 
-# Caption: the manuscript's (overleaf_upload/tables/tab_scopf_config.tex), verbatim. It describes the earlier
-# tolerance-1e-5 configuration (tau_relax = 1e-5, inner s_max = 1e20); the rows below come from the run.
+# Caption: the manuscript's (overleaf_upload/tables/tab_scopf_config.tex), verbatim (captions are Yifan's).
+# TODO(caption, stale items to revise):
+#   - it describes the tolerance-1e-5 suite: tau_relax = 1e-5 ("at tau_relax = 0 ... no interior-point method can
+#     make progress") and an inner s_max of 1e20 "ours rather than the benchmark's". The run now has tau_relax = 0
+#     (the problem (P)), tolerance 1e-8 and MadNLP's default s_max = 100, so neither entry is in the rows below.
+#   - the rationale column below is not Yifan's text; it needs his wording.
 CAPTION = ("Configuration exceptions for the security-constrained OPF benchmark. These are\n"
            "properties of the benchmark rather than of any one solver, and are applied identically to\n"
            "every configuration compared on it. The complementarity relaxation $\\tau_{\\mathrm{relax}}$\n"

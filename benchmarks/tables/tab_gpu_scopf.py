@@ -11,8 +11,11 @@ Usage: python3 benchmarks/tables/tab_gpu_scopf.py <resdir> [--out=<dir>]
 import sys
 from common import DEFAULT_OUT, NAMES, assert_no_tokens, find, fmt, gm, majority, ordered, read_rows, write
 
-# Caption: the manuscript's (overleaf_upload/tables/tab_gpu_scopf.tex), verbatim. It states facts about the banked
-# runs ("one pass each", "every non-solve ... iteration limit reached at 3000"); check them against the new runs.
+# Caption: the manuscript's (overleaf_upload/tables/tab_gpu_scopf.tex), verbatim (captions are Yifan's).
+# TODO(caption, stale items to revise once the new numbers exist):
+#   - "one pass each": the SCOPF table is planned as a majority of three repetitions.
+#   - "every non-solve in this table is the iteration limit reached at 3000": a fact about the banked runs.
+#   - the banked table had 8 instances; the harness list has 23 pairs (instances/scopf23.csv).
 CAPTION = ("The security-constrained complementarity problems, per instance, one pass each. For each solve, the entry "
            "is the interior-point iteration count and the factorization count; a dash is a non-solve, and every "
            "non-solve in this table is the iteration limit reached at 3000, so no number is reported for it.")
