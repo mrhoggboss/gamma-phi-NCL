@@ -16,6 +16,10 @@
 #                                     `data` column (required for scopf; the case files are not distributed here)
 #              --cases=<a,b,...>      restrict the run to these instance names
 #              --wall=<seconds>       wall-time limit per solve (default 1800)
+#              --tol=<t>              optimality and feasibility tolerance of every configuration (default 1e-8)
+#              --cvtol=<t>            constraint-violation tolerance in the original scaling (default 1e-4), the
+#                                     MadNCL configurations' constr_viol_tol; MadNLP (LiftedKKT) has no such test
+#                                     and runs without it (the violation is recorded as pr_res in every row)
 #              --warmup=0             skip the warm-up solves (they are on by default)
 #
 # Every configuration factorizes the KKT system with the same linear solver (cuDSS LDL on the GPU) and
@@ -25,7 +29,7 @@
 include(joinpath(@__DIR__, "common.jl"))
 
 const POS, OPT = parse_args(ARGS)
-length(POS) == 3 || error("usage: gpu.jl <suite> <configs> <outdir> [--tag=] [--device=] [--instances=] [--data=] [--cases=] [--wall=] [--warmup=0]")
+length(POS) == 3 || error("usage: gpu.jl <suite> <configs> <outdir> [--tag=] [--device=] [--instances=] [--data=] [--cases=] [--wall=] [--tol=] [--cvtol=] [--warmup=0]")
 const SUITE = POS[1]
 SUITE in ("opf", "cops", "cops_ladder", "scopf") || error("unknown suite $SUITE")
 const CONFIGS = String.(split(POS[2], ","))
@@ -35,6 +39,8 @@ const DEVICE = get(OPT, "device", "cuda")
 DEVICE in ("cuda", "cpu") || error("--device must be cuda or cpu")
 const WALL = parse(Float64, get(OPT, "wall", "1800"))
 const WARMUP = get(OPT, "warmup", "1") != "0"
+const TOL = parse(Float64, get(OPT, "tol", "1e-8"))
+const CVTOL = parse(Float64, get(OPT, "cvtol", "1e-4"))
 const CASES = filter(!isempty, String.(split(get(OPT, "cases", ""), ",")))
 
 using MadNCL, MadNLP, ExaModels, NLPModels, PowerModels, COPSBenchmark, Printf
@@ -136,7 +142,7 @@ function make_solver(model, config; max_iter=MAX_ITER)
         return liftedkkt_solver(model, LINEAR_SOLVER, (tol=TOL, max_iter=max_iter, max_wall_time=WALL,
                                 print_level=MadNLP.ERROR, SUITE_IPM...))
     end
-    kernel, opt, ipm = arm_config(config)
+    kernel, opt, ipm = arm_config(config; tol=TOL, constr_viol_tol=CVTOL)
     return MadNCL.NCLSolver(model; ncl_options=opt, kernel=kernel, kkt_system=MadNCL.K2rAuglagKKTSystem,
                             ipm_kw(; max_iter=max_iter)..., ipm...)
 end
@@ -187,7 +193,7 @@ function main()
     # warm-up: one solve per configuration on a small model of the same kind; its solvers are echoed
     cfgfile = joinpath(OUTDIR, "config_$(SUITE)__$(TAG).txt")
     open(cfgfile, "w") do io
-        println(io, "suite=$SUITE device=$DEVICE tag=$TAG wall=$WALL max_iter=$MAX_ITER ",
+        println(io, "suite=$SUITE device=$DEVICE tag=$TAG wall=$WALL tol=$TOL constr_viol_tol=$CVTOL max_iter=$MAX_ITER ",
                 "linear_solver=$(LINEAR_SOLVER.linear_solver) suite_ipm=$(SUITE_IPM) pathof(MadNCL)=$(pathof(MadNCL))")
         SUITE == "scopf" && println(io, "scopf_model=$(SCOPF_MODEL)")
         wm = warm()

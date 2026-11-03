@@ -7,26 +7,28 @@
 #   U6A  power-kernel cell    φᵢ(t) = t²/2 + (λ/6)|t|⁶ with λ ≡ 1e-2 on every row, unit weights,
 #                             residual gate, MadNLP's acceptable-level exit disabled
 #
-# All four use the tolerance 1e-8 and scaling_max_gradient = 100; μ* = (1e-8/100)^(1/1.05).
-# Suite-specific interior-point settings (iteration budget, wall time, linear solver) are added by
-# the drivers, identically for every configuration.
+# All four use scaling_max_gradient = 100 and the tolerances given by the drivers (defaults: opt_tol =
+# feas_tol = 1e-8, constr_viol_tol = 1e-4); μ* = (opt_tol/100)^(1/1.05), the barrier floor at which the
+# inner dual tolerance 100·μ^1.05 reaches opt_tol (2.9935772947204935e-10 at 1e-8). Suite-specific
+# interior-point settings (iteration budget, wall time, linear solver) are added by the drivers,
+# identically for every configuration.
 
 using MadNCL
 
 const ARMS = ("S", "SP", "W", "U6A")
 const ARM_NAMES = Dict("S" => "MadNCL", "SP" => "MadNCL + parameters",
                        "W" => "(γ,φ)-MadNCL", "U6A" => "power-kernel cell (p = 6, λ = 1e-2)")
-const TOL = 1e-8
-const MU_STAR = (TOL / 100)^(1 / 1.05)
+mu_star(tol) = (tol / 100)^(1 / 1.05)
 
 """
-    arm_config(name) -> (kernel, ncl_options::NCLOptions{Float64}, ipm_options::NamedTuple)
+    arm_config(name; tol=1e-8, constr_viol_tol=1e-4) -> (kernel, ncl_options, ipm_options)
 
-The penalty kernel, the NCL options and the MadNLP options that define configuration `name`.
+The penalty kernel, the NCL options and the MadNLP options that define configuration `name`, at the
+optimality/feasibility tolerance `tol` and the constraint-violation tolerance `constr_viol_tol`.
 """
-function arm_config(name::AbstractString)
-    base = (verbose=false, opt_tol=TOL, feas_tol=TOL, scaling_max_gradient=100.0)
-    tuned = (base..., mu_min=MU_STAR, max_auglag_iter=40, rho_max=1e14)
+function arm_config(name::AbstractString; tol=1e-8, constr_viol_tol=1e-4)
+    base = (verbose=false, opt_tol=tol, feas_tol=tol, constr_viol_tol=constr_viol_tol, scaling_max_gradient=100.0)
+    tuned = (base..., mu_min=mu_star(tol), max_auglag_iter=40, rho_max=1e14)
     if name == "S"
         return (MadNCL.QuadraticKernel(),
                 MadNCL.NCLOptions{Float64}(; base..., fold_dual_regularization=false), NamedTuple())

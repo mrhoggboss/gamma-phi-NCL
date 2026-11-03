@@ -1,6 +1,6 @@
 # CUTEst benchmark on the CPU.
 #
-#   julia --project=benchmarks/envs/cpu benchmarks/cutest.jl <list> <configs> <solvers> <nworkers> <wall> <outdir> [--trace]
+#   julia --project=benchmarks/envs/cpu benchmarks/cutest.jl <list> <configs> <solvers> <nworkers> <wall> <outdir> [options]
 #
 #   <list>     instance list, one CUTEst name per line (benchmarks/instances/cutest_*.txt)
 #   <configs>  comma list of S, SP, W, U6A (benchmarks/arms.jl) and the baselines
@@ -11,6 +11,11 @@
 #   <wall>     wall-time limit per solve, in seconds (also the success cap of the tables)
 #   <outdir>   results: cutest__<config>__<solver>.csv (and trace__<config>__<solver>.csv with --trace);
 #              finished tasks are kept under <outdir>/rows and skipped when the run is restarted
+#   options    --tol=<t>     optimality and feasibility tolerance of every configuration and baseline (default 1e-8)
+#              --cvtol=<t>   constraint-violation tolerance in the original scaling (default 1e-4): the MadNCL
+#                            configurations' constr_viol_tol and Ipopt's constr_viol_tol; MadNLP has no such test,
+#                            so the two MadNLP baselines run without it (the violation is recorded in every row)
+#              --trace       per-outer-iteration records of the MadNCL configurations
 #
 # Every solve uses max_iter = 3000 and bound_relax_factor = 1e-8. Problems must be decoded before the
 # run (the driver decodes missing ones serially on the master; workers load them with decode=false).
@@ -18,7 +23,7 @@ using Distributed
 include(joinpath(@__DIR__, "common.jl"))
 
 const POS, OPT = parse_args(ARGS)
-length(POS) == 6 || error("usage: cutest.jl <list> <configs> <solvers> <nworkers> <wall> <outdir> [--trace]")
+length(POS) == 6 || error("usage: cutest.jl <list> <configs> <solvers> <nworkers> <wall> <outdir> [--tol=] [--cvtol=] [--trace]")
 const LIST = POS[1]
 const CONFIGS = String.(split(POS[2], ","))
 const SOLVERS = String.(split(POS[3], ","))
@@ -26,6 +31,8 @@ const NW = parse(Int, POS[4])
 const WALL = parse(Float64, POS[5])
 const OUTDIR = abspath(POS[6])
 const TRACE = haskey(OPT, "trace")
+const TOL = parse(Float64, get(OPT, "tol", "1e-8"))
+const CVTOL = parse(Float64, get(OPT, "cvtol", "1e-4"))
 const NCL_CONFIGS = ("S", "SP", "W", "U6A")
 const BASELINES = ("ipopt", "liftedkkt", "madnlp")
 for c in CONFIGS; c in NCL_CONFIGS || c in BASELINES || error("unknown configuration $c"); end
@@ -51,13 +58,15 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
     using MadNCL, MadNLP, MadNLPHSL, NLPModels, CUTEst, NLPModelsIpopt, HSL_jll
     const WALL_W = $WALL
     const TRACE_W = $TRACE
+    const TOL_W = $TOL
+    const CVTOL_W = $CVTOL
     linear_solver_kw(s) = s == "ma57" ? (linear_solver=MadNLPHSL.Ma57Solver, ma57_automatic_scaling=true) :
                                         (linear_solver=MadNLP.LDLSolver,)
     common_ipm(s) = (linear_solver_kw(s)..., bound_relax_factor=1e-8, max_iter=3000, max_wall_time=WALL_W,
                      print_level=MadNLP.ERROR)
     # NCLSolver for a MadNCL configuration
     function ncl_solver(nlp, config, s)
-        kernel, opt, ipm = arm_config(config)
+        kernel, opt, ipm = arm_config(config; tol=TOL_W, constr_viol_tol=CVTOL_W)
         return MadNCL.NCLSolver(nlp; ncl_options=opt, kernel=kernel,
                                 kkt_system=MadNCL.K2rAuglagKKTSystem, common_ipm(s)..., ipm...)
     end
@@ -66,14 +75,14 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
         base = (name, nlp.meta.nvar, nlp.meta.ncon, n_equalities(nlp))
         try
             if config == "ipopt"
-                t = @elapsed r = NLPModelsIpopt.ipopt(nlp; tol=1e-8, max_iter=3000, max_wall_time=WALL_W,
+                t = @elapsed r = NLPModelsIpopt.ipopt(nlp; tol=TOL_W, constr_viol_tol=CVTOL_W, max_iter=3000, max_wall_time=WALL_W,
                     print_level=0, linear_solver="ma57", hsllib=HSL_jll.libhsl_path, ma57_automatic_scaling="yes")
                 # Ipopt does not expose its factorization count: the iteration count is recorded (a lower bound)
                 return ((base..., string(r.status), r.iter, r.iter, t, constraint_violation(nlp, r.solution),
                          r.objective, -1, r.dual_feas), nothing)
             elseif config in ("liftedkkt", "madnlp")
                 kkt = config == "liftedkkt" ? MadNLP.SparseCondensedKKTSystem : MadNLP.SparseKKTSystem
-                t = @elapsed r = MadNLP.madnlp(nlp; kkt_system=kkt, tol=1e-8, common_ipm(s)...)
+                t = @elapsed r = MadNLP.madnlp(nlp; kkt_system=kkt, tol=TOL_W, common_ipm(s)...)
                 return ((base..., string(r.status), r.iter, r.counters.factorization_cnt, t,
                          constraint_violation(nlp, r.solution), r.objective, -1, r.dual_feas), nothing)
             else
@@ -111,7 +120,7 @@ end
 probe = first(p for p in problems if !(p in decode_failed))
 open(joinpath(OUTDIR, "config.txt"), "w") do io
     println(io, "list=$LIST configs=$(join(CONFIGS, ",")) solvers=$(join(SOLVERS, ",")) workers=$NW wall=$WALL ",
-            "max_iter=3000 bound_relax_factor=1e-8 pathof(MadNCL)=$(remotecall_fetch(() -> pathof(MadNCL), first(workers())))")
+            "tol=$TOL constr_viol_tol=$CVTOL max_iter=3000 bound_relax_factor=1e-8 pathof(MadNCL)=$(remotecall_fetch(() -> pathof(MadNCL), first(workers())))")
     for c in CONFIGS, s in SOLVERS
         c == "ipopt" && s != "ma57" && continue
         if c in NCL_CONFIGS
@@ -125,10 +134,10 @@ open(joinpath(OUTDIR, "config.txt"), "w") do io
             end
             print(io, replace(txt, "CONFIG $c " => "CONFIG $c [$s] "))
         elseif c == "ipopt"
-            println(io, "CONFIG ipopt [ma57] tol=1e-8 max_iter=3000 max_wall_time=$WALL linear_solver=ma57 ma57_automatic_scaling=yes")
+            println(io, "CONFIG ipopt [ma57] tol=$TOL constr_viol_tol=$CVTOL max_iter=3000 max_wall_time=$WALL linear_solver=ma57 ma57_automatic_scaling=yes")
         else
             println(io, "CONFIG $c [$s] kkt_system=$(c == "liftedkkt" ? "SparseCondensedKKTSystem" : "SparseKKTSystem") ",
-                    "tol=1e-8 max_iter=3000 max_wall_time=$WALL bound_relax_factor=1e-8 linear_solver=$s")
+                    "tol=$TOL constr_viol_tol=n/a (MadNLP has no such test) max_iter=3000 max_wall_time=$WALL bound_relax_factor=1e-8 linear_solver=$s")
         end
     end
 end

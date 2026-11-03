@@ -21,7 +21,7 @@ function echo_liftedkkt(io::IO, s)
     println(io, "CONFIG liftedkkt (LiftedKKT) kkt_system=$(nameof(typeof(s.kkt))) ",
             "linear_solver=$(nameof(typeof(s.kkt.linear_solver))) equality_treatment=$(o.equality_treatment) ",
             "fixed_variable_treatment=$(o.fixed_variable_treatment) dual_initialized=$(o.dual_initialized) ",
-            "tol=$(o.tol) max_iter=$(o.max_iter) max_wall_time=$(o.max_wall_time) bound_relax_factor=$(o.bound_relax_factor) ",
+            "tol=$(o.tol) constr_viol_tol=n/a (MadNLP has no such test) max_iter=$(o.max_iter) max_wall_time=$(o.max_wall_time) bound_relax_factor=$(o.bound_relax_factor) ",
             "s_max=$(o.s_max) richardson_tol=$(s.iterator.opt.richardson_tol) richardson_max_iter=$(s.iterator.opt.richardson_max_iter)")
     flush(io)
 end
