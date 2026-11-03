@@ -3,7 +3,7 @@ module MadNCL
 import LinearAlgebra: norm
 import LinearAlgebra: dot, axpy!, mul!
 import LinearAlgebra: Symmetric
-import SparseArrays: sparsevec, nonzeros
+import SparseArrays: sparsevec, nonzeros, sparse
 import SparseArrays: SparseMatrixCSC
 import Printf: @printf
 import NLPModels
@@ -17,6 +17,7 @@ import KernelAbstractions: @kernel, @index
 export madncl
 
 include("utils.jl")
+include("Models/kernels.jl")
 include("Models/ncl.jl")
 include("Models/scaled.jl")
 
