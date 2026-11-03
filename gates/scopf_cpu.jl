@@ -6,7 +6,7 @@
 #   compare: julia gates/scopf_cpu.jl compare <ref.txt> <public.txt>
 #
 # Arms: U6A  power kernel p = 6, λ ≡ 1e-2, MadNLP acceptable_tol = 0
-#       W    (γ,φ)-MadNCL: gain law + force gate
+#       W    (γ,φ)-MadNCL: weight law + force gate
 #       S    MadNCL (upstream constants; tolerance 1e-8, scaling_max_gradient 100), δc fold off
 #       SP   MadNCL + parameters (S with μ_min = μ*, 40 outer iterations, ρ_max = 1e14)
 # Model: scopf_model(<data_dir>/<case>.m, CONTINGENCIES[case][1:K]; adjust=:mpecdroop, voltage_control=:pvpq,
@@ -18,8 +18,8 @@ hx(x::Float64) = string(reinterpret(UInt64, x), base=16)
 if MODE == "run"
 
 @eval using MadNCL, MadNLP, ExaModels, NLPModels
-include(joinpath(@__DIR__, "..", "benchmarks", "scopf", "scopf_model.jl"))
-include(joinpath(@__DIR__, "..", "benchmarks", "scopf", "contingencies.jl"))
+include(joinpath(@__DIR__, "..", "benchmarks", "models", "scopf_model.jl"))
+include(joinpath(@__DIR__, "..", "benchmarks", "instances", "scopf_contingencies.jl"))
 const ARM = ARGS[2]; const OUT = ARGS[3]; const DATA = ARGS[4]
 const CASE = length(ARGS) >= 5 ? ARGS[5] : "case118"
 const K = length(ARGS) >= 6 ? parse(Int, ARGS[6]) : 10
@@ -37,8 +37,8 @@ FROZEN = (verbose=false, opt_tol=1e-8, feas_tol=1e-8, max_auglag_iter=40, scalin
 kernel, opt, ipm_kw = if ARM == "U6A"
     (MadNCL.PowerKernel(6.0, 1e-2), MadNCL.NCLOptions{Float64}(; FROZEN...), (acceptable_tol=0.0,))
 elseif ARM == "W"
-    (MadNCL.QuadraticKernel(), MadNCL.NCLOptions{Float64}(; FROZEN..., gain_law=:geometry, gain_clip=(1e-30, 1e8),
-        gain_anneal_horizon=6.0, gate_metric=:force), NamedTuple())
+    (MadNCL.QuadraticKernel(), MadNCL.NCLOptions{Float64}(; FROZEN..., weight_law=:geometry, weight_clip=(1e-30, 1e8),
+        weight_anneal_horizon=6.0, gate_metric=:force), NamedTuple())
 elseif ARM == "S"
     (MadNCL.QuadraticKernel(), MadNCL.NCLOptions{Float64}(; verbose=false, opt_tol=1e-8, feas_tol=1e-8,
         scaling_max_gradient=100.0, fold_dual_regularization=false), NamedTuple())

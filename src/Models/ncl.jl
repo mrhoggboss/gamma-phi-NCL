@@ -16,7 +16,7 @@ subject to   c♭ ≤ c(x) ≤ c♯
 
 ```
 using a (γ,φ) augmented-Lagrangian formulation. For a given penalty ``ρ``, multiplier
-estimate ``y_e``, per-row gains ``γ_i > 0`` and penalty kernel ``φ`` ([`AbstractKernel`](@ref)),
+estimate ``y_e``, per-row weights ``γ_i > 0`` and penalty kernel ``φ`` ([`AbstractKernel`](@ref)),
 the NCL model writes
 ```
 min_{x,r}    f(x) - y_eᵀ r + \sum_i \frac{γ_i}{ρ} φ_i(-ρ r_i)
@@ -28,7 +28,7 @@ The quadratic kernel ``φ(t) = t²/2`` with ``γ ≡ 1`` gives the classical pen
 ``\frac{ρ}{2}\|r\|^2``.
 
 Per-row data (vectors aligned with ``r``, on the same device as the model):
-- `γr`: the gains ``γ_i`` (default 1). They multiply the penalty only, never the ``-y_eᵀ r`` term.
+- `γr`: the weights ``γ_i`` (default 1). They multiply the penalty only, never the ``-y_eᵀ r`` term.
 - `λr`: the kernel parameters ``λ_i`` (see [`PowerKernel`](@ref); ignored by [`QuadraticKernel`](@ref)).
 """
 struct NCLModel{T, VT, M, K} <: NLPModels.AbstractNLPModel{T, VT}

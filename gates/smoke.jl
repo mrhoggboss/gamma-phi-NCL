@@ -6,7 +6,7 @@
 #   compare: julia gates/smoke.jl compare <rows_a.csv> <trace_a.csv> <rows_b.csv> <trace_b.csv>
 #
 # <arm>: U6A  = PowerKernel(6), λ ≡ 1e-2, MadNLP acceptable_tol = 0
-#        W    = quadratic kernel, gain law + force gate ((γ,φ)-MadNCL)
+#        W    = quadratic kernel, weight law + force gate ((γ,φ)-MadNCL)
 #        both on K2r + MA57 (automatic scaling) at the frozen campaign constants.
 using Printf
 using Distributed
@@ -50,8 +50,8 @@ addprocs(NW; exeflags="--project=$(PROJ)")
             return (MadNCL.PowerKernel(6.0, 1e-2), MadNCL.NCLOptions{Float64}(; FROZEN...), (acceptable_tol=0.0,))
         else
             return (MadNCL.QuadraticKernel(),
-                    MadNCL.NCLOptions{Float64}(; FROZEN..., gain_law=:geometry, gain_clip=(1e-30, 1e8),
-                                               gain_anneal_horizon=6.0, gate_metric=:force),
+                    MadNCL.NCLOptions{Float64}(; FROZEN..., weight_law=:geometry, weight_clip=(1e-30, 1e8),
+                                               weight_anneal_horizon=6.0, gate_metric=:force),
                     NamedTuple())
         end
     end

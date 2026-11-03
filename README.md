@@ -67,7 +67,7 @@ with per-row weights `γᵢ > 0` (`solver.ncl.γr`, default 1) and a penalty ker
 
 New kernels are added by subtyping `MadNCL.AbstractKernel` and implementing
 `phi(k, λ, t)`, `dphi(k, λ, t)`, `ddphi(k, λ, t)`. The weights can be updated automatically by
-the weight law `gain_law=:geometry` (the code calls the weights *gains*), and the subproblem
+the weight law `weight_law=:geometry`, and the subproblem
 acceptance test can be measured on the penalty force (`gate_metric=:force`); see the docstring
 of `MadNCL.NCLOptions`.
 
@@ -81,7 +81,7 @@ using MadNCL, MadNLP
 μstar = (1e-8 / 100)^(1 / 1.05)
 
 # MadNCL: MadNCL's own constants (ρ_max = 1e12, 20 outer iterations, μ_min = 1e-9,
-# extrapolation step on); the dual-regularization fold of K2r is switched off.
+# extrapolation step on); the dual-regularization fold of K2r/K1s is switched off.
 S = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
                                fold_dual_regularization=false)
 
@@ -93,8 +93,8 @@ SP = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradien
 # (γ,φ)-MadNCL: weight law, force gate, no extrapolation step.
 frozen = (opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0, mu_min=μstar,
           max_auglag_iter=40, rho_max=1e14, extrapolation=false)
-W = MadNCL.NCLOptions{Float64}(; frozen..., gain_law=:geometry, gain_clip=(1e-30, 1e8),
-                               gain_anneal_horizon=6.0, gate_metric=:force)
+W = MadNCL.NCLOptions{Float64}(; frozen..., weight_law=:geometry, weight_clip=(1e-30, 1e8),
+                               weight_anneal_horizon=6.0, gate_metric=:force)
 madncl(nlp; ncl_options=W, kkt_system=MadNCL.K2rAuglagKKTSystem)
 
 # Power-kernel cell: φ with p = 6 and λ ≡ 1e-2 on every row, unit weights, residual gate,

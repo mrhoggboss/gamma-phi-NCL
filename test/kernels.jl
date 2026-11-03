@@ -124,7 +124,7 @@ end
         @test s_0.objective ≈ s_q.objective rtol=1e-12
     end
 
-    @testset "power kernel, gain law and force gate on HS15 ($(kkt))" for kkt in (
+    @testset "power kernel, weight law and force gate on HS15 ($(kkt))" for kkt in (
         MadNCL.K2rAuglagKKTSystem, MadNCL.K1sAuglagKKTSystem,
     )
         ref = MadNCL.madncl(HS15Model(); ncl_options=MadNCL.NCLOptions{Float64}(verbose=false),
@@ -133,9 +133,9 @@ end
         for (kernel, opts) in (
             (MadNCL.PowerKernel(6.0, 0.01), MadNCL.NCLOptions{Float64}(verbose=false, extrapolation=false)),
             (MadNCL.QuadraticKernel(), MadNCL.NCLOptions{Float64}(verbose=false, extrapolation=false,
-                gain_law=:geometry, gate_metric=:force)),
+                weight_law=:geometry, gate_metric=:force)),
             (MadNCL.PowerKernel(6.0, 0.01), MadNCL.NCLOptions{Float64}(verbose=false, extrapolation=false,
-                gain_law=:geometry, gate_metric=:force)),
+                weight_law=:geometry, gate_metric=:force)),
         )
             stats = MadNCL.madncl(HS15Model(); ncl_options=opts, kernel=kernel, kkt_system=kkt,
                                   print_level=MadNLP.ERROR)
@@ -175,7 +175,7 @@ end
 
     @testset "option validation" begin
         @test_throws ErrorException MadNCL.NCLSolver(HS15Model();
-            ncl_options=MadNCL.NCLOptions{Float64}(gain_law=:bogus))
+            ncl_options=MadNCL.NCLOptions{Float64}(weight_law=:bogus))
         @test_throws ErrorException MadNCL.NCLSolver(HS15Model();
             ncl_options=MadNCL.NCLOptions{Float64}(gate_metric=:bogus))
     end

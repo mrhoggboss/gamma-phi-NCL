@@ -109,7 +109,7 @@ end
 end
 
 include("kernels.jl")
-include("gain_law.jl")
+include("weight_law.jl")
 include("kkt_dualreg.jl")
 
 @testset "Test NCL algorithm" begin

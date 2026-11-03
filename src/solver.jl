@@ -8,7 +8,7 @@ import MadNLP: full, primal, dual, dual_lb, dual_ub
     NCLOptions{T}
 
 Options of the NCL outer loop. The defaults are those of MadNCL; the (γ,φ) extensions are
-off by default (quadratic kernel, unit gains, residual gate).
+off by default (quadratic kernel, unit weights, residual gate).
 
 Outer loop and tolerances
 - `verbose`: print one log line per outer iteration.
@@ -26,12 +26,12 @@ Outer loop and tolerances
   after every accepted subproblem.
 
 (γ,φ) extensions
-- `gain_law`: `:none` (default) keeps the per-row gains γ (`NCLModel.γr`) as set by the
+- `weight_law`: `:none` (default) keeps the per-row weights γ (`NCLModel.γr`) as set by the
   caller. `:geometry` recomputes them after every outer iteration from the row norms of the
-  scaled Jacobian at the last iterate (see `_update_gains!`).
-- `gain_clip`: interval to which the target gains of `:geometry` are clipped.
-- `gain_anneal_horizon`: the installed gains are `target^α` with
-  `α = clamp(n_acc / gain_anneal_horizon, 0, 1)`, where `n_acc` is the number of accepted
+  scaled Jacobian at the last iterate (see `_update_weights!`).
+- `weight_clip`: interval to which the target weights of `:geometry` are clipped.
+- `weight_anneal_horizon`: the installed weights are `target^α` with
+  `α = clamp(n_acc / weight_anneal_horizon, 0, 1)`, where `n_acc` is the number of accepted
   subproblems so far (`≤ 0` disables the annealing: α ≡ 1).
 - `gate_metric`: acceptance test of a subproblem (multiplier update and barrier decrease).
   `:residual` accepts when ‖r‖∞ ≤ max(η, feas_tol); `:force` accepts when the penalty force
@@ -68,9 +68,9 @@ original constraint bounds in the original scaling.
     mu_tau::T = T(1.99)
     mu_fac::T = T(0.2)
     mu_min::T = T(1e-9)
-    gain_law::Symbol = :none
-    gain_clip::NTuple{2, T} = (T(1e-30), T(1e8))
-    gain_anneal_horizon::T = T(6)
+    weight_law::Symbol = :none
+    weight_clip::NTuple{2, T} = (T(1e-30), T(1e8))
+    weight_anneal_horizon::T = T(6)
     gate_metric::Symbol = :residual
     fold_dual_regularization::Bool = true
 end
@@ -79,25 +79,25 @@ end
 const _SUCCESS_S_MAX = 100
 
 #=
-    Gain workspace (gain_law = :geometry)
+    Weight workspace (weight_law = :geometry)
 =#
 
-abstract type AbstractGainWorkspace{T} end
+abstract type AbstractWeightWorkspace{T} end
 
 # Host workspace. `rows[k]` is the constraint row of the k-th entry of the x-block of the
 # (scaled) NCL Jacobian; the structure is fixed for the whole solve.
-struct GainWorkspace{T} <: AbstractGainWorkspace{T}
+struct WeightWorkspace{T} <: AbstractWeightWorkspace{T}
     rows::Vector{Int}
     jv::Vector{T}       # x-block Jacobian values
     w::Vector{T}        # squared row norms wᵢ
     obs::BitVector      # rows with a finite 1/wᵢ
-    g::Vector{T}        # new gains
-    gprev::Vector{T}    # gains in force before the update
+    g::Vector{T}        # new weights
+    gprev::Vector{T}    # weights in force before the update
 end
 
 # Device workspace: the row norms are one sparse matrix-vector product w = S * jv.^2 with the
 # fixed 0/1 selector S[rows[k], k] = 1; every other step is a broadcast or a reduction.
-struct GainWorkspaceDevice{T, MT, VT, VB} <: AbstractGainWorkspace{T}
+struct WeightWorkspaceDevice{T, MT, VT, VB} <: AbstractWeightWorkspace{T}
     S::MT
     jv2::VT
     w::VT
@@ -111,29 +111,29 @@ end
 _build_row_selector(proto::AbstractArray, rows::Vector{Int}, nr::Int, nnz_x::Int) =
     sparse(rows, collect(1:nnz_x), ones(eltype(proto), nnz_x), nr, nnz_x)
 
-# The Jacobian read by the gain law is MadNLP.get_jacobian(kkt): the scaled NCL Jacobian at the
+# The Jacobian read by the weight law is MadNLP.get_jacobian(kkt): the scaled NCL Jacobian at the
 # last evaluated iterate, x-block entries first and the nr entries of the r-identity last.
-function _build_gain_workspace(ncl::NCLModel{T}, ipm::MadNLP.MadNLPSolver,
+function _build_weight_workspace(ncl::NCLModel{T}, ipm::MadNLP.MadNLPSolver,
                                options::NCLOptions{T}) where T
-    options.gain_law === :none && return nothing
+    options.weight_law === :none && return nothing
     cb = ipm.cb
     nnz_x = cb.nnzj - ncl.nr
     jac = MadNLP.get_jacobian(ipm.kkt)
     (jac isa AbstractVector && length(jac) == cb.nnzj) ||
-        error("gain_law=:geometry requires a sparse KKT system exposing the callback Jacobian")
+        error("weight_law=:geometry requires a sparse KKT system exposing the callback Jacobian")
     Ji = MadNLP.create_array(cb, Int32, cb.nnzj)
     Jj = MadNLP.create_array(cb, Int32, cb.nnzj)
     MadNLP._jac_sparsity_wrapper!(cb, Ji, Jj)
     rows = Vector{Int}(Array(Ji)[1:nnz_x])
     nr = ncl.nr
     if jac isa Array
-        return GainWorkspace{T}(rows, Vector{T}(undef, nnz_x), zeros(T, nr), falses(nr),
+        return WeightWorkspace{T}(rows, Vector{T}(undef, nnz_x), zeros(T, nr), falses(nr),
                                 Vector{T}(undef, nr), Vector{T}(undef, nr))
     else
         dev(n) = MadNLP.create_array(cb, T, n)
         S = _build_row_selector(dev(0), rows, nr, nnz_x)
         obs = MadNLP.create_array(cb, Bool, nr); fill!(obs, false)
-        return GainWorkspaceDevice{T, typeof(S), typeof(dev(0)), typeof(obs)}(
+        return WeightWorkspaceDevice{T, typeof(S), typeof(dev(0)), typeof(obs)}(
             S, dev(nnz_x), dev(nr), dev(nr), dev(nr), obs, dev(nr))
     end
 end
@@ -148,20 +148,20 @@ struct NCLSolver{T, VT, M, K}
     options::NCLOptions{T}
     n::Int
     m::Int
-    gainws::Union{Nothing, AbstractGainWorkspace{T}}
+    weightws::Union{Nothing, AbstractWeightWorkspace{T}}
 end
 
 """
     NCLSolver(nlp; ncl_options=NCLOptions{T}(), kernel=QuadraticKernel(), ipm_options...)
 
 Build the NCL reformulation of `nlp` with the penalty kernel `kernel`, and the MadNLP solver of
-its subproblems (`ipm_options` are passed to `MadNLP.MadNLPSolver`). The per-row gains and
+its subproblems (`ipm_options` are passed to `MadNLP.MadNLPSolver`). The per-row weights and
 kernel parameters can be set through `solver.ncl.γr` and `solver.ncl.λr` before `solve!`.
 """
 function NCLSolver(nlp::NLPModels.AbstractNLPModel{T, VT}; ncl_options=NCLOptions{T}(),
                    kernel::AbstractKernel=QuadraticKernel(), ipm_options...) where {T, VT}
-    ncl_options.gain_law in (:none, :geometry) ||
-        error("unknown gain_law $(ncl_options.gain_law) (expected :none or :geometry)")
+    ncl_options.weight_law in (:none, :geometry) ||
+        error("unknown weight_law $(ncl_options.weight_law) (expected :none or :geometry)")
     ncl_options.gate_metric in (:residual, :force) ||
         error("unknown gate_metric $(ncl_options.gate_metric) (expected :residual or :force)")
     ncl = if ncl_options.scaling
@@ -181,8 +181,8 @@ function NCLSolver(nlp::NLPModels.AbstractNLPModel{T, VT}; ncl_options=NCLOption
     if solver.kkt isa Union{K2rAuglagKKTSystem, K1sAuglagKKTSystem}
         solver.kkt.fold_dual_regularization[] = ncl_options.fold_dual_regularization
     end
-    gainws = _build_gain_workspace(ncl, solver, ncl_options)
-    return NCLSolver{T, VT, typeof(ncl.nlp), typeof(kernel)}(ncl, solver, ncl_options, n, m, gainws)
+    weightws = _build_weight_workspace(ncl, solver, ncl_options)
+    return NCLSolver{T, VT, typeof(ncl.nlp), typeof(kernel)}(ncl, solver, ncl_options, n, m, weightws)
 end
 
 #=
@@ -359,14 +359,14 @@ function _is_solved(solver::NCLSolver{T}, x, du_feas::T, cc_feas::T, lcon_eps, u
 end
 
 #=
-    Gain law
+    Weight law
 =#
 
-# gain_law = :geometry. With wᵢ the squared norm of row i of the x-block of the scaled
-# Jacobian at the last iterate, the target gain of row i is
-#     tᵢ = clamp((1/wᵢ) / G, gain_clip...),   G = geometric mean of 1/wᵢ over the rows with a finite 1/wᵢ;
-# a row with a non-finite 1/wᵢ keeps its current gain. The installed gains are tᵢ^α.
-function _update_gains!(solver::NCLSolver{T}, ws::GainWorkspace{T}, α::T) where T
+# weight_law = :geometry. With wᵢ the squared norm of row i of the x-block of the scaled
+# Jacobian at the last iterate, the target weight of row i is
+#     tᵢ = clamp((1/wᵢ) / G, weight_clip...),   G = geometric mean of 1/wᵢ over the rows with a finite 1/wᵢ;
+# a row with a non-finite 1/wᵢ keeps its current weight. The installed weights are tᵢ^α.
+function _update_weights!(solver::NCLSolver{T}, ws::WeightWorkspace{T}, α::T) where T
     ncl = solver.ncl
     m = ncl.nr
     m == 0 && return
@@ -390,7 +390,7 @@ function _update_gains!(solver::NCLSolver{T}, ws::GainWorkspace{T}, α::T) where
                 nobs += 1
             end
         end
-        lo, hi = solver.options.gain_clip
+        lo, hi = solver.options.weight_clip
         if nobs == 0
             fill!(ws.g, one(T))
         else
@@ -409,7 +409,7 @@ function _update_gains!(solver::NCLSolver{T}, ws::GainWorkspace{T}, α::T) where
     end
     @inbounds for i in 1:m
         isfinite(ws.g[i]) && ws.g[i] > zero(T) ||
-            error("non-finite or non-positive gain at row $i: $(ws.g[i])")
+            error("non-finite or non-positive weight at row $i: $(ws.g[i])")
     end
     copyto!(ncl.γr, ws.g)
     return
@@ -417,7 +417,7 @@ end
 
 # The same law on the device (the reductions run in a different order than on the host, so the
 # two methods agree only up to round-off).
-function _update_gains!(solver::NCLSolver{T}, ws::GainWorkspaceDevice{T}, α::T) where T
+function _update_weights!(solver::NCLSolver{T}, ws::WeightWorkspaceDevice{T}, α::T) where T
     ncl = solver.ncl
     m = ncl.nr
     m == 0 && return
@@ -431,7 +431,7 @@ function _update_gains!(solver::NCLSolver{T}, ws::GainWorkspaceDevice{T}, α::T)
         fill!(ws.obs, false)
         fill!(ws.g, one(T))
     else
-        lo, hi = solver.options.gain_clip
+        lo, hi = solver.options.weight_clip
         ws.obs .= isfinite.(one(T) ./ ws.w)
         nobs = Int(sum(ws.obs))
         if nobs == 0
@@ -448,7 +448,7 @@ function _update_gains!(solver::NCLSolver{T}, ws::GainWorkspaceDevice{T}, α::T)
         ws.g .= ws.g .^ α
     end
     (all(isfinite.(ws.g)) && all(ws.g .> zero(T))) ||
-        error("non-finite or non-positive gain on the device gain path")
+        error("non-finite or non-positive weight on the device weight path")
     copyto!(ncl.γr, ws.g)
     return
 end
@@ -648,7 +648,7 @@ function solve!(solver::NCLSolver{T}; diag=nothing) where T
     γ = T(0.05)
     eps_d = T(100)*μ^(one(T)+γ)
     η = T(0.1)   # initial primal feasibility tolerance
-    ### Number of accepted subproblems (clock of the gain annealing)
+    ### Number of accepted subproblems (clock of the weight annealing)
     n_accepted = 0
 
     start_time = time()
@@ -771,12 +771,12 @@ function solve!(solver::NCLSolver{T}; diag=nothing) where T
             break
         end
 
-        # Refresh the gains for the next subproblem. Never after the last outer iteration, so
-        # that the returned objective uses the gains of the subproblem actually solved.
-        if options.gain_law === :geometry && iter < options.max_auglag_iter
-            h = options.gain_anneal_horizon
+        # Refresh the weights for the next subproblem. Never after the last outer iteration, so
+        # that the returned objective uses the weights of the subproblem actually solved.
+        if options.weight_law === :geometry && iter < options.max_auglag_iter
+            h = options.weight_anneal_horizon
             α = h <= zero(T) ? one(T) : clamp(T(n_accepted) / h, zero(T), one(T))
-            _update_gains!(solver, solver.gainws, α)
+            _update_weights!(solver, solver.weightws, α)
         end
 
         iter += 1

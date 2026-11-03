@@ -174,12 +174,12 @@ const KERNEL_GPU_OPTS = MadNCL.NCLOptions{Float64}(; verbose=false)
     @test res.status == MadNLP.SOLVE_SUCCEEDED
     @test count(d -> d.branch == :rho_bump, diag) > 0
 
-    # gain law and force gate on the device
+    # weight law and force gate on the device
     for KKTSystem in (MadNCL.K2rAuglagKKTSystem, MadNCL.K1sAuglagKKTSystem)
         opts = MadNCL.NCLOptions{Float64}(; verbose=false, extrapolation=false,
-                                          gain_law=:geometry, gate_metric=:force)
+                                          weight_law=:geometry, gate_metric=:force)
         slv = MadNCL.NCLSolver(nlp_gpu; ncl_options=opts, kkt_system=KKTSystem, gpu_kw...)
-        @test slv.gainws isa MadNCL.GainWorkspaceDevice
+        @test slv.weightws isa MadNCL.WeightWorkspaceDevice
         res = MadNCL.solve!(slv)
         @test res.status == MadNLP.SOLVE_SUCCEEDED
         @test all(isfinite, Array(slv.ncl.γr))

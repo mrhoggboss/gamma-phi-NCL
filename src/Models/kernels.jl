@@ -5,9 +5,8 @@
 
         P(r) = Σᵢ (γᵢ/ρ) φᵢ(−ρ rᵢ),
 
-    where ρ > 0 is the penalty parameter, γᵢ > 0 a per-row gain (the *weights* of the
-    manuscript) and φᵢ a per-row penalty kernel. The derivatives that enter the inner
-    interior-point solve are
+    where ρ > 0 is the penalty parameter, γᵢ > 0 a per-row weight and φᵢ a per-row penalty
+    kernel. The derivatives that enter the inner interior-point solve are
 
         ∂P/∂rᵢ   = −γᵢ φᵢ'(−ρ rᵢ)          (the penalty force),
         ∂²P/∂rᵢ² =  γᵢ ρ φᵢ''(−ρ rᵢ)        (the penalty curvature, > 0).

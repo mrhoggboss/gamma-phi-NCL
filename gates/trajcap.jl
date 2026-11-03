@@ -13,7 +13,7 @@
 #     {k2r (K2r + LDL), k1s (K1s + CHOLMOD)} x {T0 quadratic, T1 quadratic via the generic
 #       kernel path, T2 arcsinh kernel a = 1e12}
 #     {k2rldl (K2r + LDL), k2rma57 (K2r + MA57)} x {P power kernel p = 6, λ ≡ 1e-2;
-#       PA = P with MadNLP acceptable_tol = 0; W = gain law + force gate}
+#       PA = P with MadNLP acceptable_tol = 0; W = weight law + force gate}
 
 using Printf
 const MODE = ARGS[1]
@@ -38,7 +38,7 @@ const MU_MIN = (1e-8 / 100)^(1 / 1.05)
 @assert MU_MIN === 2.9935772947204935e-10
 const FROZEN = (extrapolation=false, scaling_max_gradient=100.0, opt_tol=1e-8, feas_tol=1e-8,
                 rho_max=1e14, mu_min=MU_MIN)
-const W_KW = (gain_law=:geometry, gain_clip=(1e-30, 1e8), gain_anneal_horizon=6.0, gate_metric=:force)
+const W_KW = (weight_law=:geometry, weight_clip=(1e-30, 1e8), weight_anneal_horizon=6.0, gate_metric=:force)
 
 function run_one(make_nlp, arm, cfg; maxouter=20)
     nlp = make_nlp()
