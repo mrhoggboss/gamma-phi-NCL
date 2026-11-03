@@ -1,7 +1,7 @@
 # Stock configurations on small CUTEst problems (gate N4): the MadNCL option sets with the K2r dual-regularization
 # fold switched off, written in the format of the comparator tree's per-outer log, for a bitwise comparison against
 # upstream MadNCL (+ the success test of this branch).
-#   run:     julia --project=gates/env gates/stock_hs.jl run <outdir> [fold_on]
+#   run:     julia --project=benchmarks/envs/cpu gates/stock_hs.jl run <outdir> [fold_on]
 #            (fold_on: keep the K2r fold switched on — a control: cells that change carry δc ≠ 0)
 #   compare: julia gates/stock_hs.jl compare <refdir> <outdir>
 # Option sets: STOCK = tolerance 1e-8; S = STOCK + scaling_max_gradient 100 (MadNCL); PIN = MadNCL + parameters.

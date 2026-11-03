@@ -2,7 +2,7 @@
 # with the result row and the per-outer trace written in the format of the research fork's pool
 # driver (bench/drivers/driver_kernel_core.jl), so the two can be compared string-for-string.
 #
-#   run:     julia --project=gates/env gates/smoke.jl run <arm> <list> <outdir> [nworkers] [maxwall]
+#   run:     julia --project=benchmarks/envs/cpu gates/smoke.jl run <arm> <list> <outdir> [nworkers] [maxwall]
 #   compare: julia gates/smoke.jl compare <rows_a.csv> <trace_a.csv> <rows_b.csv> <trace_b.csv>
 #
 # <arm>: U6A  = PowerKernel(6), λ ≡ 1e-2, MadNLP acceptable_tol = 0

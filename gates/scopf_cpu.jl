@@ -1,7 +1,7 @@
 # SCOPF CPU gate (N2): one SCOPF-as-MPCC instance on the CPU (ExaModels CPU backend, K2r + MadNLP LDLSolver),
 # one arm, written in a canonical form; `compare` checks it against the research fork / comparator-tree run.
 #
-#   run:     julia +1.11.2 --project=gates/env_scopf gates/scopf_cpu.jl run <arm> <out.txt> <data_dir> [case] [K] [fold_flip]
+#   run:     julia +1.11.2 --project=benchmarks/envs/gpu gates/scopf_cpu.jl run <arm> <out.txt> <data_dir> [case] [K] [fold_flip]
 #            (fold_flip: invert the arm's fold_dual_regularization — a control showing whether δc fired)
 #   compare: julia gates/scopf_cpu.jl compare <ref.txt> <public.txt>
 #
@@ -18,8 +18,8 @@ hx(x::Float64) = string(reinterpret(UInt64, x), base=16)
 if MODE == "run"
 
 @eval using MadNCL, MadNLP, ExaModels, NLPModels
-include(joinpath(@__DIR__, "scopf", "scopf_model.jl"))
-include(joinpath(@__DIR__, "scopf", "contingencies.jl"))
+include(joinpath(@__DIR__, "..", "benchmarks", "scopf", "scopf_model.jl"))
+include(joinpath(@__DIR__, "..", "benchmarks", "scopf", "contingencies.jl"))
 const ARM = ARGS[2]; const OUT = ARGS[3]; const DATA = ARGS[4]
 const CASE = length(ARGS) >= 5 ? ARGS[5] : "case118"
 const K = length(ARGS) >= 6 ? parse(Int, ARGS[6]) : 10

@@ -7,7 +7,7 @@
 # T2 is reported as a drift profile (thresholds as in the research fork's verification/v5_quadlimit.jl).
 # Per-outer iterates come from budget-truncated solves (max_auglag_iter = k); their diag records
 # must be a prefix of the full solve's records.
-#   julia --project=gates/env gates/v5_quadlimit.jl [srcpow]
+#   julia --project=benchmarks/envs/cpu gates/v5_quadlimit.jl [srcpow]
 using MadNCL, MadNLP, NLPModels, CUTEst, LinearAlgebra, Printf
 include(joinpath(@__DIR__, "..", "test", "hs15.jl"))
 include(joinpath(@__DIR__, "kernels.jl"))

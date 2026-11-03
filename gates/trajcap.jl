@@ -1,6 +1,6 @@
 # Trajectory capture / compare (identity gate N1).
 #
-#   capture: julia --project=gates/env gates/trajcap.jl capture <outdir>
+#   capture: julia --project=benchmarks/envs/cpu gates/trajcap.jl capture <outdir>
 #   compare: julia gates/trajcap.jl compare <dirA> <dirB>
 #
 # For every cell, the full solve in bit-exact form (Float64 as hex): final status, inner
