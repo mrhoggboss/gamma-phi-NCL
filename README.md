@@ -51,6 +51,64 @@ results = madncl(
 )
 ```
 
+## (γ,φ)-NCL: per-row weights and penalty kernels
+
+This branch extends MadNCL's augmented-Lagrangian subproblem to the penalty
+
+```math
+\sum_i \frac{γ_i}{ρ} φ_i(-ρ r_i),
+```
+
+with per-row weights `γᵢ > 0` (`solver.ncl.γr`, default 1) and a penalty kernel `φ`:
+
+- `MadNCL.QuadraticKernel()` — `φ(t) = t²/2`, the classical MadNCL penalty (default);
+- `MadNCL.PowerKernel(p, λ)` — `φᵢ(t) = t²/2 + (λᵢ/p)|t|^p`, with per-row weights `λᵢ`
+  (`solver.ncl.λr`, initialized to `λ`).
+
+New kernels are added by subtyping `MadNCL.AbstractKernel` and implementing
+`phi(k, λ, t)`, `dphi(k, λ, t)`, `ddphi(k, λ, t)`. The weights can be updated automatically by
+the weight law `gain_law=:geometry` (the code calls the weights *gains*), and the subproblem
+acceptance test can be measured on the penalty force (`gate_metric=:force`); see the docstring
+of `MadNCL.NCLOptions`.
+
+### Reproducing the solver configurations of the paper
+
+All configurations use the tolerance `1e-8` and the gradient scaling `scaling_max_gradient=100`.
+With `μ* = (1e-8/100)^(1/1.05) ≈ 2.9936e-10`:
+
+```julia
+using MadNCL, MadNLP
+μstar = (1e-8 / 100)^(1 / 1.05)
+
+# MadNCL: MadNCL's own constants (ρ_max = 1e12, 20 outer iterations, μ_min = 1e-9,
+# extrapolation step on); the dual-regularization fold of K2r is switched off.
+S = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
+                               fold_dual_regularization=false)
+
+# MadNCL + parameters: MadNCL with the constants of the (γ,φ) runs.
+SP = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
+                                mu_min=μstar, max_auglag_iter=40, rho_max=1e14,
+                                fold_dual_regularization=false)
+
+# (γ,φ)-MadNCL: weight law, force gate, no extrapolation step.
+frozen = (opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0, mu_min=μstar,
+          max_auglag_iter=40, rho_max=1e14, extrapolation=false)
+W = MadNCL.NCLOptions{Float64}(; frozen..., gain_law=:geometry, gain_clip=(1e-30, 1e8),
+                               gain_anneal_horizon=6.0, gate_metric=:force)
+madncl(nlp; ncl_options=W, kkt_system=MadNCL.K2rAuglagKKTSystem)
+
+# Power-kernel cell: φ with p = 6 and λ ≡ 1e-2 on every row, unit weights, residual gate,
+# and MadNLP's acceptable-level exit disabled.
+P = MadNCL.NCLOptions{Float64}(; frozen...)
+madncl(nlp; ncl_options=P, kernel=MadNCL.PowerKernel(6.0, 1e-2),
+       kkt_system=MadNCL.K2rAuglagKKTSystem, acceptable_tol=0.0)
+```
+
+The success test is the same for every configuration: the returned primal-dual pair must satisfy
+the KKT conditions of the problem solved by the interior-point method, with the complementarity
+measured at μ = 0 and the multipliers scaled as in Ipopt (`s_max = 100`), and the constraint
+violation in the original scaling must not exceed `constr_viol_tol` (see `MadNCL.NCLOptions`).
+
 ## JuMP
 
 MadNCL does not yet provide an extension for [MathOptInterface.jl](https://github.com/jump-dev/MathOptInterface.jl), but a JuMP model can be wrapped
