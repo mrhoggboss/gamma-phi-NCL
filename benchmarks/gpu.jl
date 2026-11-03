@@ -23,6 +23,8 @@
 #                                     MadNCL configurations' constr_viol_tol; MadNLP (LiftedKKT) has no such test
 #                                     and runs without it (the violation is recorded as pr_res in every row)
 #              --warmup=0             skip the warm-up solves (they are on by default)
+#              --trace                per-outer-iteration records of the MadNCL configurations
+#                                     (trace__<suite>__<config>__<tag>.csv)
 #
 # Every configuration factorizes the KKT system with the same linear solver (cuDSS LDL on the GPU) and
 # runs under the suite's budgets below. One warm-up solve per configuration precedes the measured
@@ -44,6 +46,7 @@ const WARMUP = get(OPT, "warmup", "1") != "0"
 const TOL = parse(Float64, get(OPT, "tol", "1e-8"))
 const CVTOL = parse(Float64, get(OPT, "cvtol", "1e-4"))
 const CASES = filter(!isempty, String.(split(get(OPT, "cases", ""), ",")))
+const TRACE = haskey(OPT, "trace")
 
 using MadNCL, MadNLP, ExaModels, NLPModels, PowerModels, COPSBenchmark, Printf
 using Pkg.Artifacts
@@ -163,6 +166,17 @@ end
 const HEADER = (:instance, :config, :tag, :family, :size, :nvar, :ncon, :status, :obj, :iter, :nfact,
                 :pr_res, :wall, :build_s, :n_outer, :dual_feas, :max_cc)
 
+function append_trace(name, config, dg)
+    p = joinpath(OUTDIR, "trace__$(SUITE)__$(config)__$(TAG).csv")
+    fresh = !isfile(p)
+    open(p, "a") do io
+        fresh && println(io, join((:instance, TRACE_FIELDS...), ","))
+        for d in dg
+            println(io, join((name, (getproperty(d, f) for f in TRACE_FIELDS)...), ","))
+        end
+    end
+end
+
 function solve_row(model, name, fam, sz, build_s, config)
     t0 = time()
     try
@@ -172,6 +186,7 @@ function solve_row(model, name, fam, sz, build_s, config)
         else
             dg = Any[]
             r = MadNCL.solve!(slv; diag=dg); n_outer = length(dg)
+            TRACE && append_trace(name, config, dg)
         end
         wall = time() - t0
         x = r.solution
