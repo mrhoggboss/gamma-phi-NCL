@@ -9,6 +9,13 @@ import KernelAbstractions: synchronize
 import MadNLP
 import MadNCL
 
+# Device row selector of the gain law (src/solver.jl): S[rows[k], k] = 1, built once per solve
+# on the host and moved to the device, so that the squared row norms are one SpMV.
+function MadNCL._build_row_selector(::CuVector{T}, rows::Vector{Int}, nr::Int, nnz_x::Int) where {T}
+    Scpu = sparse(rows, collect(1:nnz_x), ones(T, nnz_x), nr, nnz_x)
+    return cuSPARSE.CuSparseMatrixCSR(Scpu)
+end
+
 function MadNLP.transfer!(
     dest::cuSPARSE.CuSparseMatrixCSC{Tv},
     src::MadNLP.SparseMatrixCOO{Tv},
