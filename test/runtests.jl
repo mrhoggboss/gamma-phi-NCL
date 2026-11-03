@@ -108,6 +108,10 @@ end
     end
 end
 
+include("kernels.jl")
+include("gain_law.jl")
+include("kkt_dualreg.jl")
+
 @testset "Test NCL algorithm" begin
     @testset "HS15" begin
         nlp = HS15Model()
