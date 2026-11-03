@@ -1,3 +1,4 @@
 gates/out/
 gates/logs/
 benchmarks/out/
+__pycache__/
