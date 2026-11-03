@@ -120,7 +120,7 @@ violation in the original scaling must not exceed `constr_viol_tol` (see `MadNCL
 | `benchmarks/gpu.jl` | GPU suites: PGLIB OPF (`opf`), COPS (`cops`), the COPS size ladder (`cops_ladder`), SCOPF as MPCC (`scopf`); cuDSS LDL; one warm-up solve per configuration; `--device=cpu` runs the same code on the CPU for smoke tests |
 | `benchmarks/liftedkkt.jl` | the LiftedKKT comparator used by `gpu.jl` (configuration `liftedkkt`) |
 | `benchmarks/models/` | the AC-OPF model (ExaModels) and the SCOPF-as-MPCC model (JuMP + PowerModels) |
-| `benchmarks/instances/` | instance lists: CUTEst (1070 and a 16-problem smoke), certified CUTEst traps, PGLIB (66 and 45), SCOPF (23 case/contingency pairs, with the case-file directory of each) and the SCOPF contingency lists |
+| `benchmarks/instances/` | instance lists: CUTEst (1070 and a 16-problem smoke), certified CUTEst traps, PGLIB (all 66 cases, run for every configuration; `pglib45.txt` = the 45 cases with at least 1000 buses, a scoring subset of the main-text table only), SCOPF (23 case/contingency pairs, with the case-file directory of each) and the SCOPF contingency lists |
 | `benchmarks/tables/` | stdlib-Python emitters of the paper's tables and figure (LaTeX: booktabs, pgfplots) from the result CSVs, and a console summary of a CUTEst run |
 | `benchmarks/envs/{cpu,gpu}` | pinned environments: Julia 1.10.11 with MadNLP 0.10.1 and HSL MA57 (CPU); Julia 1.11.2 with CUDA 6.2, cuDSS 0.7, ExaModels 0.11.2 (GPU) |
 | `gates/` | identity gates of this branch against the research code it was extracted from |
@@ -141,7 +141,8 @@ julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl opf S,SP,W,U6A,lif
 julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl cops_ladder S,SP,W,liftedkkt results/gpu --tag=r1
 julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl scopf S,SP,W,U6A,liftedkkt results/gpu --tag=r1 \
     --data=<directory with data/ and data_mp70/>
-python3 benchmarks/tables/tab_gpu_opf.py results/gpu
+python3 benchmarks/tables/tab_gpu_opf.py results/gpu --subset=benchmarks/instances/pglib45.txt   # main-text table
+python3 benchmarks/tables/tab_pglib_appendix.py results/gpu   # appendix: all 66 cases, every configuration
 python3 benchmarks/tables/tab_gpu_scopf.py results/gpu
 python3 benchmarks/tables/tab_scopf_config.py results/gpu
 python3 benchmarks/tables/fig_gpu_scaling.py results/gpu

@@ -134,3 +134,30 @@ def assert_no_tokens(text, tokens=("U6A", "liftedkkt", "madnlp", "_r1", "k2r", "
     body = "\n".join(l for l in text.split("\n") if not l.startswith("%"))
     bad = [t for t in tokens if t in body]
     assert not bad, f"internal tokens in the output: {bad}"
+
+
+def majority_status(rows_by_tag, name, config=None, cvtol=None):
+    """The status shown for a non-solve: the most frequent status over the repetitions, with a solve that
+    fails the post-hoc guard reported as VIOLATION."""
+    sts = []
+    for rows in rows_by_tag.values():
+        r = rows.get(name)
+        if r is None:
+            sts.append("MISSING")
+        elif config in GUARDED and r["status"] in SUCCESS and not violation(r) <= cvtol:
+            sts.append("VIOLATION")
+        else:
+            sts.append(r["status"])
+    return max(sorted(set(sts)), key=sts.count)
+
+
+def suite_scores(rows_by_tag, names, config, cvtol):
+    """Scores of one configuration over `names`: per-repetition solved counts (guarded, raw), the majority-solved
+    set (guarded) with the median factorizations, the raw majority count, and the geometric-mean cost."""
+    per = {t: (sum(1 for n in names if success(rows.get(n), config, None, cvtol)),
+               sum(1 for n in names if solved(rows.get(n)))) for t, rows in rows_by_tag.items()}
+    maj = {n: majority(rows_by_tag, n, config, cvtol) for n in names}
+    solved_set = [n for n in names if maj[n][0]]
+    nraw = sum(1 for n in names if majority(rows_by_tag, n)[0])
+    return {"per_rep": per, "solved": solved_set, "majority": maj, "n_raw": nraw,
+            "cost": gm([maj[n][1] for n in solved_set])}

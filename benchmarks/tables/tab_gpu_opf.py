@@ -7,10 +7,12 @@ mean over the majority-solved set of the median factorization count of the succe
 LiftedKKT (MadNLP) has no constraint-violation test: its successes count only if the returned point's raw
 violation (pr_res) is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses).
 
-Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--cvtol=<t>] [--out=<dir>]
+Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--subset=<instance list>] [--cvtol=<t>] [--out=<dir>]
+  --subset  score only these instances (e.g. benchmarks/instances/pglib45.txt, the 45 cases with at least
+            1000 buses of the main-text table); the runs themselves always cover all 66 cases
 """
 import sys
-from common import DEFAULT_OUT, NAMES, assert_no_tokens, count_cell, find, fmt, gm, majority, ordered, read_cvtol, read_rows, solved, success, write
+from common import DEFAULT_OUT, NAMES, assert_no_tokens, count_cell, find, fmt, ordered, read_cvtol, read_rows, suite_scores, write
 
 # Caption: the manuscript's (overleaf_upload/tables/tab_gpu_opf.tex), verbatim (captions are Yifan's).
 # TODO(caption, stale items to revise once the new numbers exist):
@@ -38,18 +40,17 @@ def main(argv):
          f" & \\multicolumn{{{len(tags)}}}{{c}}{{repetition}} & & \\\\",
          f"\\cmidrule(lr){{2-{len(tags) + 1}}}",
          "configuration & " + " & ".join(str(i + 1) for i in range(len(tags))) + " & solved & factorizations \\\\\\midrule"]
+    names_all = sorted(set().union(*[set(r) for c in configs for r in data[c].values()]))
+    subset = opt.get("subset")
+    names = [n for n in names_all if n in {l.strip() for l in open(subset) if l.strip()}] if subset else names_all
+    print(f"  {len(names)} instances" + (f" (subset {subset})" if subset else ""))
     for c in configs:
-        by = data[c]
-        names = sorted(set().union(*[set(r) for r in by.values()]))
-        per = [count_cell(sum(1 for n in names if success(by[t].get(n), c, None, cvtol)),
-                          sum(1 for n in names if solved(by[t].get(n))), c) if t in by else "--" for t in tags]
-        maj = [majority(by, n, c, cvtol) for n in names]
-        nmaj = sum(1 for m in maj if m[0])
-        nraw = sum(1 for m in (majority(by, n) for n in names) if m[0])
-        cost = gm([m[1] for m in maj if m[0]])
-        mcell = f"\\textbf{{{nmaj}}}" + (f" ({nraw})" if nraw != nmaj else "")
-        T.append(f"{NAMES.get(c, c)} & " + " & ".join(str(x) for x in per) + f" & {mcell} & {fmt(cost)} \\\\")
-        print(f"  {c:<10} reps={per} majority={nmaj} (unguarded {nraw})/{len(names)} gm(median nfact)={cost:.1f}")
+        sc = suite_scores(data[c], names, c, cvtol)
+        per = [count_cell(*sc["per_rep"][t], c) if t in sc["per_rep"] else "--" for t in tags]
+        nmaj = len(sc["solved"])
+        mcell = f"\\textbf{{{nmaj}}}" + (f" ({sc['n_raw']})" if sc["n_raw"] != nmaj else "")
+        T.append(f"{NAMES.get(c, c)} & " + " & ".join(str(x) for x in per) + f" & {mcell} & {fmt(sc['cost'])} \\\\")
+        print(f"  {c:<10} reps={per} majority={nmaj} (unguarded {sc['n_raw']})/{len(names)} gm(median nfact)={sc['cost']:.1f}")
     T.append("\\bottomrule\\end{tabular}\\end{table}")
     assert_no_tokens("\n".join(T))
     write(opt.get("out", DEFAULT_OUT), f"tab_gpu_{suite}.tex", T)
