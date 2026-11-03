@@ -18,6 +18,10 @@ from common import DEFAULT_OUT, NAMES, assert_no_tokens, find, fmt, gm, majority
 #   - "one pass each": the SCOPF table is planned as a majority of three repetitions.
 #   - "every non-solve in this table is the iteration limit reached at 3000": a fact about the banked runs.
 #   - the banked table had 8 instances; the harness list has 23 pairs (instances/scopf23.csv).
+# TODO(Yifan): which number to print for "MadNCL". This branch reports SOLVE_SUCCEEDED for a solve whose success
+#   test passes at the last allowed outer iteration (20 for MadNCL); the released package relabels it
+#   MAXIMUM_ITERATIONS_EXCEEDED. Under the (P)-KKT test this affects two SCOPF runs (ACTIVSg500@100, ACTIVSg200@100):
+#   7/23 here vs 5/23 for the released package on those runs. A footnote should say which convention the table uses.
 CAPTION = ("The security-constrained complementarity problems, per instance, one pass each. For each solve, the entry "
            "is the interior-point iteration count and the factorization count; a dash is a non-solve, and every "
            "non-solve in this table is the iteration limit reached at 3000, so no number is reported for it.")

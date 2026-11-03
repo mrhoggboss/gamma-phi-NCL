@@ -3,6 +3,8 @@
 #   S    MadNCL               MadNCL's own constants (ρ_max 1e12, 20 outer iterations, μ_min 1e-9,
 #                             extrapolation step on), K2r/K1s dual-regularization fold off
 #   SP   MadNCL + parameters  S with μ_min = μ*, 40 outer iterations, ρ_max 1e14
+#   (S and SP differ from the released MadNCL package in one label: a solve whose success test passes at the
+#   last allowed outer iteration is reported SOLVE_SUCCEEDED here, MAXIMUM_ITERATIONS_EXCEEDED by the package.)
 #   W    (γ,φ)-MadNCL         weight (weight) law + force gate, no extrapolation step
 #   U6A  power-kernel cell    φᵢ(t) = t²/2 + (λ/6)|t|⁶ with λ ≡ 1e-2 on every row, unit weights,
 #                             residual gate, MadNLP's acceptable-level exit disabled

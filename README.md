@@ -104,6 +104,13 @@ madncl(nlp; ncl_options=P, kernel=MadNCL.PowerKernel(6.0, 1e-2),
        kkt_system=MadNCL.K2rAuglagKKTSystem, acceptable_tol=0.0)
 ```
 
+One known label difference with the released MadNCL package: when the success test passes at the last
+allowed outer iteration (`max_auglag_iter`), the released package overwrites the status with
+`MAXIMUM_ITERATIONS_EXCEEDED`, while this branch reports `SOLVE_SUCCEEDED`. The iterate is the same; only the
+label differs. With S (20 outer iterations) this matters on runs that converge exactly at outer 20; on the
+SCOPF benchmark it relabels two runs (case_ACTIVSg500 and case_ACTIVSg200 with 100 contingencies) that the
+released package reports as iteration-limit failures.
+
 The success test is the same for every configuration: the returned primal-dual pair must satisfy
 the KKT conditions of the problem solved by the interior-point method, with the complementarity
 measured at μ = 0 and the multipliers scaled as in Ipopt (`s_max = 100`), and the constraint
