@@ -5,7 +5,8 @@
 #
 #   <suite>    opf | cops | cops_ladder | scopf
 #   <configs>  comma list of S, SP, W, U6A (benchmarks/arms.jl) and liftedkkt (benchmarks/liftedkkt.jl)
-#   <outdir>   results: <suite>__<config>__<tag>.csv (rewritten after every instance) and
+#   <outdir>   results: <suite>__<config>__<tag>.csv (rewritten after every instance; running the same command
+#              again resumes: rows already there are kept and their instances skipped) and
 #              config_<suite>__<tag>.txt (the full option set of every configuration, read back from the solvers)
 #   options    --tag=<tag>            repetition tag in the file names (default r1)
 #              --device=cuda|cpu      cuda (default): ExaModels on CUDABackend, cuDSS LDL;
@@ -202,6 +203,54 @@ function solve_row(model, name, fam, sz, build_s, config)
     end
 end
 
+# ---- restart ----
+# A run killed part-way (a crash, or the stall watchdog benchmarks/paper/watch.sh) is resumed by running the same
+# command again: the rows already in <suite>__<config>__<tag>.csv are kept and their instances skipped. The instance
+# that was in flight is named in inflight__<suite>__<config>__<tag>.txt (with its start time); if the watchdog
+# recorded its kill in <outdir>/KILLED_AT and the instance had by then run longer than 1.5 × wall, it is recorded as
+# EXTERNAL_KILL (the solver did not return within its budget; it would hang again) instead of being re-run.
+csv_path(config) = joinpath(OUTDIR, "$(SUITE)__$(config)__$(TAG).csv")
+inflight_path(config) = joinpath(OUTDIR, "inflight__$(SUITE)__$(config)__$(TAG).txt")
+trace_path(config) = joinpath(OUTDIR, "trace__$(SUITE)__$(config)__$(TAG).csv")
+write_inflight(config, name) = (open(io -> print(io, name, "\t", time()), inflight_path(config) * ".tmp", "w");
+                                mv(inflight_path(config) * ".tmp", inflight_path(config); force=true))
+
+function resume!(config, insts)
+    rows = Any[]
+    p = csv_path(config)
+    if isfile(p)
+        lines = readlines(p)
+        isempty(lines) || lines[1] == join(HEADER, ",") || error("$p: unexpected header, not resuming over it")
+        append!(rows, [split(l, ",") for l in lines[2:end] if !isempty(l)])
+    end
+    done = Set(r[1] for r in rows)
+    fi = inflight_path(config)
+    if isfile(fi)
+        name, t_start = split(strip(read(fi, String)), "\t")
+        kf = joinpath(OUTDIR, "KILLED_AT")
+        killed_at = isfile(kf) ? parse(Float64, strip(read(kf, String))) : NaN
+        if !(name in done) && isfinite(killed_at) && killed_at - parse(Float64, t_start) > 1.5 * WALL
+            i = findfirst(x -> x[1] == name, insts)
+            fam, sz = i === nothing ? ("", "") : (insts[i][2], insts[i][3])
+            push!(rows, (name, config, TAG, fam, sz, -1, -1, "EXTERNAL_KILL", NaN, -1, -1, NaN,
+                         round(killed_at - parse(Float64, t_start), digits=3), NaN, -1, NaN, NaN))
+            println("RESUME $config: $name was in flight for $(round(killed_at - parse(Float64, t_start))) s when killed -> EXTERNAL_KILL")
+            push!(done, name)
+        end
+        rm(fi; force=true)
+    end
+    # keep only the trace records of instances with a row (an instance killed in flight is re-run from scratch)
+    tp = trace_path(config)
+    if isfile(tp)
+        lines = readlines(tp)
+        keep = [lines[1]; [l for l in lines[2:end] if split(l, ",")[1] in done]]
+        open(io -> foreach(l -> println(io, l), keep), tp * ".tmp", "w"); mv(tp * ".tmp", tp; force=true)
+    end
+    isempty(rows) || (write_csv(p, HEADER, rows); println("RESUME $config: $(length(rows)) rows kept from $p"))
+    flush(stdout)
+    return rows
+end
+
 function main()
     mkpath(OUTDIR)
     insts, warm = instances()
@@ -226,19 +275,23 @@ function main()
     end
     print(read(cfgfile, String)); flush(stdout)
 
-    rows = Dict(c => Any[] for c in CONFIGS)
+    rows = Dict(c => resume!(c, insts) for c in CONFIGS)
     for (name, fam, sz, build) in insts
+        all(c -> any(r -> r[1] == name, rows[c]), CONFIGS) && continue   # every configuration has its row
         tb = time()
         model = try; build(); catch e
             @warn "$name build failed: $(first(split(sprint(showerror, e), '\n')))"; nothing
         end
         build_s = round(time() - tb, digits=3)
         for config in CONFIGS
+            any(r -> r[1] == name, rows[config]) && continue
+            write_inflight(config, name)
             row = model === nothing ?
                 (name, config, TAG, fam, sz, -1, -1, "BUILD_FAILED", NaN, -1, -1, NaN, NaN, build_s, -1, NaN, NaN) :
                 solve_row(model, name, fam, sz, build_s, config)
             push!(rows[config], row)
-            write_csv(joinpath(OUTDIR, "$(SUITE)__$(config)__$(TAG).csv"), HEADER, rows[config])
+            write_csv(csv_path(config), HEADER, rows[config])
+            rm(inflight_path(config); force=true)
             @printf("%s [%s] %s iter=%d nfact=%d wall=%.1f s\n", name, config, row[8], row[10], row[11], row[13])
             flush(stdout)
             reclaim()

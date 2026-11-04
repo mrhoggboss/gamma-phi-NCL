@@ -1,0 +1,174 @@
+#!/bin/bash
+# Shared functions of the paper-campaign chains (sourced by chain_*.sh).
+#
+# Layout: raw outputs (result CSVs, configuration echoes, per-outer traces, logs) under
+#   benchmarks/out/paper/<suite>/<config>_r<k>/            (gitignored)
+# and, once a cell (one suite x configuration x repetition) is complete, its result CSV and configuration echo are
+# copied flat into
+#   benchmarks/results/paper/<suite>/                      (committed: the paper's data; the emitters read these)
+# Every GPU cell runs through gates/gpu_device.sh (refuses a device that carries any other process; the chain waits
+# until it is free; one job per device; a wall cap; the compute processes of others on the device are sampled every
+# 60 s and counted per cell, and their cells' wall times are flagged) under watch.sh (stall watchdog, resume).
+set -u
+PUB=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+OUT=$PUB/benchmarks/out/paper
+RES=$PUB/benchmarks/results/paper
+LOGS=$OUT/logs
+TABLES=$OUT/tables
+GPUENV=$PUB/benchmarks/envs/gpu
+CPUENV=$PUB/benchmarks/envs/cpu
+SCOPF_DATA=${SCOPF_DATA:-$PUB/benchmarks/out/scopf_data}
+MARKS=${P3_MARKS:-$OUT/progress.txt}
+GITLOCK=$OUT/.gitlock
+mkdir -p "$OUT" "$RES" "$LOGS" "$TABLES"
+
+mark() { echo "$(date -Is) $*" >> "$MARKS"; }
+head_sha() { git -C "$PUB" rev-parse --short HEAD; }
+
+# commit the given paths (relative to $PUB) under a lock shared by the chains
+commit_paths() {
+    local msg=$1; shift
+    (
+        flock 9
+        git -C "$PUB" add -- "$@" && \
+        git -C "$PUB" commit -q -m "$msg
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015H5cioizWae4AHHh6Ppem7" -- "$@" >/dev/null 2>&1
+        echo "commit rc=$? $(head_sha)"
+    ) 9> "$GITLOCK"
+}
+
+device_busy() {   # device_busy <dev>: prints the compute processes on that device (empty = free)
+    local uuid
+    uuid=$(nvidia-smi --query-gpu=index,uuid --format=csv,noheader | awk -F', ' -v d="$1" '$1==d{print $2}')
+    nvidia-smi --query-compute-apps=gpu_uuid,pid --format=csv,noheader | awk -F', ' -v u="$uuid" '$1==u{print $2}'
+}
+
+# run_gpu_cell <dev> <suite> <config> <k> <walltime_csv> [driver options...]
+run_gpu_cell() {
+    local dev=$1 suite=$2 config=$3 k=$4 wt=$5; shift 5
+    local tag="r$k" dir="$OUT/$suite/${config}_r$k" log="$LOGS/${suite}_${config}_r$k.log"
+    local stall=3300   # 1.5 x the 1800 s wall + 600 s; the stall clock restarts at every instance start
+    mkdir -p "$dir"
+    if [ -f "$dir/DONE" ]; then mark "P3_CELL_SKIP $suite $config r$k (already done)"; return 0; fi
+    local waited=0
+    while [ -n "$(device_busy "$dev")" ]; do
+        [ $((waited % 600)) -eq 0 ] && mark "P3_BUSY_WAIT $suite $config r$k dev=$dev pids=$(device_busy "$dev" | tr '\n' ' ')"
+        sleep 60; waited=$((waited + 60))
+    done
+    local t0 rc head
+    t0=$(date +%s); head=$(head_sha)
+    mark "P3_CELL_START $suite $config r$k dev=$dev HEAD=$head"
+    while :; do
+        "$PUB/benchmarks/paper/watch.sh" "$dir" "$dir/KILLED_AT" "$stall" "$log" -- \
+            "$PUB/gates/gpu_device.sh" "$dev" 172800 "$log" -- \
+            julia +1.11.2 --project="$GPUENV" "$PUB/benchmarks/gpu.jl" "$suite" "$config" "$dir" --tag="$tag" --trace "$@"
+        rc=$?
+        [ $rc -ne 3 ] && break          # 3 = the device became busy between the check and the launch: wait again
+        mark "P3_BUSY_WAIT $suite $config r$k dev=$dev (at launch)"; sleep 120
+    done
+    local intr kills
+    intr=$(grep -c " INTRUDER " "$log" 2>/dev/null); kills=$(grep -c "WATCH STALL" "$log" 2>/dev/null)
+    echo "$suite,$config,r$k,$dev,$t0,$(date +%s),$(( $(date +%s) - t0 )),$rc,$intr,$kills,$head" >> "$wt"
+    if [ $rc -eq 0 ] && [ -f "$dir/${suite}__${config}__r$k.csv" ]; then
+        mkdir -p "$RES/$suite"
+        cp "$dir/${suite}__${config}__r$k.csv" "$RES/$suite/"
+        cp "$dir/config_${suite}__r$k.txt" "$RES/$suite/config_${suite}__${config}__r$k.txt"
+        touch "$dir/DONE"
+        commit_paths "paper results: $suite $config r$k (rc=$rc, intruder samples $intr, stall kills $kills)" \
+            "benchmarks/results/paper/$suite/${suite}__${config}__r$k.csv" \
+            "benchmarks/results/paper/$suite/config_${suite}__${config}__r$k.txt" >> "$log"
+    fi
+    mark "P3_CELL_DONE $suite $config r$k rc=$rc intruders=$intr stall_kills=$kills"
+    return $rc
+}
+
+# compile_tables <dir>: \input every .tex fragment of <dir> into one document and run pdflatex
+compile_tables() {
+    local d=$1 doc
+    doc=$d/_compile_check.tex
+    {
+        echo '\documentclass{article}'
+        echo '\usepackage[margin=0.6in]{geometry}\usepackage{amsmath,amssymb,booktabs,longtable,multirow,array,graphicx,xcolor}'
+        echo '\usepackage{pgfplots}\pgfplotsset{compat=1.17}\usepgfplotslibrary{groupplots}'
+        echo '\newcommand{\claudegreen}[1]{\textcolor{green!50!black}{#1}}'
+        echo '\begin{document}'
+        for f in "$d"/*.tex; do
+            case $(basename "$f") in _*) continue;; esac
+            echo "\\clearpage\\input{$(basename "$f" .tex)}"
+        done
+        echo '\end{document}'
+    } > "$doc"
+    (cd "$d" && pdflatex -interaction=nonstopmode -halt-on-error _compile_check.tex > _compile_check.out 2>&1)
+    local rc=$?
+    echo "compile_tables $d rc=$rc ($(ls "$d"/*.tex | grep -vc '/_'))"
+    return $rc
+}
+
+# emit <suite>: regenerate the suite's floats from the committed results into $TABLES and check they compile
+emit() {
+    local suite=$1 py=$PUB/benchmarks/tables r=0
+    case $suite in
+        scopf)  python3 "$py/tab_gpu_scopf.py" "$RES/scopf" --out="$TABLES" || r=1
+                python3 "$py/tab_scopf_config.py" "$RES/scopf" --out="$TABLES" || r=1 ;;
+        opf)    # the main-text float scores the 45 cases with at least 1000 buses; all 66 are in the appendix
+                python3 "$py/tab_gpu_opf.py" "$RES/opf" --subset="$PUB/benchmarks/instances/pglib45.txt" --out="$TABLES" || r=1
+                python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES/pglib66" || r=1
+                python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
+        cops)   : ;;   # no float: the console summary below is the record
+        cops_ladder) python3 "$py/fig_gpu_scaling.py" "$RES/cops_ladder" --tag=r1 --out="$TABLES" || r=1 ;;
+        cutest) python3 "$py/tab_cutest.py" "$RES/cutest" --cap=3600 --out="$TABLES" || r=1
+                python3 "$py/summary.py" "$RES/cutest" --traps="$PUB/benchmarks/instances/cutest_traps.txt" --cap=3600 \
+                    > "$RES/cutest/summary.txt" 2>&1 || r=1 ;;
+    esac
+    case $suite in
+        scopf|opf|cops|cops_ladder)
+            python3 "$py/summary_gpu.py" "$RES/$suite" "$suite" > "$RES/$suite/summary.txt" 2>&1 || r=1
+            [ "$suite" = opf ] && python3 "$py/summary_gpu.py" "$RES/opf" opf --subset="$PUB/benchmarks/instances/pglib45.txt" \
+                > "$RES/opf/summary_pglib45.txt" 2>&1 ;;
+    esac
+    compile_tables "$TABLES" || r=1
+    commit_paths "paper results: $suite summaries" "benchmarks/results/paper/$suite" >/dev/null
+    mark "P3_EMIT $suite rc=$r"
+    return $r
+}
+
+# kill leftover Julia processes of one CPU pool (Distributed workers inherit P3_POOL_TAG from the master)
+cleanup_orphans() {
+    local tag=$1 p n=0
+    for p in $(pgrep -u "$(id -u)" julia); do
+        if tr '\0' '\n' < "/proc/$p/environ" 2>/dev/null | grep -qx "P3_POOL_TAG=$tag"; then kill -9 "$p" 2>/dev/null && n=$((n + 1)); fi
+    done
+    echo "cleanup_orphans $tag: killed $n"
+}
+
+# run_cpu_pool <config> <walltime_csv>: CUTEst pop1070, K2r (MadNCL) / MA57, one 3600 s cap, under the stall watchdog
+CPU_NW=${CPU_NW:-30}
+CUTEST_LIST=${CUTEST_LIST:-$PUB/benchmarks/instances/cutest_pop1070.txt}
+run_cpu_pool() {
+    local config=$1 wt=$2 dir="$OUT/cutest/${config}_r1" log="$LOGS/cutest_${config}.log" tr="" rc head t0
+    mkdir -p "$dir/rows"
+    if [ -f "$dir/DONE" ]; then mark "P3_CELL_SKIP cutest $config r1 (already done)"; return 0; fi
+    case $config in S|SP|W|U6A) tr=--trace ;; esac
+    t0=$(date +%s); head=$(head_sha)
+    mark "P3_CELL_START cutest $config r1 workers=$CPU_NW HEAD=$head"
+    P3_POOL_TAG="p3_cutest_$config" "$PUB/benchmarks/paper/watch.sh" "$dir/rows" "$dir/rows/KILLED_AT" 7200 "$log" -- \
+        julia --project="$CPUENV" "$PUB/benchmarks/cutest.jl" "$CUTEST_LIST" "$config" ma57 "$CPU_NW" 3600 "$dir" $tr
+    rc=$?
+    cleanup_orphans "p3_cutest_$config" >> "$log"
+    local kills ek wd
+    kills=$(grep -c "WATCH STALL" "$log" 2>/dev/null)
+    ek=$(grep -c ",EXTERNAL_KILL," "$dir/cutest__${config}__ma57.csv" 2>/dev/null); wd=$(grep -c ",WORKER_DIED," "$dir/cutest__${config}__ma57.csv" 2>/dev/null)
+    echo "cutest,$config,r1,cpu,$t0,$(date +%s),$(( $(date +%s) - t0 )),$rc,0,$kills,$head" >> "$wt"
+    if [ $rc -eq 0 ] && [ -f "$dir/cutest__${config}__ma57.csv" ]; then
+        mkdir -p "$RES/cutest"
+        cp "$dir/cutest__${config}__ma57.csv" "$RES/cutest/"
+        cp "$dir/config.txt" "$RES/cutest/config_${config}.txt"
+        touch "$dir/DONE"
+        commit_paths "paper results: cutest $config (rc=$rc, stall kills $kills, EXTERNAL_KILL $ek, WORKER_DIED $wd)" \
+            "benchmarks/results/paper/cutest/cutest__${config}__ma57.csv" "benchmarks/results/paper/cutest/config_${config}.txt" >> "$log"
+    fi
+    mark "P3_CUTEST_DONE $config rc=$rc stall_kills=$kills external_kill=$ek worker_died=$wd"
+    return $rc
+}

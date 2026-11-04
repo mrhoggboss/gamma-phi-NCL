@@ -10,7 +10,8 @@
 #   <nworkers> Distributed workers; the tasks (configuration × solver × problem) form one flat queue
 #   <wall>     wall-time limit per solve, in seconds (also the success cap of the tables)
 #   <outdir>   results: cutest__<config>__<solver>.csv (and trace__<config>__<solver>.csv with --trace);
-#              finished tasks are kept under <outdir>/rows and skipped when the run is restarted
+#              finished tasks are kept under <outdir>/rows and skipped when the run is restarted (see "Restart"
+#              below for tasks that were in flight when a run was killed)
 #   options    --tol=<t>     optimality and feasibility tolerance of every configuration and baseline (default 1e-8)
 #              --cvtol=<t>   constraint-violation tolerance in the original scaling (default 1e-4): the MadNCL
 #                            configurations' constr_viol_tol and Ipopt's constr_viol_tol; MadNLP has no such test,
@@ -104,10 +105,14 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
     end
     rowfile(dir, name) = joinpath(dir, name * ".csv")
     function run_task(t, rowdir)
+        d = joinpath(rowdir, "$(t.config)__$(t.solver)"); mkpath(d)
+        # in-flight stamps: the start time of this task, and the task this worker is on
+        open(io -> print(io, time()), joinpath(d, t.name * ".start"), "w")
+        open(io -> print(io, "$(t.config)__$(t.solver)/", t.name), joinpath(rowdir, "worker_$(myid()).cur"), "w")
         (row, trace) = solve_task(t.name, t.config, t.solver)
-        write_csv(rowfile(joinpath(rowdir, "$(t.config)__$(t.solver)"), t.name), HEADER_W, [row])
-        trace === nothing || write_csv(joinpath(rowdir, "$(t.config)__$(t.solver)", t.name * ".trace"),
-                                       (:name, TRACE_FIELDS...), trace)
+        trace === nothing || write_csv(joinpath(d, t.name * ".trace"), (:name, TRACE_FIELDS...), trace)
+        write_csv(rowfile(d, t.name), HEADER_W, [row])
+        rm(joinpath(rowdir, "worker_$(myid()).cur"); force=true)
         return (t.name, row[5], myid())
     end
 end
@@ -146,12 +151,63 @@ print(read(joinpath(OUTDIR, "config.txt"), String)); flush(stdout)
 rowdir = joinpath(OUTDIR, "rows")
 tasks = [(name=p, config=c, solver=s) for c in CONFIGS for s in SOLVERS for p in problems
          if !(p in decode_failed) && !(c == "ipopt" && s != "ma57")]
-todo = [t for t in tasks if !isfile(joinpath(rowdir, "$(t.config)__$(t.solver)", t.name * ".csv"))]
+# Restart. A task with a row file is done. A task with a start stamp but no row was in flight when the run was
+# killed; if the stall watchdog (benchmarks/paper/watch.sh) recorded the kill in <outdir>/rows/KILLED_AT and the
+# task had by then run longer than 1.5 × wall, it is recorded as EXTERNAL_KILL (the solver did not return within
+# its budget, e.g. inside a factorization, where no solver checks its wall time; it would hang again) instead of
+# being re-run. A worker that dies records WORKER_DIED for the task it was on; the run continues on the others.
+taskdir(t) = joinpath(rowdir, "$(t.config)__$(t.solver)")
+hasrow(t) = isfile(joinpath(taskdir(t), t.name * ".csv"))
+function stamp_row(t, status, elapsed)
+    nv, nc, ne = try
+        nlp = CUTEstModel(t.name; decode=false)
+        try; (nlp.meta.nvar, nlp.meta.ncon, n_equalities(nlp)); finally; finalize(nlp); end
+    catch
+        (-1, -1, -1)
+    end
+    write_csv(joinpath(taskdir(t), t.name * ".csv"), HEADER,
+              [(t.name, nv, nc, ne, status, -1, -1, elapsed, NaN, NaN, -1, NaN)])
+end
+kf = joinpath(rowdir, "KILLED_AT")
+killed_at = isfile(kf) ? parse(Float64, strip(read(kf, String))) : NaN
+for t in tasks
+    st = joinpath(taskdir(t), t.name * ".start")
+    (hasrow(t) || !isfile(st) || !isfinite(killed_at)) && continue
+    ran = killed_at - parse(Float64, strip(read(st, String)))
+    if ran > 1.5 * WALL
+        stamp_row(t, "EXTERNAL_KILL", round(ran, digits=1))
+        println("  $(t.config)__$(t.solver)/$(t.name): in flight for $(round(ran)) s when killed -> EXTERNAL_KILL")
+    end
+end
+foreach(f -> rm(f; force=true), filter(f -> startswith(basename(f), "worker_") && endswith(f, ".cur"),
+                                       isdir(rowdir) ? readdir(rowdir; join=true) : String[]))
+todo = [t for t in tasks if !hasrow(t)]
 println("tasks: $(length(tasks)) ($(length(tasks) - length(todo)) restored from $rowdir), decode failures: $(length(decode_failed))")
 flush(stdout)
 t0 = time()
-done = pmap(t -> run_task(t, rowdir), todo)
-println("solved $(length(done)) tasks in $(round(time() - t0, digits=1)) s"); flush(stdout)
+while !isempty(todo)
+    alive = copy(workers())
+    try
+        pmap(t -> run_task(t, rowdir), WorkerPool(alive), todo)
+        break
+    catch e
+        dead = setdiff(alive, workers())
+        isempty(dead) && rethrow()
+        for w in dead
+            cur = joinpath(rowdir, "worker_$(w).cur")
+            isfile(cur) || continue
+            cd_, name = split(strip(read(cur, String)), "/")
+            c_, s_ = split(cd_, "__")
+            t = (name=String(name), config=String(c_), solver=String(s_))
+            hasrow(t) || stamp_row(t, "WORKER_DIED", NaN)
+            println("  WORKER $w DIED on $cd_/$name -> WORKER_DIED; $(length(workers())) workers left"); flush(stdout)
+            rm(cur; force=true)
+        end
+        isempty(workers()) && error("every worker died")
+        global todo = [t for t in todo if !hasrow(t)]
+    end
+end
+println("solved $(length(tasks) - count(!hasrow, tasks)) of $(length(tasks)) tasks; $(round(time() - t0, digits=1)) s this run"); flush(stdout)
 
 # assemble one CSV per (configuration, solver), in list order
 for c in CONFIGS, s in SOLVERS
