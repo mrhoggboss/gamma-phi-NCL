@@ -1,4 +1,9 @@
 post-hoc violation guard on ['liftedkkt', 'madnlp']: viol <= 0.0001; Ipopt solved = first_order only (n+ = also counting its acceptable-level exit, as earlier campaigns did)
 configuration                solver  rows  solved raw  non-trap  traps  gm fact  gm iter
+W                              ma57  1070         804   795/936      9     35.4     26.8
 S                              ma57  1070         768   761/936      7     33.0     15.2
 SP                             ma57  1070         783   776/936      7     34.9     16.3
+
+co-solved with W [ma57] (gm factorizations on the shared set, W / other):
+  S            shared   747      31.2 /     31.7  only W   57  only S   21
+  SP           shared   754      32.5 /     32.6  only W   50  only SP   29
