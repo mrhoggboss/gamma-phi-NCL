@@ -5,7 +5,7 @@
 
 Usage: python3 benchmarks/tables/tab_scopf_config.py <resdir> [--tag=r1] [--out=<dir>]
 """
-import math, os, re, sys
+import glob, math, os, re, sys
 from common import DEFAULT_OUT, write
 
 # Caption: the manuscript's (overleaf_upload/tables/tab_scopf_config.tex), verbatim (captions are Yifan's).
@@ -45,7 +45,19 @@ def main(argv):
     opt = dict(a[2:].split("=", 1) for a in argv if a.startswith("--") and "=" in a)
     if len(pos) != 1:
         print(__doc__); return 2
-    path = os.path.join(pos[0], f"config_scopf__{opt.get('tag', 'r1')}.txt")
+    tag = opt.get("tag", "r1")
+    path = os.path.join(pos[0], f"config_scopf__{tag}.txt")
+    if not os.path.isfile(path):
+        # one echo per configuration (config_scopf__<config>__<tag>.txt, one run per configuration): the suite's
+        # settings read here are the same in all of them; check that and use the first
+        cands = sorted(glob.glob(os.path.join(pos[0], f"config_scopf__*__{tag}.txt")))
+        if not cands:
+            raise SystemExit(f"no config_scopf__{tag}.txt or config_scopf__<config>__{tag}.txt in {pos[0]}")
+        keys = ("max_iter", "tau_relax", "scale_obj", "scale_cc", "richardson_tol", "richardson_max_iter")
+        vals = {c: tuple(field(open(c).read(), k) for k in keys) for c in cands}
+        if len(set(vals.values())) != 1:
+            raise SystemExit(f"the configuration echoes disagree on the suite settings: {vals}")
+        path = cands[0]
     text = open(path).read()
     rows = [
         ("interior-point iteration limit", f"${field(text, 'max_iter')}$", "1000 on the other GPU suites"),
