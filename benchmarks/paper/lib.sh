@@ -147,7 +147,8 @@ cleanup_orphans() {
 CPU_NW=${CPU_NW:-30}
 CUTEST_LIST=${CUTEST_LIST:-$PUB/benchmarks/instances/cutest_pop1070.txt}
 run_cpu_pool() {
-    local config=$1 wt=$2 dir="$OUT/cutest/${config}_r1" log="$LOGS/cutest_${config}.log" tr="" rc head t0
+    local config=$1 wt=$2
+    local dir="$OUT/cutest/${config}_r1" log="$LOGS/cutest_${config}.log" tr="" rc head t0
     mkdir -p "$dir/rows"
     if [ -f "$dir/DONE" ]; then mark "P3_CELL_SKIP cutest $config r1 (already done)"; return 0; fi
     case $config in S|SP|W|U6A) tr=--trace ;; esac
