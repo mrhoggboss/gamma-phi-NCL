@@ -2,8 +2,9 @@
 """GPU identity gate: compare one instance's result and per-outer records between this branch and the research
 fork. GPU runs are not bitwise reproducible (device reductions), so the comparison reports, rather than
 asserts: status, inner iterations and factorizations of both sides, and the first divergence of the per-outer
-records (the first outer iteration whose branch or inner-iteration count differs, and the largest relative
-difference of μ, ρ and ‖r‖∞ before it).
+records (the first outer iteration whose branch or inner-iteration count differs, or whose μ, ρ or ‖r‖∞ differ by
+more than NUM_TOL = 1e-6 relative — before the split the two sides agree to round-off, ≤ 1.3e-8 in every comparison on
+record — and the largest relative difference of μ, ρ and ‖r‖∞ before it).
 
 Usage: python3 gates/gpu_compare.py <instance> <ours_rows.csv> <ours_trace.csv> <ref_rows.csv> <ref_trace> [--ref-kind=wo2|stock]
   ours_*      benchmarks/gpu.jl outputs (rows, --trace)
@@ -14,6 +15,7 @@ Usage: python3 gates/gpu_compare.py <instance> <ours_rows.csv> <ours_trace.csv> 
 import csv, sys
 
 BR = {"E": "extrap", "M": "mu_reduce", "R": "rho_bump", "X": "maxiter"}
+NUM_TOL = 1e-6   # relative difference of mu, rho or ||r|| that counts as a numerical divergence
 
 
 def rel(a, b):
@@ -42,6 +44,18 @@ def load_trace(path, kind, instance):
     return out
 
 
+def first_divergence(ta, tb):
+    """First outer (1-based) whose branch or inner-iteration count differs, or whose mu, rho or ||r|| differ by more
+    than NUM_TOL relative; and the largest relative difference of those three before it. (None, d) if none."""
+    worst = 0.0
+    for j, (x, y) in enumerate(zip(ta, tb), start=1):
+        d = max(rel(x["mu"], y["mu"]), rel(x["rho"], y["rho"]), rel(x["pr"], y["pr"]))
+        if x["branch"] != y["branch"] or x["inner"] != y["inner"] or d > NUM_TOL:
+            return j, worst
+        worst = max(worst, d)
+    return None, worst
+
+
 def main(argv):
     pos = [a for a in argv if not a.startswith("--")]
     opt = dict(a[2:].split("=", 1) for a in argv if a.startswith("--") and "=" in a)
@@ -53,15 +67,10 @@ def main(argv):
     b = next(r for r in csv.DictReader(open(ref_rows)) if r["instance"] == inst)
     print(f"  result   ours: {a['status']} iter={a['iter']} nfact={a['nfact']}   fork: {b['status']} iter={b['iter']} nfact={b['nfact']}")
     ta, tb = load_trace(ours_trace, "wo2", inst), load_trace(ref_trace, kind, inst)
-    first, worst = None, 0.0
-    for j, (x, y) in enumerate(zip(ta, tb), start=1):
-        if x["branch"] != y["branch"] or x["inner"] != y["inner"]:
-            first = j
-            break
-        worst = max(worst, rel(x["mu"], y["mu"]), rel(x["rho"], y["rho"]), rel(x["pr"], y["pr"]))
+    first, worst = first_divergence(ta, tb)
     print(f"  per-outer: ours {len(ta)} outers, fork {len(tb)} outers; " +
           (f"first divergence at outer {first} (ours {ta[first-1]['branch']}/{ta[first-1]['inner']} inner, "
-           f"fork {tb[first-1]['branch']}/{tb[first-1]['inner']} inner)" if first else "no divergence in branch or inner iterations")
+           f"fork {tb[first-1]['branch']}/{tb[first-1]['inner']} inner)" if first else "no divergence in branch, inner iterations or residuals")
           + f"; largest relative difference of mu/rho/pr before it: {worst:.2e}")
     same = a["status"] == b["status"]
     print(f"  VERDICT status {'equal' if same else 'DIFFERENT'}; iter {int(a['iter']) - int(b['iter']):+d}, "
