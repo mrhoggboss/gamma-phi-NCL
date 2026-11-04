@@ -1,7 +1,7 @@
 scopf: 23 instances, constr_viol_tol 0.0001
   configuration                per repetition             majority  gm fact
-  $(\gamma,\varphi)$-MadNCL [W] r1:9                              9   1046.9
-  power kernel ($p=6$, $\lambda=10^{-2}$) [U6A] r1:17                            17   1481.9
+  $\gamma$-NCL [W]             r1:9                              9   1046.9
+  $\varphi$-NCL [U6A]          r1:17                            17   1481.9
   MadNCL [S]                   r1:8                              8    879.6
   MadNCL + parameters [SP]     r1:9                              9   1042.5
   LiftedKKT $\epsilon=10^{-8}$ [liftedkkt] r1:13                            13   1714.6
