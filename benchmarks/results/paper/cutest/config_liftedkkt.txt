@@ -1,0 +1,2 @@
+list=/home/yifan_xu/MadNCL-public/benchmarks/instances/cutest_pop1070.txt configs=liftedkkt solvers=ma57 workers=30 wall=3600.0 tol=1.0e-8 constr_viol_tol=0.0001 max_iter=3000 bound_relax_factor=1e-8 pathof(MadNCL)=/home/yifan_xu/MadNCL-public/src/MadNCL.jl
+CONFIG liftedkkt [ma57] kkt_system=SparseCondensedKKTSystem linear_solver=Ma57Solver tol=1.0e-8 constr_viol_tol=n/a (MadNLP has no such test) max_iter=3000 max_wall_time=3600.0 bound_relax_factor=1.0e-8 acceptable_tol=0.0 acceptable_iter=15 equality_treatment=MadNLP.RelaxEquality fixed_variable_treatment=MadNLP.RelaxBound
