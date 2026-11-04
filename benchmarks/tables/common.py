@@ -8,16 +8,16 @@ import csv, glob, math, os, re, statistics
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_OUT = os.path.join(os.path.dirname(HERE), "out", "tables")
 
-# Paper names. TODO: the power-kernel cell's name is a placeholder, deferred until the shipped variant is
-# confirmed.
+# Paper names (settled by Yifan 2026-11-03): the two instantiations of the (γ,φ)-NCL framework are γ-NCL
+# (adaptive weights, configuration W) and φ-NCL (power kernel p = 6, λ = 1e-2, configuration U6A).
 NAMES = {
-    "W": "$(\\gamma,\\varphi)$-MadNCL",
+    "W": "$\\gamma$-NCL",
     "S": "MadNCL",
     "SP": "MadNCL + parameters",
-    "U6A": "power kernel ($p=6$, $\\lambda=10^{-2}$)",
+    "U6A": "$\\varphi$-NCL",
     "liftedkkt": "LiftedKKT $\\epsilon=10^{-8}$",
     "ipopt": "Ipopt",
-    "madnlp": "MadNLP augmented",
+    "madnlp": "MadNLP-augmented",
 }
 ORDER = ["W", "U6A", "S", "SP", "liftedkkt", "ipopt", "madnlp"]
 SUCCESS = {"SOLVE_SUCCEEDED", "first_order"}

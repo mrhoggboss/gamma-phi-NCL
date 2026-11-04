@@ -17,7 +17,7 @@ from common import DEFAULT_OUT, LOOSE_STATUS, NAMES, assert_no_tokens, count_cel
 # Caption: the manuscript's (overleaf_upload/tables/tab_cutest_ma57.tex), verbatim (captions are Yifan's).
 # TODO(caption, stale items to revise once the new numbers exist):
 #   - "1070 instances": the population count of the banked campaign; must equal the instance list run.
-#   - "the three augmented-Lagrangian configurations": the table may now carry four (the power-kernel cell).
+#   - "the three augmented-Lagrangian configurations": the table may now carry four (γ-NCL and φ-NCL).
 #   - "thirteen instances ... solve with their extrapolation step alone": a count from the banked runs.
 #   - the two \claudegreen{...} spans are pending review in the manuscript.
 CAPTION = ("CUTEst, 1070 instances, split by how constrained the problem is. Here $m$ counts the dimension of $c$ "

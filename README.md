@@ -91,22 +91,22 @@ SP = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradien
                                 mu_min=μstar, max_auglag_iter=40, rho_max=1e14,
                                 fold_dual_regularization=false)
 
-# (γ,φ)-MadNCL: weight law, force gate, no extrapolation step, acceptable-level exit disabled.
+# γ-NCL: weight law, force gate, no extrapolation step, acceptable-level exit disabled.
 frozen = (opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0, mu_min=μstar,
           max_auglag_iter=40, rho_max=1e14, extrapolation=false)
 W = MadNCL.NCLOptions{Float64}(; frozen..., weight_law=:geometry, weight_clip=(1e-30, 1e8),
                                weight_anneal_horizon=6.0, gate_metric=:force)
 madncl(nlp; ncl_options=W, kkt_system=MadNCL.K2rAuglagKKTSystem, acceptable_tol=0.0)
 
-# Power-kernel cell: φ with p = 6 and λ ≡ 1e-2 on every row, unit weights, residual gate,
+# φ-NCL: power kernel with p = 6 and λ ≡ 1e-2 on every row, unit weights, residual gate,
 # and MadNLP's acceptable-level exit disabled.
 P = MadNCL.NCLOptions{Float64}(; frozen...)
 madncl(nlp; ncl_options=P, kernel=MadNCL.PowerKernel(6.0, 1e-2),
        kkt_system=MadNCL.K2rAuglagKKTSystem, acceptable_tol=0.0)
 ```
 
-Only S keeps MadNLP's acceptable-level inner exit (`acceptable_tol = 1e-6`, the upstream default). SP, W, the
-power-kernel cell and the LiftedKKT comparator run with `acceptable_tol = 0`, so that no inner solve stops short
+Only S keeps MadNLP's acceptable-level inner exit (`acceptable_tol = 1e-6`, the upstream default). SP, γ-NCL (W),
+φ-NCL (U6A) and the LiftedKKT comparator run with `acceptable_tol = 0`, so that no inner solve stops short
 of its budget at the looser tolerance (`benchmarks/arms.jl`, `benchmarks/liftedkkt.jl`).
 
 One known label difference with the released MadNCL package: when the success test passes at the last
@@ -127,7 +127,7 @@ violation in the original scaling must not exceed `constr_viol_tol` (see `MadNCL
 
 | path | contents |
 |---|---|
-| `benchmarks/arms.jl` | the four solver configurations as named option sets: `S` (MadNCL), `SP` (MadNCL + parameters), `W` ((γ,φ)-MadNCL), `U6A` (power-kernel cell) |
+| `benchmarks/arms.jl` | the four solver configurations as named option sets: `S` (MadNCL), `SP` (MadNCL + parameters), `W` (γ-NCL), `U6A` (φ-NCL) |
 | `benchmarks/cutest.jl` | CUTEst on the CPU: one flat pool of (configuration × linear solver × problem) tasks over Distributed workers; the four configurations plus Ipopt, LiftedKKT (MadNLP, condensed KKT) and MadNLP (augmented KKT); MA57 or LDL |
 | `benchmarks/gpu.jl` | GPU suites: PGLIB OPF (`opf`), COPS (`cops`), the COPS size ladder (`cops_ladder`), SCOPF as MPCC (`scopf`); cuDSS LDL; one warm-up solve per configuration; `--device=cpu` runs the same code on the CPU for smoke tests |
 | `benchmarks/liftedkkt.jl` | the LiftedKKT comparator used by `gpu.jl` (configuration `liftedkkt`) |

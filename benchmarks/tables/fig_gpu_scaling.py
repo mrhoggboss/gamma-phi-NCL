@@ -29,7 +29,7 @@ KIND = OrderedDict([
 COLORS = ["black", "blue!70!black", "red!70!black", "orange!80!black", "green!50!black"]
 # Captions: the manuscript's (overleaf_upload/tables/fig_gpu_scaling.tex, tab_gpu_ladder.tex), verbatim (Yifan's).
 # TODO(caption, stale items to revise once the new numbers exist):
-#   - "four configurations": the harness can plot five (the power-kernel cell); the count must match the run.
+#   - "four configurations": the harness can plot five (φ-NCL); the count must match the run.
 #   - "one run per cell": true for a single tag; say so if repetitions are added.
 FIG_CAPTION = ("GPU scaling on the COPS size ladder: factorization count against problem size, all twelve laddered "
                "families in alphabetical order, four configurations, one run per cell. Filled circles are solves. "
