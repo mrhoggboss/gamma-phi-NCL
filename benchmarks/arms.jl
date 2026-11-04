@@ -2,12 +2,17 @@
 #
 #   S    MadNCL               MadNCL's own constants (ρ_max 1e12, 20 outer iterations, μ_min 1e-9,
 #                             extrapolation step on), K2r/K1s dual-regularization fold off
-#   SP   MadNCL + parameters  S with μ_min = μ*, 40 outer iterations, ρ_max 1e14
+#   SP   MadNCL + parameters  S with μ_min = μ*, 40 outer iterations, ρ_max 1e14, MadNLP's acceptable-level exit
+#                             disabled
 #   (S and SP differ from the released MadNCL package in one label: a solve whose success test passes at the
 #   last allowed outer iteration is reported SOLVE_SUCCEEDED here, MAXIMUM_ITERATIONS_EXCEEDED by the package.)
-#   W    (γ,φ)-MadNCL         weight (weight) law + force gate, no extrapolation step
+#   W    (γ,φ)-MadNCL         weight (weight) law + force gate, no extrapolation step, MadNLP's acceptable-level
+#                             exit disabled
 #   U6A  power-kernel cell    φᵢ(t) = t²/2 + (λ/6)|t|⁶ with λ ≡ 1e-2 on every row, unit weights,
 #                             residual gate, MadNLP's acceptable-level exit disabled
+#   Only S keeps MadNLP's acceptable-level inner exit (acceptable_tol 1e-6, the upstream default); every other
+#   configuration, and the LiftedKKT comparator (liftedkkt.jl), runs with acceptable_tol = 0, so that no inner solve
+#   stops short of its budget at a looser tolerance (protocol of 2026-11-04).
 #
 # All four use scaling_max_gradient = 100 and the tolerances given by the drivers (defaults: opt_tol =
 # feas_tol = 1e-8, constr_viol_tol = 1e-4); μ* = (opt_tol/100)^(1/1.05), the barrier floor at which the
@@ -36,12 +41,12 @@ function arm_config(name::AbstractString; tol=1e-8, constr_viol_tol=1e-4)
                 MadNCL.NCLOptions{Float64}(; base..., fold_dual_regularization=false), NamedTuple())
     elseif name == "SP"
         return (MadNCL.QuadraticKernel(),
-                MadNCL.NCLOptions{Float64}(; tuned..., fold_dual_regularization=false), NamedTuple())
+                MadNCL.NCLOptions{Float64}(; tuned..., fold_dual_regularization=false), (acceptable_tol=0.0,))
     elseif name == "W"
         return (MadNCL.QuadraticKernel(),
                 MadNCL.NCLOptions{Float64}(; tuned..., extrapolation=false, weight_law=:geometry,
                                            weight_clip=(1e-30, 1e8), weight_anneal_horizon=6.0, gate_metric=:force),
-                NamedTuple())
+                (acceptable_tol=0.0,))
     elseif name == "U6A"
         return (MadNCL.PowerKernel(6.0, 1e-2),
                 MadNCL.NCLOptions{Float64}(; tuned..., extrapolation=false), (acceptable_tol=0.0,))

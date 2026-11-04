@@ -1,13 +1,14 @@
 #!/bin/bash
 # Paper campaign, GPU chain B: PGLIB 66 (max_iter 1000, wall 1800; the 45-case table is scored from the same runs)
-# x five configurations x 3 repetitions, repetition-interleaved; then COPS 13 x five x 3; then the COPS size ladder
-# (46 rungs) x five x 1 (the scaling figure).   chain_gpu1.sh <device>
+# and COPS 13, each x five configurations x 3 repetitions, interleaved by repetition (opf r1, cops r1, opf r2, ...);
+# then the COPS size ladder (46 rungs) x five x 1 (the scaling figure).   chain_gpu1.sh <device>
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 DEV=${1:-1}; WT=$LOGS/WALLTIME_gpu1.csv
 [ -f "$WT" ] || echo "suite,config,rep,dev,t_start,t_end,elapsed_s,rc,intruder_samples,stall_kills,head" > "$WT"
 mark "P3_CHAIN_START gpu1 dev=$DEV HEAD=$(head_sha)"
-for suite in opf cops; do
-    for k in 1 2 3; do
+# one complete repetition of every suite first (Yifan, 2026-11-04): opf r1, cops r1, opf r2, cops r2, opf r3, cops r3
+for k in 1 2 3; do
+    for suite in opf cops; do
         for c in S SP W U6A liftedkkt; do run_gpu_cell "$DEV" "$suite" "$c" "$k" "$WT"; done
         mark "P3_REP_DONE $suite r$k"
         emit "$suite"

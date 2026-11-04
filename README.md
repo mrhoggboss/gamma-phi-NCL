@@ -85,17 +85,18 @@ using MadNCL, MadNLP
 S = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
                                fold_dual_regularization=false)
 
-# MadNCL + parameters: MadNCL with the constants of the (γ,φ) runs.
+# MadNCL + parameters: MadNCL with the constants of the (γ,φ) runs, and MadNLP's acceptable-level exit
+# disabled (pass acceptable_tol=0.0 to madncl, as below).
 SP = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
                                 mu_min=μstar, max_auglag_iter=40, rho_max=1e14,
                                 fold_dual_regularization=false)
 
-# (γ,φ)-MadNCL: weight law, force gate, no extrapolation step.
+# (γ,φ)-MadNCL: weight law, force gate, no extrapolation step, acceptable-level exit disabled.
 frozen = (opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0, mu_min=μstar,
           max_auglag_iter=40, rho_max=1e14, extrapolation=false)
 W = MadNCL.NCLOptions{Float64}(; frozen..., weight_law=:geometry, weight_clip=(1e-30, 1e8),
                                weight_anneal_horizon=6.0, gate_metric=:force)
-madncl(nlp; ncl_options=W, kkt_system=MadNCL.K2rAuglagKKTSystem)
+madncl(nlp; ncl_options=W, kkt_system=MadNCL.K2rAuglagKKTSystem, acceptable_tol=0.0)
 
 # Power-kernel cell: φ with p = 6 and λ ≡ 1e-2 on every row, unit weights, residual gate,
 # and MadNLP's acceptable-level exit disabled.
@@ -103,6 +104,10 @@ P = MadNCL.NCLOptions{Float64}(; frozen...)
 madncl(nlp; ncl_options=P, kernel=MadNCL.PowerKernel(6.0, 1e-2),
        kkt_system=MadNCL.K2rAuglagKKTSystem, acceptable_tol=0.0)
 ```
+
+Only S keeps MadNLP's acceptable-level inner exit (`acceptable_tol = 1e-6`, the upstream default). SP, W, the
+power-kernel cell and the LiftedKKT comparator run with `acceptable_tol = 0`, so that no inner solve stops short
+of its budget at the looser tolerance (`benchmarks/arms.jl`, `benchmarks/liftedkkt.jl`).
 
 One known label difference with the released MadNCL package: when the success test passes at the last
 allowed outer iteration (`max_auglag_iter`), the released package overwrites the status with

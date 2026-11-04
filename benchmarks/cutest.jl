@@ -65,6 +65,10 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
                                         (linear_solver=MadNLP.LDLSolver,)
     common_ipm(s) = (linear_solver_kw(s)..., bound_relax_factor=1e-8, max_iter=3000, max_wall_time=WALL_W,
                      print_level=MadNLP.ERROR)
+    # the two MadNLP baselines; LiftedKKT runs with MadNLP's acceptable-level exit disabled (acceptable_tol = 0), as
+    # every configuration but S (protocol of 2026-11-04); the augmented baseline keeps MadNLP's default
+    madnlp_kw(config, s) = (kkt_system=config == "liftedkkt" ? MadNLP.SparseCondensedKKTSystem : MadNLP.SparseKKTSystem,
+                            tol=TOL_W, (config == "liftedkkt" ? (acceptable_tol=0.0,) : NamedTuple())..., common_ipm(s)...)
     # NCLSolver for a MadNCL configuration
     function ncl_solver(nlp, config, s)
         kernel, opt, ipm = arm_config(config; tol=TOL_W, constr_viol_tol=CVTOL_W)
@@ -82,8 +86,7 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
                 return ((base..., string(r.status), r.iter, r.iter, t, constraint_violation(nlp, r.solution),
                          r.objective, -1, r.dual_feas), nothing)
             elseif config in ("liftedkkt", "madnlp")
-                kkt = config == "liftedkkt" ? MadNLP.SparseCondensedKKTSystem : MadNLP.SparseKKTSystem
-                t = @elapsed r = MadNLP.madnlp(nlp; kkt_system=kkt, tol=TOL_W, common_ipm(s)...)
+                t = @elapsed r = MadNLP.madnlp(nlp; madnlp_kw(config, s)...)
                 return ((base..., string(r.status), r.iter, r.counters.factorization_cnt, t,
                          constraint_violation(nlp, r.solution), r.objective, -1, r.dual_feas), nothing)
             else
@@ -141,8 +144,22 @@ open(joinpath(OUTDIR, "config.txt"), "w") do io
         elseif c == "ipopt"
             println(io, "CONFIG ipopt [ma57] tol=$TOL constr_viol_tol=$CVTOL max_iter=3000 max_wall_time=$WALL linear_solver=ma57 ma57_automatic_scaling=yes")
         else
-            println(io, "CONFIG $c [$s] kkt_system=$(c == "liftedkkt" ? "SparseCondensedKKTSystem" : "SparseKKTSystem") ",
-                    "tol=$TOL constr_viol_tol=n/a (MadNLP has no such test) max_iter=3000 max_wall_time=$WALL bound_relax_factor=1e-8 linear_solver=$s")
+            # read back from a solver constructed with the run's options on the first problem
+            txt = remotecall_fetch(first(workers())) do
+                nlp = CUTEstModel(probe; decode=false)
+                try
+                    slv = MadNLP.MadNLPSolver(nlp; madnlp_kw(c, s)...)
+                    o = slv.opt
+                    "kkt_system=$(nameof(typeof(slv.kkt))) linear_solver=$(nameof(typeof(slv.kkt.linear_solver))) " *
+                    "tol=$(o.tol) constr_viol_tol=n/a (MadNLP has no such test) max_iter=$(o.max_iter) " *
+                    "max_wall_time=$(o.max_wall_time) bound_relax_factor=$(o.bound_relax_factor) " *
+                    "acceptable_tol=$(o.acceptable_tol) acceptable_iter=$(o.acceptable_iter) " *
+                    "equality_treatment=$(o.equality_treatment) fixed_variable_treatment=$(o.fixed_variable_treatment)"
+                finally
+                    finalize(nlp)
+                end
+            end
+            println(io, "CONFIG $c [$s] ", txt)
         end
     end
 end
