@@ -1,7 +1,0 @@
-opf: 66 instances, constr_viol_tol 0.0001
-  configuration                per repetition             majority  gm fact
-  $(\gamma,\varphi)$-MadNCL [W] r1:64                            64    111.5
-  power kernel ($p=6$, $\lambda=10^{-2}$) [U6A] r1:63                            63    267.7
-  MadNCL [S]                   r1:59                            59    110.2
-  MadNCL + parameters [SP]     r1:51                            51    103.4
-  LiftedKKT $\epsilon=10^{-8}$ [liftedkkt] r1:58                            58    104.0
