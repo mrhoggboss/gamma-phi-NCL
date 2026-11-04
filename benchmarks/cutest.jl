@@ -4,7 +4,9 @@
 #
 #   <list>     instance list, one CUTEst name per line (benchmarks/instances/cutest_*.txt)
 #   <configs>  comma list of S, SP, W, U6A (benchmarks/arms.jl) and the baselines
-#              ipopt (Ipopt), liftedkkt (MadNLP, condensed KKT system), madnlp (MadNLP, augmented KKT system)
+#              ipopt (Ipopt), liftedkkt (MadNLP, condensed KKT system), madnlp (MadNLP, augmented KKT system);
+#              the baselines run with their acceptable-level termination disabled (Ipopt acceptable_iter = 0,
+#              MadNLP acceptable_tol = 0), as every MadNCL configuration but S
 #   <solvers>  comma list of linear solvers: ma57 (HSL MA57 with automatic scaling), ldl (MadNLP LDLSolver);
 #              the MadNCL configurations use the K2r KKT system; ipopt runs with ma57 only
 #   <nworkers> Distributed workers; the tasks (configuration × solver × problem) form one flat queue
@@ -65,10 +67,10 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
                                         (linear_solver=MadNLP.LDLSolver,)
     common_ipm(s) = (linear_solver_kw(s)..., bound_relax_factor=1e-8, max_iter=3000, max_wall_time=WALL_W,
                      print_level=MadNLP.ERROR)
-    # the two MadNLP baselines; LiftedKKT runs with MadNLP's acceptable-level exit disabled (acceptable_tol = 0), as
-    # every configuration but S (protocol of 2026-11-04); the augmented baseline keeps MadNLP's default
+    # the two MadNLP baselines, with MadNLP's acceptable-level exit disabled (acceptable_tol = 0), as every
+    # configuration but S (protocol of 2026-11-04)
     madnlp_kw(config, s) = (kkt_system=config == "liftedkkt" ? MadNLP.SparseCondensedKKTSystem : MadNLP.SparseKKTSystem,
-                            tol=TOL_W, (config == "liftedkkt" ? (acceptable_tol=0.0,) : NamedTuple())..., common_ipm(s)...)
+                            tol=TOL_W, acceptable_tol=0.0, common_ipm(s)...)
     # NCLSolver for a MadNCL configuration
     function ncl_solver(nlp, config, s)
         kernel, opt, ipm = arm_config(config; tol=TOL_W, constr_viol_tol=CVTOL_W)
@@ -80,8 +82,10 @@ addprocs(NW; exeflags="--project=$(Base.active_project())")
         base = (name, nlp.meta.nvar, nlp.meta.ncon, n_equalities(nlp))
         try
             if config == "ipopt"
+                # acceptable_iter = 0 disables Ipopt's acceptable-level termination (protocol of 2026-11-04)
                 t = @elapsed r = NLPModelsIpopt.ipopt(nlp; tol=TOL_W, constr_viol_tol=CVTOL_W, max_iter=3000, max_wall_time=WALL_W,
-                    print_level=0, linear_solver="ma57", hsllib=HSL_jll.libhsl_path, ma57_automatic_scaling="yes")
+                    acceptable_iter=0, print_level=0, linear_solver="ma57", hsllib=HSL_jll.libhsl_path,
+                    ma57_automatic_scaling="yes")
                 # Ipopt does not expose its factorization count: the iteration count is recorded (a lower bound)
                 return ((base..., string(r.status), r.iter, r.iter, t, constraint_violation(nlp, r.solution),
                          r.objective, -1, r.dual_feas), nothing)
@@ -142,7 +146,8 @@ open(joinpath(OUTDIR, "config.txt"), "w") do io
             end
             print(io, replace(txt, "CONFIG $c " => "CONFIG $c [$s] "))
         elseif c == "ipopt"
-            println(io, "CONFIG ipopt [ma57] tol=$TOL constr_viol_tol=$CVTOL max_iter=3000 max_wall_time=$WALL linear_solver=ma57 ma57_automatic_scaling=yes")
+            println(io, "CONFIG ipopt [ma57] tol=$TOL constr_viol_tol=$CVTOL max_iter=3000 max_wall_time=$WALL acceptable_iter=0 ",
+                    "(acceptable-level termination disabled) linear_solver=ma57 ma57_automatic_scaling=yes (options as passed)")
         else
             # read back from a solver constructed with the run's options on the first problem
             txt = remotecall_fetch(first(workers())) do
