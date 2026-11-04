@@ -14,7 +14,7 @@ Usage: python3 benchmarks/tables/summary.py <resdir> [--traps=<file>] [--cap=<se
   --cvtol  the guard's tolerance (default: constr_viol_tol from the run's config.txt)
 """
 import os, sys
-from common import GUARDED, HERE, NAMES, find, gm, ordered, read_cvtol, read_rows, solved, success
+from common import GUARDED, HERE, LOOSE_STATUS, NAMES, find, gm, ordered, read_cvtol, read_rows, solved, solved_loose, success
 
 
 def main(argv):
@@ -27,7 +27,8 @@ def main(argv):
     traps = {l.strip() for l in open(traps_file) if l.strip()}
     cap = float(opt["cap"]) if "cap" in opt else None
     cvtol = read_cvtol(resdir, opt)
-    print(f"post-hoc violation guard on {sorted(GUARDED)}: viol <= {cvtol:g}")
+    print(f"post-hoc violation guard on {sorted(GUARDED)}: viol <= {cvtol:g}; Ipopt solved = first_order only "
+          f"(n+ = also counting its acceptable-level exit, as earlier campaigns did)")
     files = find(resdir, r"cutest__(.+?)__(ma57|ldl)\.csv")
     data = {}
     for cfg, by in files.items():
@@ -44,6 +45,9 @@ def main(argv):
             nt = [n for n in ok if n not in traps]
             ntrap_rows = sum(1 for n in rows if n not in traps)
             sol = f"{len(ok)}" + (f" ({raw})" if cfg in GUARDED else "")
+            if cfg in LOOSE_STATUS:
+                loose = sum(1 for r in rows.values() if solved_loose(r, cfg, cap))
+                sol += f" ({loose}+)" if loose != len(ok) else ""
             print(f"{cfg:<28}{solver:>7}{len(rows):>6}{sol:>12}{len(nt):>6}/{ntrap_rows:<4}"
                   f"{len(ok) - len(nt):>6}{gm([float(rows[n]['nfact']) for n in ok]):>9.1f}"
                   f"{gm([float(rows[n]['iter']) for n in ok]):>9.1f}")

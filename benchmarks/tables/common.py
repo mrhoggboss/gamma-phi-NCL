@@ -84,6 +84,19 @@ def solved(r, cap=None, cvtol=None):
     return cvtol is None or violation(r) <= cvtol
 
 
+# Ipopt's acceptable-level exit (status "acceptable": its acceptable_tol 1e-6 met, not the common tolerance) is not
+# a success (ruling 2026-11-03: solved = first_order only). The earlier campaigns counted it; that looser count is
+# printed in parentheses with a dagger, for comparability with them.
+LOOSE_STATUS = {"ipopt": {"acceptable"}}
+
+
+def solved_loose(r, config, cap=None):
+    """`solved`, but also counting the configuration's LOOSE_STATUS exits (the earlier campaigns' rule)."""
+    if r is not None and r["status"] in LOOSE_STATUS.get(config, ()):
+        r = dict(r, status="first_order")
+    return solved(r, cap)
+
+
 def success(r, config, cap=None, cvtol=None):
     """Success as scored in the tables: the post-hoc violation guard applies to the GUARDED solvers only."""
     return solved(r, cap, cvtol if config in GUARDED else None)
