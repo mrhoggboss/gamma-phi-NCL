@@ -173,3 +173,70 @@ run_cpu_pool() {
     mark "P3_CUTEST_DONE $config rc=$rc stall_kills=$kills external_kill=$ek worker_died=$wd"
     return $rc
 }
+
+# ---- priority queue: the rep-1 PGLIB and COPS cells on whichever GPU frees first (Yifan 2026-11-04 15:20) ----
+# Both GPU chains call run_prio_queue before their own loops. A cell is claimed atomically with
+# `mkdir <cell dir>/CLAIM` (holding the claimer's pid; `finished` is written when its attempt ends); a free device
+# takes the next cell that is neither DONE nor claimed, so a free device never sits behind a claimed cell. A claim is
+# stale only if its claimer is dead AND no benchmarks/gpu.jl process runs on that cell directory; a stale claim is
+# freed and the cell resumes from its result files. With `wait`, the call returns only when no queue cell is still
+# running on the other chain (chain_gpu1's own loop visits the same cells afterwards and must not start one twice).
+# The rep-1 marker and emitters run once, by whichever chain sees all five cells of the suite DONE (EMITTED_r1 guard).
+PRIO_QUEUE=("opf SP" "opf W" "opf liftedkkt" "cops S" "cops SP" "cops W" "cops U6A" "cops liftedkkt")
+_prio_running() {   # _prio_running <dir>: 0 if a claimed, unfinished attempt on <dir> is alive
+    local d=$1 pid
+    [ -d "$d/CLAIM" ] && [ ! -f "$d/CLAIM/finished" ] || return 1
+    pid=$(cat "$d/CLAIM/pid" 2>/dev/null)
+    { [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; } && return 0
+    pgrep -u "$(id -u)" -f "benchmarks/gpu.jl [a-z_]+ [A-Za-z0-9]+ $d( |$)" > /dev/null && return 0
+    return 1
+}
+run_prio_queue() {
+    local dev=$1 mode=${2:-} item suite config d next running waited rc s c all
+    while :; do
+        next=""; running=""
+        for item in "${PRIO_QUEUE[@]}"; do
+            read -r suite config <<< "$item"; d="$OUT/$suite/${config}_r1"
+            [ -f "$d/DONE" ] && continue
+            if [ -d "$d/CLAIM" ]; then
+                [ -f "$d/CLAIM/finished" ] && continue            # attempted and not DONE: left to the chain loops
+                if _prio_running "$d"; then running="$running $suite/$config"; continue; fi
+                mark "P3_PRIO_STALE_CLAIM $suite $config r1 (claimer $(cat "$d/CLAIM/pid" 2>/dev/null) gone; freed)"
+                rm -rf "$d/CLAIM"
+            fi
+            [ -z "$next" ] && next="$item"
+        done
+        if [ -n "$next" ]; then
+            waited=0
+            while [ -n "$(device_busy "$dev")" ]; do
+                [ $((waited % 600)) -eq 0 ] && mark "P3_BUSY_WAIT prio dev=$dev next=${next/ //} pids=$(device_busy "$dev" | tr '\n' ' ')"
+                sleep 60; waited=$((waited + 60))
+            done
+            for item in "${PRIO_QUEUE[@]}"; do                 # claim after the wait: the first free cell now
+                read -r suite config <<< "$item"; d="$OUT/$suite/${config}_r1"
+                [ -f "$d/DONE" ] && continue
+                mkdir -p "$d"
+                mkdir "$d/CLAIM" 2>/dev/null || continue
+                echo $$ > "$d/CLAIM/pid"; echo "$dev" > "$d/CLAIM/dev"
+                mark "P3_PRIO_CLAIM $suite $config r1 dev=$dev pid=$$"
+                run_gpu_cell "$dev" "$suite" "$config" 1 "$LOGS/WALLTIME_gpu1.csv"; rc=$?
+                echo "$rc" > "$d/CLAIM/finished"
+                break
+            done
+            continue
+        fi
+        if [ -n "$running" ] && [ "$mode" = wait ]; then sleep 60; continue; fi
+        break
+    done
+    for s in opf cops; do
+        all=1
+        for c in S SP W U6A liftedkkt; do [ -f "$OUT/$s/${c}_r1/DONE" ] || all=0; done
+        [ $all -eq 1 ] && rep_done "$s" 1
+    done
+    mark "P3_PRIO_QUEUE_EXIT dev=$dev mode=${mode:-nowait}${running:+ still running elsewhere:$running}"
+}
+# rep_done <suite> <k>: the repetition marker and the emitters, once per (suite, repetition) across both GPU chains
+rep_done() {
+    mkdir -p "$OUT/$1"
+    if mkdir "$OUT/$1/EMITTED_r$2" 2>/dev/null; then mark "P3_REP_DONE $1 r$2"; emit "$1"; fi
+}

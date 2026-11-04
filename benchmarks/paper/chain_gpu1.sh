@@ -6,12 +6,12 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 DEV=${1:-1}; WT=$LOGS/WALLTIME_gpu1.csv
 [ -f "$WT" ] || echo "suite,config,rep,dev,t_start,t_end,elapsed_s,rc,intruder_samples,stall_kills,head" > "$WT"
 mark "P3_CHAIN_START gpu1 dev=$DEV HEAD=$(head_sha)"
+run_prio_queue "$DEV" wait   # rep-1 PGLIB / COPS cells first, on whichever GPU frees first (Yifan 2026-11-04)
 # one complete repetition of every suite first (Yifan, 2026-11-04): opf r1, cops r1, opf r2, cops r2, opf r3, cops r3
 for k in 1 2 3; do
     for suite in opf cops; do
         for c in S SP W U6A liftedkkt; do run_gpu_cell "$DEV" "$suite" "$c" "$k" "$WT"; done
-        mark "P3_REP_DONE $suite r$k"
-        emit "$suite"
+        rep_done "$suite" "$k"   # once per (suite, repetition), also across the priority queue of the other chain
     done
 done
 for c in S SP W U6A liftedkkt; do run_gpu_cell "$DEV" cops_ladder "$c" 1 "$WT"; done
