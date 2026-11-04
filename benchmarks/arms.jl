@@ -24,7 +24,7 @@ using MadNCL
 
 const ARMS = ("S", "SP", "W", "U6A")
 const ARM_NAMES = Dict("S" => "MadNCL", "SP" => "MadNCL + parameters",
-                       "W" => "(γ,φ)-MadNCL", "U6A" => "power-kernel cell (p = 6, λ = 1e-2)")
+                       "W" => "γ-NCL", "U6A" => "φ-NCL")
 mu_star(tol) = (tol / 100)^(1 / 1.05)
 
 """
