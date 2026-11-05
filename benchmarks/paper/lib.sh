@@ -240,3 +240,82 @@ rep_done() {
     mkdir -p "$OUT/$1"
     if mkdir "$OUT/$1/EMITTED_r$2" 2>/dev/null; then mark "P3_REP_DONE $1 r$2"; emit "$1"; fi
 }
+
+# ---- device-agnostic claim queue for every remaining PGLIB / COPS / ladder cell (2026-11-05) ----
+# Order: repetition 1, 2, 3, opf before cops within a repetition, then the COPS ladder (x1). Each consumer
+# (chain_gpu_queue.sh <dev>, one per device) waits for ITS device to be free of any process, claims the first cell
+# that is neither settled nor claimed (`mkdir <cell>/CLAIM`, with pid / dev / finished as in run_prio_queue; the same
+# stale-claim rule), runs it with run_gpu_cell on its device, and repeats; while waiting it re-scans every minute and
+# exits when nothing is left to claim. A cell is settled when it is DONE or its attempt has finished (a failed attempt,
+# rc != 0, is left for a campaign resume; run_campaign.sh frees such claims before relaunching). After every cell the
+# consumer emits each (suite, repetition) whose five cells are settled once (rep_done) and, once every queue cell is
+# settled and none runs, `P3_CHAIN_DONE gpu1` once (guard $OUT/CHAIN_DONE_gpu1) — whichever consumer finishes last.
+GPU_QUEUE=()
+for _k in 1 2 3; do for _s in opf cops; do for _c in S SP W U6A liftedkkt; do GPU_QUEUE+=("$_s $_c $_k"); done; done; done
+for _c in S SP W U6A liftedkkt; do GPU_QUEUE+=("cops_ladder $_c 1"); done
+_q_settled() { [ -f "$1/DONE" ] || [ -f "$1/CLAIM/finished" ]; }
+_q_check_done() {
+    local s k c all item suite config kk d failed=""
+    for s in opf cops cops_ladder; do for k in 1 2 3; do
+        [ "$s" = cops_ladder ] && [ "$k" -gt 1 ] && continue
+        all=1; for c in S SP W U6A liftedkkt; do _q_settled "$OUT/$s/${c}_r$k" || all=0; done
+        [ $all -eq 1 ] && rep_done "$s" "$k"
+    done; done
+    all=1
+    for item in "${GPU_QUEUE[@]}"; do
+        read -r suite config kk <<< "$item"; d="$OUT/$suite/${config}_r$kk"
+        _q_settled "$d" || all=0
+        [ -f "$d/DONE" ] || failed="$failed $suite/$config/r$kk"
+    done
+    if [ $all -eq 1 ] && mkdir "$OUT/CHAIN_DONE_gpu1" 2>/dev/null; then
+        mark "P3_CHAIN_DONE gpu1${failed:+ (attempted, not DONE:$failed)}"
+    fi
+}
+run_gpu_queue() {
+    local dev=$1 item suite config k d next waited=0 rc
+    while :; do
+        next=""
+        for item in "${GPU_QUEUE[@]}"; do
+            read -r suite config k <<< "$item"; d="$OUT/$suite/${config}_r$k"
+            _q_settled "$d" && continue
+            if [ -d "$d/CLAIM" ]; then
+                _prio_running "$d" && continue
+                mark "P3_PRIO_STALE_CLAIM $suite $config r$k (claimer $(cat "$d/CLAIM/pid" 2>/dev/null) gone; freed)"
+                rm -rf "$d/CLAIM"
+            fi
+            next="$suite/$config/r$k"; break
+        done
+        [ -z "$next" ] && break
+        if [ -n "$(device_busy "$dev")" ]; then
+            [ $((waited % 600)) -eq 0 ] && mark "P3_BUSY_WAIT prio dev=$dev next=$next pids=$(device_busy "$dev" | tr '\n' ' ')"
+            sleep 60; waited=$((waited + 60)); continue
+        fi
+        waited=0
+        for item in "${GPU_QUEUE[@]}"; do
+            read -r suite config k <<< "$item"; d="$OUT/$suite/${config}_r$k"
+            _q_settled "$d" && continue
+            mkdir -p "$d"
+            mkdir "$d/CLAIM" 2>/dev/null || continue
+            echo $$ > "$d/CLAIM/pid"; echo "$dev" > "$d/CLAIM/dev"
+            mark "P3_PRIO_CLAIM $suite $config r$k dev=$dev pid=$$"
+            run_gpu_cell "$dev" "$suite" "$config" "$k" "$LOGS/WALLTIME_gpu1.csv"; rc=$?
+            echo "$rc" > "$d/CLAIM/finished"
+            [ "$rc" -ne 0 ] && mark "P3_Q_CELL_FAILED $suite $config r$k dev=$dev rc=$rc (left for a campaign resume)"
+            _q_check_done
+            break
+        done
+    done
+    _q_check_done
+    mark "P3_PRIO_QUEUE_EXIT dev=$dev mode=queue"
+}
+# free the claims of queue cells that are not DONE (failed attempts), so that a relaunch retries them; run only while
+# no GPU consumer is running (run_campaign.sh)
+reset_unfinished_claims() {
+    local item suite config k d n=0
+    for item in "${GPU_QUEUE[@]}"; do
+        read -r suite config k <<< "$item"; d="$OUT/$suite/${config}_r$k"
+        if [ -d "$d/CLAIM" ] && [ ! -f "$d/DONE" ] && ! _prio_running "$d"; then rm -rf "$d/CLAIM"; n=$((n + 1)); fi
+    done
+    [ $n -gt 0 ] && mark "P3_Q_RESET_CLAIMS $n (not DONE, no live claimer)"
+    return 0
+}
