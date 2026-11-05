@@ -1,0 +1,7 @@
+opf: 45 instances, constr_viol_tol 0.0001
+  configuration                per repetition             majority  gm fact
+  $\gamma$-NCL [W]             r1:44                            44    190.2
+  $\varphi$-NCL [U6A]          r1:42                            42    427.9
+  MadNCL [S]                   r1:41 r2:41                      41    168.3
+  MadNCL + parameters [SP]     r1:35                            35    186.9
+  LiftedKKT $\epsilon=10^{-8}$ [liftedkkt] r1:36                            36    154.7
