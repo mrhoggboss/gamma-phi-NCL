@@ -1,0 +1,2 @@
+list=/home/yifan_xu/MadNCL-public/benchmarks/instances/cutest_pop1070.txt configs=ipopt solvers=ma57 workers=30 wall=3600.0 tol=1.0e-8 constr_viol_tol=0.0001 max_iter=3000 bound_relax_factor=1e-8 pathof(MadNCL)=/home/yifan_xu/MadNCL-public/src/MadNCL.jl
+CONFIG ipopt [ma57] tol=1.0e-8 constr_viol_tol=0.0001 max_iter=3000 max_wall_time=3600.0 acceptable_iter=0 (acceptable-level termination disabled) linear_solver=ma57 ma57_automatic_scaling=yes (options as passed)
