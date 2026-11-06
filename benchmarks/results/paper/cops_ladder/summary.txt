@@ -1,3 +1,4 @@
 cops_ladder: 46 instances, constr_viol_tol 0.0001
   configuration                per repetition             majority  gm fact
+  ablation [ablation]          r1:42                            42     73.8
   MadNCL + parameters [SP]     r1:43                            43     88.0
