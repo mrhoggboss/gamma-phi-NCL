@@ -16,11 +16,12 @@ NAMES = {
     "SP": "MadNCL + parameters",
     "U6A": "$\\varphi$-NCL",
     "ablation": "ablation",
+    "Wos": "$\\gamma$-NCL, one-sided ($\\gamma \\le 1$)",
     "liftedkkt": "LiftedKKT $\\epsilon=10^{-8}$",
     "ipopt": "Ipopt",
     "madnlp": "MadNLP-augmented",
 }
-ORDER = ["W", "U6A", "ablation", "S", "SP", "liftedkkt", "ipopt", "madnlp"]
+ORDER = ["W", "U6A", "ablation", "Wos", "S", "SP", "liftedkkt", "ipopt", "madnlp"]
 SUCCESS = {"SOLVE_SUCCEEDED", "first_order"}
 
 

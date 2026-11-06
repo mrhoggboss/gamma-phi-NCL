@@ -151,7 +151,7 @@ run_cpu_pool() {
     local dir="$OUT/cutest/${config}_r1" log="$LOGS/cutest_${config}.log" tr="" rc head t0
     mkdir -p "$dir/rows"
     if [ -f "$dir/DONE" ]; then mark "P3_CELL_SKIP cutest $config r1 (already done)"; return 0; fi
-    case $config in S|SP|W|U6A|ablation) tr=--trace ;; esac
+    case $config in S|SP|W|U6A|ablation|Wos) tr=--trace ;; esac
     t0=$(date +%s); head=$(head_sha)
     mark "P3_CELL_START cutest $config r1 workers=$CPU_NW HEAD=$head"
     P3_POOL_TAG="p3_cutest_$config" "$PUB/benchmarks/paper/watch.sh" "$dir/rows" "$dir/rows/KILLED_AT" 7200 "$log" -- \

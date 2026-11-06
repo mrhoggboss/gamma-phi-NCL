@@ -4,7 +4,7 @@
 #   julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl <suite> <configs> <outdir> [options]
 #
 #   <suite>    opf | cops | cops_ladder | scopf
-#   <configs>  comma list of S, SP, W, U6A, ablation (benchmarks/arms.jl) and liftedkkt (benchmarks/liftedkkt.jl)
+#   <configs>  comma list of S, SP, W, U6A, ablation, Wos (benchmarks/arms.jl) and liftedkkt (benchmarks/liftedkkt.jl)
 #   <outdir>   results: <suite>__<config>__<tag>.csv (rewritten after every instance; running the same command
 #              again resumes: rows already there are kept and their instances skipped) and
 #              config_<suite>__<tag>.txt (the full option set of every configuration, read back from the solvers)
