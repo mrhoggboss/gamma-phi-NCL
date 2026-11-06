@@ -13,9 +13,12 @@ WT=$LOGS/WALLTIME_ablation.csv
 [ -f "$WT" ] || echo "suite,config,rep,dev,t_start,t_end,elapsed_s,rc,intruder_samples,stall_kills,head" > "$WT"
 mark "ABL_CHAIN_START gpu dev=$DEV HEAD=$(head_sha) data=$SCOPF_DATA"
 waited=0
-# and the campaign's ladder resume runs first (Yifan 2026-11-05 21:45): wait for its P3_LADDER_RESUME_DONE too
-until grep -q "P3_CHAIN_DONE gpu1" "$CAMPAIGN_MARKS" && grep -q "P3_LADDER_RESUME_DONE" "$CAMPAIGN_MARKS"; do
-    [ $((waited % 3600)) -eq 0 ] && mark "ABL_WAIT_CAMPAIGN dev=$DEV (waiting for P3_CHAIN_DONE gpu1 and P3_LADDER_RESUME_DONE)"
+# Priority change (Yifan 2026-11-05 22:45): the ablation's x1 GPU cells run before the rest of the campaign. Gate: the
+# campaign queue is held (P3_QUEUE_HOLD, bench/wo64/phase3/queue_hold.sh) and no campaign cell is running any more (its
+# last running cell ends normally); then the usual per-device rule (no foreign process at start).
+camp_running() { pgrep -u "$(id -u)" -f "MadNCL-public/benchmarks/gpu.jl" > /dev/null; }
+until grep -q "P3_QUEUE_HOLD cops_ladder" "$CAMPAIGN_MARKS" && ! camp_running; do
+    [ $((waited % 3600)) -eq 0 ] && mark "ABL_WAIT_CAMPAIGN dev=$DEV (waiting for the campaign hold and for its running cell to end)"
     sleep 60; waited=$((waited + 60))
 done
 ABL_SUITES=(scopf opf cops cops_ladder)
