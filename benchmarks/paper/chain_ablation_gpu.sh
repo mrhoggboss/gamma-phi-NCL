@@ -17,7 +17,8 @@ waited=0
 # campaign queue is held (P3_QUEUE_HOLD, bench/wo64/phase3/queue_hold.sh) and no campaign cell is running any more (its
 # last running cell ends normally); then the usual per-device rule (no foreign process at start).
 camp_running() { pgrep -u "$(id -u)" -f "MadNCL-public/benchmarks/gpu.jl" > /dev/null; }
-until grep -q "P3_QUEUE_HOLD cops_ladder" "$CAMPAIGN_MARKS" && ! camp_running; do
+held() { awk '$2 == "P3_QUEUE_HOLD" && $3 == "cops_ladder" {f = 1} END {exit !f}' "$CAMPAIGN_MARKS"; }   # field-exact
+until held && ! camp_running; do
     [ $((waited % 3600)) -eq 0 ] && mark "ABL_WAIT_CAMPAIGN dev=$DEV (waiting for the campaign hold and for its running cell to end)"
     sleep 60; waited=$((waited + 60))
 done
