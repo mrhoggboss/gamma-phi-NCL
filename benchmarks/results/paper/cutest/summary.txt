@@ -3,6 +3,7 @@ configuration                solver  rows  solved raw  non-trap  traps  gm fact 
 W                              ma57  1070         804   795/936      9     35.4     26.8
 U6A                            ma57  1070         817   804/936     13     60.5     48.5
 ablation                       ma57  1070         805   797/936      8     35.2     26.7
+Wos                            ma57  1070         806   797/936      9     35.5     26.9
 S                              ma57  1070         768   761/936      7     33.0     15.2
 SP                             ma57  1070         783   776/936      7     34.9     16.3
 liftedkkt                      ma57  1070   774 (775)   764/936     10     35.6     26.2
@@ -12,6 +13,7 @@ madnlp                         ma57  1070   763 (765)   753/936     10     28.9 
 co-solved with W [ma57] (gm factorizations on the shared set, W / other):
   U6A          shared   783      33.9 /     57.4  only W   21  only U6A   34
   ablation     shared   793      34.1 /     34.1  only W   11  only ablation   12
+  Wos          shared   790      34.0 /     34.0  only W   14  only Wos   16
   S            shared   747      31.2 /     31.7  only W   57  only S   21
   SP           shared   754      32.5 /     32.6  only W   50  only SP   29
   liftedkkt    shared   727      31.9 /     32.3  only W   77  only liftedkkt   47
