@@ -145,6 +145,25 @@ end
         end
     end
 
+    @testset "force gate at unit weights = residual gate (power kernel, HS15, $(kkt))" for kkt in (
+        MadNCL.K2rAuglagKKTSystem, MadNCL.K1sAuglagKKTSystem,
+    )
+        # |φ'(−ρ rᵢ)| ≤ φ'(ρ thr) ⟺ |rᵢ| ≤ thr for an odd increasing φ': the two gates take the same decisions
+        runs = map((:residual, :force)) do gate
+            solver = MadNCL.NCLSolver(HS15Model();
+                ncl_options=MadNCL.NCLOptions{Float64}(verbose=false, extrapolation=false, gate_metric=gate),
+                kernel=MadNCL.PowerKernel(6.0, 0.01), kkt_system=kkt, print_level=MadNLP.ERROR)
+            dg = Any[]
+            stats = MadNCL.solve!(solver; diag=dg)
+            (stats, [d.branch for d in dg])
+        end
+        (s_res, b_res), (s_frc, b_frc) = runs
+        @test s_res.status == s_frc.status == MadNLP.SOLVE_SUCCEEDED
+        @test b_res == b_frc
+        @test s_res.iter == s_frc.iter
+        @test s_res.counters.factorization_cnt == s_frc.counters.factorization_cnt
+    end
+
     @testset "diag records" begin
         nlp = HS15Model()
         solver = MadNCL.NCLSolver(nlp; ncl_options=MadNCL.NCLOptions{Float64}(verbose=false),

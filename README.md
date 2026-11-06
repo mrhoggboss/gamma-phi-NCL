@@ -68,8 +68,10 @@ with per-row weights `γᵢ > 0` (`solver.ncl.γr`, default 1) and a penalty ker
 New kernels are added by subtyping `MadNCL.AbstractKernel` and implementing
 `phi(k, λ, t)`, `dphi(k, λ, t)`, `ddphi(k, λ, t)`. The weights can be updated automatically by
 the weight law `weight_law=:geometry`, and the subproblem
-acceptance test can be measured on the penalty force (`gate_metric=:force`); see the docstring
-of `MadNCL.NCLOptions`.
+acceptance test can be measured on the penalty force (`gate_metric=:force`): accept when
+|γᵢ φᵢ'(−ρ rᵢ)| ≤ φᵢ'(ρ · thr) on every row, thr = max(η, feas_tol), instead of ‖r‖∞ ≤ thr. At
+γ ≡ 1 the two tests coincide for every admissible kernel (φ' odd and increasing); for the quadratic
+kernel the force test reads maxᵢ γᵢ |rᵢ| ≤ thr. See the docstring of `MadNCL.NCLOptions`.
 
 ### Reproducing the solver configurations of the paper
 
@@ -91,7 +93,8 @@ SP = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradien
                                 mu_min=μstar, max_auglag_iter=40, rho_max=1e14,
                                 fold_dual_regularization=false)
 
-# γ-NCL: weight law, force gate, no extrapolation step, acceptable-level exit disabled.
+# γ-NCL: weight law, force gate (with the quadratic kernel: maxᵢ γᵢ |rᵢ| ≤ thr), no extrapolation step,
+# acceptable-level exit disabled.
 frozen = (opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0, mu_min=μstar,
           max_auglag_iter=40, rho_max=1e14, extrapolation=false)
 W = MadNCL.NCLOptions{Float64}(; frozen..., weight_law=:geometry, weight_clip=(1e-30, 1e8),

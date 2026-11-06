@@ -33,10 +33,11 @@ Outer loop and tolerances
 - `weight_anneal_horizon`: the installed weights are `target^α` with
   `α = clamp(n_acc / weight_anneal_horizon, 0, 1)`, where `n_acc` is the number of accepted
   subproblems so far (`≤ 0` disables the annealing: α ≡ 1).
-- `gate_metric`: acceptance test of a subproblem (multiplier update and barrier decrease).
-  `:residual` accepts when ‖r‖∞ ≤ max(η, feas_tol); `:force` accepts when the penalty force
-  satisfies ‖γ φ'(−ρ r)‖∞ ≤ ρ · max(η, feas_tol). Both also require the inner solve to have
-  converged. The two tests coincide for the quadratic kernel with γ ≡ 1.
+- `gate_metric`: acceptance test of a subproblem (multiplier update and barrier decrease), with
+  thr = max(η, feas_tol). `:residual` accepts when ‖r‖∞ ≤ thr; `:force` accepts when the penalty
+  force satisfies |γᵢ φᵢ'(−ρ rᵢ)| ≤ φᵢ'(ρ · thr) on every row i. Both also require the inner solve
+  to have converged. At γ ≡ 1 the two tests coincide for every admissible kernel (φ' odd and
+  increasing); for the quadratic kernel the force test reads maxᵢ γᵢ |rᵢ| ≤ thr.
 - `fold_dual_regularization`: with `K2rAuglagKKTSystem` and `K1sAuglagKKTSystem`, keep MadNLP's
   dual regularization in the reduced systems (see their docstrings). `false` restores the
   original MadNCL assembly.
@@ -720,10 +721,11 @@ function solve!(solver::NCLSolver{T}; diag=nothing) where T
         # Acceptance test
         thr = max(η, options.feas_tol)
         accepted = if options.gate_metric === :force
-            # Penalty force, read from the stored gradient: ∂L/∂r = −yk − γ φ'(−ρ r).
+            # Penalty force, read from the stored gradient: ∂L/∂r = −yk − γ φ'(−ρ r). Accept iff every row satisfies
+            # |γᵢ φᵢ'(−ρ rᵢ)| ≤ φᵢ'(ρ · thr). A direct comparison (no ratio): for the quadratic kernel φᵢ'(ρ thr) is
+            # ρ · thr exactly, so the test is max |γᵢ φᵢ'(−ρ rᵢ)| ≤ ρ · thr bit for bit.
             fr = view(MadNLP.primal(ipm.f), n+1:n+m)
-            v_inf = m == 0 ? zero(T) : maximum(abs.(fr .+ ncl.yk))
-            v_inf <= ncl.ρk[] * thr
+            m == 0 || all(abs.(fr .+ ncl.yk) .<= dphi.(Ref(ncl.kernel), ncl.λr, ncl.ρk[] * thr))
         else
             pr_feas <= thr
         end
