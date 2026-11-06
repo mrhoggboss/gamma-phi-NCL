@@ -10,6 +10,8 @@
 #                             exit disabled
 #   U6A  power-kernel cell    φᵢ(t) = t²/2 + (λ/6)|t|⁶ with λ ≡ 1e-2 on every row, unit weights,
 #                             residual gate, MadNLP's acceptable-level exit disabled
+#   ablation (of φ-NCL)      U6A with the quadratic kernel: unit weights, quadratic kernel, residual gate (at γ ≡ 1 and
+#                             φ(t) = t²/2 this is eq:gate), no extrapolation step, MadNLP's acceptable-level exit disabled
 #   Only S keeps MadNLP's acceptable-level inner exit (acceptable_tol 1e-6, the upstream default); every other
 #   configuration, and the LiftedKKT comparator (liftedkkt.jl), runs with acceptable_tol = 0, so that no inner solve
 #   stops short of its budget at a looser tolerance (protocol of 2026-11-04).
@@ -22,9 +24,9 @@
 
 using MadNCL
 
-const ARMS = ("S", "SP", "W", "U6A")
+const ARMS = ("S", "SP", "W", "U6A", "ablation")
 const ARM_NAMES = Dict("S" => "MadNCL", "SP" => "MadNCL + parameters",
-                       "W" => "γ-NCL", "U6A" => "φ-NCL")
+                       "W" => "γ-NCL", "U6A" => "φ-NCL", "ablation" => "ablation")
 mu_star(tol) = (tol / 100)^(1 / 1.05)
 
 """
@@ -49,6 +51,9 @@ function arm_config(name::AbstractString; tol=1e-8, constr_viol_tol=1e-4)
                 (acceptable_tol=0.0,))
     elseif name == "U6A"
         return (MadNCL.PowerKernel(6.0, 1e-2),
+                MadNCL.NCLOptions{Float64}(; tuned..., extrapolation=false), (acceptable_tol=0.0,))
+    elseif name == "ablation"   # U6A with the quadratic kernel (Yifan 2026-11-05): the framework at γ ≡ 1, φ quadratic
+        return (MadNCL.QuadraticKernel(),
                 MadNCL.NCLOptions{Float64}(; tuned..., extrapolation=false), (acceptable_tol=0.0,))
     end
     error("unknown configuration $name (expected one of $(join(ARMS, ", ")))")

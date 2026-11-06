@@ -3,7 +3,7 @@
 #   julia --project=benchmarks/envs/cpu benchmarks/cutest.jl <list> <configs> <solvers> <nworkers> <wall> <outdir> [options]
 #
 #   <list>     instance list, one CUTEst name per line (benchmarks/instances/cutest_*.txt)
-#   <configs>  comma list of S, SP, W, U6A (benchmarks/arms.jl) and the baselines
+#   <configs>  comma list of S, SP, W, U6A, ablation (benchmarks/arms.jl) and the baselines
 #              ipopt (Ipopt), liftedkkt (MadNLP, condensed KKT system), madnlp (MadNLP, augmented KKT system);
 #              the baselines run with their acceptable-level termination disabled (Ipopt acceptable_iter = 0,
 #              MadNLP acceptable_tol = 0), as every MadNCL configuration but S
@@ -36,7 +36,7 @@ const OUTDIR = abspath(POS[6])
 const TRACE = haskey(OPT, "trace")
 const TOL = parse(Float64, get(OPT, "tol", "1e-8"))
 const CVTOL = parse(Float64, get(OPT, "cvtol", "1e-4"))
-const NCL_CONFIGS = ("S", "SP", "W", "U6A")
+const NCL_CONFIGS = ("S", "SP", "W", "U6A", "ablation")
 const BASELINES = ("ipopt", "liftedkkt", "madnlp")
 for c in CONFIGS; c in NCL_CONFIGS || c in BASELINES || error("unknown configuration $c"); end
 for s in SOLVERS; s in ("ma57", "ldl") || error("unknown linear solver $s"); end
