@@ -9,8 +9,7 @@ over the succeeding repetitions; a non-solve shows the most frequent status. Lif
 constraint-violation test: its solves count only if the returned point's raw violation (pr_res) is within the run's
 constr_viol_tol (post-hoc guard); a solve removed by the guard shows "viol.", and the footer gives the unguarded count
 in parentheses. The footer is computed with the same scoring as tab_gpu_opf (benchmarks/tables/common.suite_scores),
-over all cases and over the 45-case subset of the main-text table, and is asserted to equal the column sums of the
-rows above it.
+over all cases, and is asserted to equal the column sums of the rows above it.
 
 Usage: python3 benchmarks/tables/tab_pglib_appendix.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
@@ -53,8 +52,6 @@ def main(argv):
     configs = ordered(files)
     data = {c: {t: read_rows(files[c][t], "instance") for t in files[c]} for c in configs}
     names = sorted(set().union(*[set(r) for c in configs for r in data[c].values()]), key=lambda n: (nbus(n), n))
-    h45 = {l.strip() for l in open(os.path.join(os.path.dirname(HERE), "instances", "pglib45.txt")) if l.strip()}
-    sub45 = [n for n in names if n in h45]
     if len(names) != 66:
         print(f"  NOTE: {len(names)} cases in the results (the appendix is meant to cover all 66)")
     for c in configs:
@@ -72,7 +69,7 @@ def main(argv):
             " ".join(f"\\cmidrule(lr){{{3 + 3 * i}-{5 + 3 * i}}}" for i in range(k)),
             "case & buses & " + " & ".join("iter. & fact. & wall" for _ in configs) + " \\\\\\midrule"]
     T += head + ["\\endfirsthead"] + head + ["\\endhead", "\\bottomrule", "\\endfoot"]
-    colsum = {c: {"all": 0, "45": 0, "fact": [], "fact45": []} for c in configs}
+    colsum = {c: {"all": 0, "fact": []} for c in configs}
     for n in names:
         cells = []
         for c in configs:
@@ -82,29 +79,23 @@ def main(argv):
                          if n in rows and success(rows[n], c, None, cvtol)]
                 cells += [f"{it:.0f}", f"{nf:.0f}", f"{statistics.median(walls):.1f}"]
                 colsum[c]["all"] += 1; colsum[c]["fact"].append(nf)
-                if n in h45:
-                    colsum[c]["45"] += 1; colsum[c]["fact45"].append(nf)
             else:
                 cells += [f"\\multicolumn{{3}}{{c}}{{\\textit{{{short(majority_status(data[c], n, c, cvtol))}}}}}"]
         T.append(f"{tex_name(n)} & {nbus(n)} & " + " & ".join(cells) + " \\\\")
     # footer with the scoring of tab_gpu_opf, asserted equal to the column sums above
     foot = {}
     for c in configs:
-        a, b = suite_scores(data[c], names, c, cvtol), suite_scores(data[c], sub45, c, cvtol)
+        a = suite_scores(data[c], names, c, cvtol)
         assert len(a["solved"]) == colsum[c]["all"], (c, len(a["solved"]), colsum[c]["all"])
-        assert len(b["solved"]) == colsum[c]["45"], (c, len(b["solved"]), colsum[c]["45"])
-        assert fmt(a["cost"]) == fmt(gm(colsum[c]["fact"])) and fmt(b["cost"]) == fmt(gm(colsum[c]["fact45"]))
-        foot[c] = (a, b)
-        print(f"  {c:<10} solved {len(a['solved'])}/{len(names)} (unguarded {a['n_raw']}), gm fact {a['cost']:.1f}; "
-              f"45-case subset {len(b['solved'])}/{len(sub45)} (unguarded {b['n_raw']}), gm fact {b['cost']:.1f}")
+        assert fmt(a["cost"]) == fmt(gm(colsum[c]["fact"]))
+        foot[c] = (a,)
+        print(f"  {c:<10} solved {len(a['solved'])}/{len(names)} (unguarded {a['n_raw']}), gm fact {a['cost']:.1f}")
 
     def cnt(s):
         return f"{len(s['solved'])}" + (f" ({s['n_raw']})" if s["n_raw"] != len(s["solved"]) else "")
     T.append("\\midrule")
     T.append(f"solved (all {len(names)}) & & " + " & ".join(f"\\multicolumn{{3}}{{c}}{{{cnt(foot[c][0])}}}" for c in configs) + " \\\\")
     T.append("factorizations (geom.\\ mean) & & " + " & ".join(f"\\multicolumn{{3}}{{c}}{{{fmt(foot[c][0]['cost'])}}}" for c in configs) + " \\\\")
-    T.append(f"solved ({len(sub45)} with $\\geq 1000$ buses) & & " + " & ".join(f"\\multicolumn{{3}}{{c}}{{{cnt(foot[c][1])}}}" for c in configs) + " \\\\")
-    T.append("factorizations (geom.\\ mean) & & " + " & ".join(f"\\multicolumn{{3}}{{c}}{{{fmt(foot[c][1]['cost'])}}}" for c in configs) + " \\\\")
     T.append("\\end{longtable}}")
     assert_no_tokens("\n".join(T))
     write(opt.get("out", DEFAULT_OUT), "tab_pglib_appendix.tex", T)

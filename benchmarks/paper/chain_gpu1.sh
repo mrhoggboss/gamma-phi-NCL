@@ -1,5 +1,5 @@
 #!/bin/bash
-# Paper campaign, GPU chain B: PGLIB 66 (max_iter 1000, wall 1800; the 45-case table is scored from the same runs)
+# Paper campaign, GPU chain B: PGLIB 66 (max_iter 1000, wall 1800)
 # and COPS 13, each x five configurations x 3 repetitions, interleaved by repetition (opf r1, cops r1, opf r2, ...);
 # then the COPS size ladder (46 rungs) x five x 1 (the scaling figure).   chain_gpu1.sh <device>
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"

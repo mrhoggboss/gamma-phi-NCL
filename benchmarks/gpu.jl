@@ -12,8 +12,7 @@
 #              --device=cuda|cpu      cuda (default): ExaModels on CUDABackend, cuDSS LDL;
 #                                     cpu: ExaModels on the CPU, MadNLP LDLSolver (for smoke tests)
 #              --instances=<file>     opf: one PGLIB case per line (default instances/pglib66.txt, all 66 cases:
-#                                     the paper's runs cover all of them for every configuration; the 45-case
-#                                     table is a scoring subset, tables/tab_gpu_opf.py --subset);
+#                                     the paper's runs cover all of them for every configuration);
 #                                     scopf: CSV with columns case,K,data (default instances/scopf23.csv)
 #              --data=<dir>           scopf: directory containing the case-file directories named in the
 #                                     `data` column (required for scopf; the case files are not distributed here)

@@ -7,18 +7,16 @@ mean over the majority-solved set of the median factorization count of the succe
 LiftedKKT (MadNLP) has no constraint-violation test: its successes count only if the returned point's raw
 violation (pr_res) is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses).
 
-Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--subset=<instance list>] [--cvtol=<t>] [--out=<dir>]
-  --subset  score only these instances (e.g. benchmarks/instances/pglib45.txt, the 45 cases with at least
-            1000 buses of the main-text table); the runs themselves always cover all 66 cases
+Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--cvtol=<t>] [--out=<dir>]
+  scores every case in the result files (the paper's runs: all 66 PGLIB cases)
 """
 import sys
 from common import DEFAULT_OUT, NAMES, assert_no_tokens, count_cell, find, fmt, ordered, read_cvtol, read_rows, suite_scores, write
 
 # Caption: the manuscript's (overleaf_upload/tables/tab_gpu_opf.tex), verbatim (captions are Yifan's).
 # TODO(caption, stale items to revise once the new numbers exist):
-#   - "45 cases": the harness runs PGLIB 66 by default (instances/pglib66.txt); 45 = instances/pglib45.txt.
 #   - "the majority of the three": the number of repetitions is whatever tags are in the result directory.
-CAPTION = ("PGLIB optimal power flow, 45 cases. Each repetition is an independent run on the same device; "
+CAPTION = ("PGLIB optimal power flow, 66 cases. Each repetition is an independent run on the same device; "
            "\\emph{solved} is the per-instance majority of the three, and the cost is the geometric mean over that "
            "set of the median factorization count of the succeeding repetitions.")
 
@@ -40,10 +38,8 @@ def main(argv):
          f" & \\multicolumn{{{len(tags)}}}{{c}}{{repetition}} & & \\\\",
          f"\\cmidrule(lr){{2-{len(tags) + 1}}}",
          "configuration & " + " & ".join(str(i + 1) for i in range(len(tags))) + " & solved & factorizations \\\\\\midrule"]
-    names_all = sorted(set().union(*[set(r) for c in configs for r in data[c].values()]))
-    subset = opt.get("subset")
-    names = [n for n in names_all if n in {l.strip() for l in open(subset) if l.strip()}] if subset else names_all
-    print(f"  {len(names)} instances" + (f" (subset {subset})" if subset else ""))
+    names = sorted(set().union(*[set(r) for c in configs for r in data[c].values()]))
+    print(f"  {len(names)} instances")
     for c in configs:
         sc = suite_scores(data[c], names, c, cvtol)
         per = [count_cell(*sc["per_rep"][t], c) if t in sc["per_rep"] else "--" for t in tags]

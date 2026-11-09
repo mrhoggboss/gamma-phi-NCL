@@ -112,9 +112,8 @@ emit() {
     case $suite in
         scopf)  python3 "$py/tab_gpu_scopf.py" "$RES/scopf" --out="$TABLES" || r=1
                 python3 "$py/tab_scopf_config.py" "$RES/scopf" --out="$TABLES" || r=1 ;;
-        opf)    # the main-text float scores the 45 cases with at least 1000 buses; all 66 are in the appendix
-                python3 "$py/tab_gpu_opf.py" "$RES/opf" --subset="$PUB/benchmarks/instances/pglib45.txt" --out="$TABLES" || r=1
-                python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES/pglib66" || r=1
+        opf)    # the main-text float and the appendix both cover all 66 cases
+                python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES" || r=1
                 python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
         cops)   : ;;   # no float: the console summary below is the record
         cops_ladder) python3 "$py/fig_gpu_scaling.py" "$RES/cops_ladder" --tag=r1 --out="$TABLES" || r=1 ;;
@@ -124,9 +123,7 @@ emit() {
     esac
     case $suite in
         scopf|opf|cops|cops_ladder)
-            python3 "$py/summary_gpu.py" "$RES/$suite" "$suite" > "$RES/$suite/summary.txt" 2>&1 || r=1
-            [ "$suite" = opf ] && python3 "$py/summary_gpu.py" "$RES/opf" opf --subset="$PUB/benchmarks/instances/pglib45.txt" \
-                > "$RES/opf/summary_pglib45.txt" 2>&1 ;;
+            python3 "$py/summary_gpu.py" "$RES/$suite" "$suite" > "$RES/$suite/summary.txt" 2>&1 || r=1 ;;
     esac
     compile_tables "$TABLES" || r=1
     commit_paths "paper results: $suite summaries" "benchmarks/results/paper/$suite" >/dev/null
