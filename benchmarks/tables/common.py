@@ -21,7 +21,10 @@ NAMES = {
     "ipopt": "Ipopt",
     "madnlp": "MadNLP-augmented",
 }
-ORDER = ["W", "U6A", "ablation", "Wos", "S", "SP", "liftedkkt", "ipopt", "madnlp"]
+# The paper roster (Yifan 2026-11-09): MadNCL + parameters (SP) is in, the ablation is out of the manuscript (its data
+# stays banked), the one-sided γ-NCL (Wos) is not part of the paper. Every emitter shows exactly the configurations of
+# ORDER that are present in its result directory, in this order; any other configuration found there is left out.
+ORDER = ["W", "U6A", "S", "SP", "liftedkkt", "ipopt", "madnlp"]
 SUCCESS = {"SOLVE_SUCCEEDED", "first_order"}
 
 
@@ -53,7 +56,7 @@ def find(resdir, pattern):
 
 
 def ordered(configs):
-    return [c for c in ORDER if c in configs] + sorted(c for c in configs if c not in ORDER)
+    return [c for c in ORDER if c in configs]
 
 
 # Solvers without a constraint-violation test of their own (MadNLP: LiftedKKT and the augmented system).

@@ -158,6 +158,7 @@ julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl scopf S,SP,W,U6A,l
     --data=<directory with data/ and data_mp70/>
 python3 benchmarks/tables/tab_gpu_opf.py results/gpu --subset=benchmarks/instances/pglib45.txt   # main-text table
 python3 benchmarks/tables/tab_pglib_appendix.py results/gpu   # appendix: all 66 cases, every configuration
+python3 benchmarks/tables/tab_cops_appendix.py results/gpu    # appendix: the 13 COPS instances, per-repetition statuses
 python3 benchmarks/tables/tab_gpu_scopf.py results/gpu
 python3 benchmarks/tables/tab_scopf_config.py results/gpu
 python3 benchmarks/tables/fig_gpu_scaling.py results/gpu
