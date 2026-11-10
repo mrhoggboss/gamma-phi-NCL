@@ -21,6 +21,45 @@ NAMES = {
     "ipopt": "Ipopt",
     "madnlp": "MadNLP-augmented",
 }
+# Two-part names for column headers (first line, second line), so that a configuration's header is no wider than its
+# columns (Yifan 2026-11-10: tables overflowed the page). Row-label tables keep the one-line NAMES.
+NAMES2 = {
+    "W": ("$\\gamma$-NCL", ""),
+    "U6A": ("$\\varphi$-NCL", ""),
+    "S": ("MadNCL", ""),
+    "SP": ("MadNCL", "+ parameters"),
+    "ablation": ("ablation", ""),
+    "Wos": ("$\\gamma$-NCL, one-sided", "($\\gamma \\le 1$)"),
+    "liftedkkt": ("LiftedKKT", "$\\epsilon=10^{-8}$"),
+    "ipopt": ("Ipopt", ""),
+    "madnlp": ("MadNLP", "augmented"),
+}
+
+
+def name2(c):
+    return NAMES2.get(c, (NAMES.get(c, c), ""))
+
+
+def group_header(configs, span, lead, lead_labels=None):
+    """Header rows of a table whose configurations head groups of `span` columns after `lead` leading columns: the first
+    parts of the names, then the second parts (omitted when every second part is empty), then, for span > 1, cmidrules
+    under the second row. `lead_labels` (one per leading column) go on the last name row (tables without a separate
+    column-label row)."""
+    def cell(t):
+        return f"\\multicolumn{{{span}}}{{c}}{{{t}}}" if span > 1 else t
+    parts = [name2(c) for c in configs]
+    rows = [[p[0] for p in parts]]
+    if any(p[1] for p in parts):
+        rows.append([p[1] for p in parts])
+    out = []
+    for i, r in enumerate(rows):
+        lead_cells = lead_labels if (lead_labels and i == len(rows) - 1) else [""] * lead
+        out.append(" & ".join(list(lead_cells) + [cell(t) for t in r]) + " \\\\")
+    if span > 1:
+        out.append(" ".join(f"\\cmidrule(lr){{{lead + 1 + span * i}-{lead + span * (i + 1)}}}" for i in range(len(configs))))
+    return out
+
+
 # The paper roster (Yifan 2026-11-09): MadNCL + parameters (SP) is in, the ablation is out of the manuscript (its data
 # stays banked), the one-sided γ-NCL (Wos) is not part of the paper. Every emitter shows exactly the configurations of
 # ORDER that are present in its result directory, in this order; any other configuration found there is left out.

@@ -84,25 +84,39 @@ run_gpu_cell() {
     return $rc
 }
 
-# compile_tables <dir>: \input every .tex fragment of <dir> into one document and run pdflatex
+# compile_tables <dir>: compile every .tex fragment of <dir> in its own document with the manuscript's page geometry
+# (11pt article, letterpaper, margin 1in; longtable, pdflscape, pgfplots + groupplots, booktabs, xcolor), two passes (the
+# longtable column widths settle on the second), and FAIL if any fragment does not compile or has an Overfull \hbox wider
+# than 2 pt. Prints one line per fragment with its overfull widths.
 compile_tables() {
-    local d=$1 doc
-    doc=$d/_compile_check.tex
-    {
-        echo '\documentclass{article}'
-        echo '\usepackage[margin=0.6in]{geometry}\usepackage{amsmath,amssymb,booktabs,longtable,multirow,array,graphicx,xcolor}'
-        echo '\usepackage{pgfplots}\pgfplotsset{compat=1.17}\usepgfplotslibrary{groupplots}'
-        echo '\newcommand{\claudegreen}[1]{\textcolor{green!50!black}{#1}}'
-        echo '\begin{document}'
-        for f in "$d"/*.tex; do
-            case $(basename "$f") in _*) continue;; esac
-            echo "\\clearpage\\input{$(basename "$f" .tex)}"
-        done
-        echo '\end{document}'
-    } > "$doc"
-    (cd "$d" && pdflatex -interaction=nonstopmode -halt-on-error _compile_check.tex > _compile_check.out 2>&1)
-    local rc=$?
-    echo "compile_tables $d rc=$rc ($(ls "$d"/*.tex | grep -vc '/_'))"
+    local d=$1 f n doc rc=0 nf=0 over
+    for f in "$d"/*.tex; do
+        n=$(basename "$f" .tex)
+        case $n in _*) continue;; esac
+        nf=$((nf + 1)); doc=$d/_cc_$n.tex
+        {
+            echo '\documentclass[11pt]{article}'
+            echo '\usepackage[letterpaper,margin=1in]{geometry}'
+            echo '\usepackage{amsmath,amssymb,booktabs,longtable,pdflscape,multirow,array,graphicx,xcolor}'
+            echo '\usepackage{pgfplots}\pgfplotsset{compat=1.17}\usepgfplotslibrary{groupplots}'
+            echo '\newcommand{\claudegreen}[1]{\textcolor{green!50!black}{#1}}'
+            echo '\begin{document}'
+            echo "\\input{$n}"
+            echo '\end{document}'
+        } > "$doc"
+        if ! (cd "$d" && pdflatex -interaction=nonstopmode -halt-on-error "_cc_$n.tex" > "_cc_$n.out" 2>&1 \
+                     && pdflatex -interaction=nonstopmode -halt-on-error "_cc_$n.tex" > "_cc_$n.out" 2>&1); then
+            echo "  $n: COMPILE FAILED (see $d/_cc_$n.log)"; rc=1; continue
+        fi
+        over=$(grep -o 'Overfull \\hbox ([0-9.]*pt too wide)' "$d/_cc_$n.log" | grep -o '[0-9.]*pt' | sort | uniq -c \
+               | awk '{printf "%s%s", (NR > 1 ? ", " : ""), $2 ($1 > 1 ? " x" $1 : "")}')
+        if [ -n "$(grep -o 'Overfull \\hbox ([0-9.]*pt too wide)' "$d/_cc_$n.log" | grep -o '[0-9.]*' | awk '$1 > 2')" ]; then
+            echo "  $n: OVERFULL ${over}"; rc=1
+        else
+            echo "  $n: ok${over:+ (overfull <= 2pt: $over)}"
+        fi
+    done
+    echo "compile_tables $d rc=$rc ($nf)"
     return $rc
 }
 
