@@ -1,0 +1,5 @@
+suite=scopf device=cuda tag=r1 wall=1800.0 tol=1.0e-8 constr_viol_tol=0.0001 max_iter=3000 linear_solver=MadNLPGPUCUDAExt.CUDSSSolver suite_ipm=(richardson_tol = 1.0e-12, richardson_max_iter = 20, cudss_pivot_epsilon = 1.0e-10) pathof(MadNCL)=/home/yifan_xu/MadNCL-public-pool/src/MadNCL.jl
+scopf_model=(adjust = :mpecdroop, voltage_control = :pvpq, tau_relax = 0.0, scale_obj = 0.0001, scale_cc = 1.0)
+contingencies=/home/yifan_xu/MadNCL-public-pool/benchmarks/pilot/instances/scopf_pilot_contingencies.jl
+CONFIG liftedkkt (LiftedKKT) kkt_system=SparseCondensedKKTSystem linear_solver=CUDSSSolver equality_treatment=MadNLP.RelaxEquality fixed_variable_treatment=MadNLP.RelaxBound dual_initialized=true tol=1.0e-8 constr_viol_tol=n/a (MadNLP has no such test) max_iter=3000 max_wall_time=1800.0 bound_relax_factor=1.0e-8 s_max=100.0 acceptable_tol=0.0 acceptable_iter=15 richardson_tol=1.0e-12 richardson_max_iter=20
+WARMUP liftedkkt 65.12 s

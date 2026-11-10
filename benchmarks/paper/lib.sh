@@ -112,6 +112,9 @@ emit() {
     case $suite in
         scopf)  python3 "$py/tab_gpu_scopf.py" "$RES/scopf" --out="$TABLES" || r=1
                 python3 "$py/tab_scopf_config.py" "$RES/scopf" --out="$TABLES" || r=1 ;;
+        scopf_pglib)   # the protocol SCOPF set (18 PGLIB instances, WO-69): main-text float + per-instance appendix
+                python3 "$py/tab_gpu_scopf_pglib.py" "$RES/scopf_pglib" --out="$TABLES" || r=1
+                python3 "$py/tab_scopf_pglib_appendix.py" "$RES/scopf_pglib" --out="$TABLES" || r=1 ;;
         opf)    # the main-text float and the appendix both cover all 66 cases
                 python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES" || r=1
                 python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
@@ -122,7 +125,7 @@ emit() {
                     > "$RES/cutest/summary.txt" 2>&1 || r=1 ;;
     esac
     case $suite in
-        scopf|opf|cops|cops_ladder)
+        scopf|scopf_pglib|opf|cops|cops_ladder)
             python3 "$py/summary_gpu.py" "$RES/$suite" "$suite" > "$RES/$suite/summary.txt" 2>&1 || r=1 ;;
     esac
     compile_tables "$TABLES" || r=1
