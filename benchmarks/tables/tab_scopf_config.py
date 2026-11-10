@@ -60,7 +60,7 @@ def main(argv):
         path = cands[0]
     text = open(path).read()
     rows = [
-        ("interior-point iteration limit", f"${field(text, 'max_iter')}$", "1000 on the other GPU suites"),
+        ("interior-point iteration limit", f"${field(text, 'max_iter')}$", "1000 on PGLIB"),
         ("$\\tau_{\\mathrm{relax}}$", sci(field(text, "tau_relax")), "complementarity product of the problem"),
         ("objective scaling", sci(field(text, "scale_obj")), "as in the reference benchmark"),
         ("complementarity-row scaling", sci(field(text, "scale_cc")), "as in the reference benchmark"),

@@ -139,8 +139,8 @@ emit() {
         opf)    # the main-text float and the appendix both cover all 66 cases
                 python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES" || r=1
                 python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
-        cops)   : ;;   # no float: the console summary below is the record
-        cops_ladder) python3 "$py/fig_gpu_scaling.py" "$RES/cops_ladder" --tag=r1 --out="$TABLES" || r=1 ;;
+        cops|cops_ladder) : ;;   # not in the manuscript (Yifan 2026-11-10): no float (fig_gpu_scaling, tab_gpu_ladder and
+                                 # tab_cops_appendix stay in benchmarks/tables/); the console summary below is the record
         cutest) python3 "$py/tab_cutest.py" "$RES/cutest" --cap=3600 --out="$TABLES" || r=1
                 python3 "$py/summary.py" "$RES/cutest" --traps="$PUB/benchmarks/instances/cutest_traps.txt" --cap=3600 \
                     > "$RES/cutest/summary.txt" 2>&1 || r=1 ;;

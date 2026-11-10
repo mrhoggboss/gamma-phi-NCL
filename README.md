@@ -164,6 +164,8 @@ python3 benchmarks/tables/tab_scopf_config.py results/gpu
 python3 benchmarks/tables/fig_gpu_scaling.py results/gpu
 ```
 
+The COPS floats (`tab_cops_appendix`, and `fig_gpu_scaling` with `tab_gpu_ladder`) are no longer part of the manuscript (Yifan, 2026-11-10): their emitters and the banked COPS and COPS-ladder results stay here, but `benchmarks/paper/lib.sh` no longer emits them.
+
 The tolerances are inputs of both drivers: `--tol` (optimality and feasibility, default `1e-8`) and
 `--cvtol` (constraint violation in the original scaling, default `1e-4`), applied to every
 configuration; Ipopt receives both, while MadNLP (LiftedKKT and the augmented baseline) has no
