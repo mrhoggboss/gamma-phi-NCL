@@ -87,9 +87,10 @@ run_gpu_cell() {
 # compile_tables <dir>: compile every .tex fragment of <dir> in its own document with the manuscript's page geometry
 # (11pt article, letterpaper, margin 1in; longtable, pdflscape, pgfplots + groupplots, booktabs, xcolor), two passes (the
 # longtable column widths settle on the second), and FAIL if any fragment does not compile or has an Overfull \hbox wider
-# than 2 pt. Prints one line per fragment with its overfull widths.
+# than 2 pt; a fragment holding a longtable (the appendix tables, set on physical landscape pages) also FAILS unless every
+# page of its PDF is wider than tall (pdfinfo page sizes). Prints one line per fragment.
 compile_tables() {
-    local d=$1 f n doc rc=0 nf=0 over
+    local d=$1 f n doc rc=0 nf=0 over pages
     for f in "$d"/*.tex; do
         n=$(basename "$f" .tex)
         case $n in _*) continue;; esac
@@ -114,6 +115,12 @@ compile_tables() {
             echo "  $n: OVERFULL ${over}"; rc=1
         else
             echo "  $n: ok${over:+ (overfull <= 2pt: $over)}"
+        fi
+        if grep -q 'begin{longtable}' "$f"; then
+            pages=$(pdfinfo -f 1 -l 100000 "$d/_cc_$n.pdf" 2>/dev/null | awk '/^Page +[0-9]+ size:/ {
+                        n++; s[$4 " x " $6]++; if (!($4 > $6)) bad++ }
+                        END { printf "%d page(s), sizes", n; for (k in s) printf " %s pt x%d", k, s[k]; if (bad || !n) printf "; NOT LANDSCAPE: %d", bad + !n }')
+            case $pages in *"NOT LANDSCAPE"*|"") echo "  $n: PAGES ${pages:-pdfinfo failed}"; rc=1;; *) echo "  $n: pages ok: $pages (all wider than tall)";; esac
         fi
     done
     echo "compile_tables $d rc=$rc ($nf)"

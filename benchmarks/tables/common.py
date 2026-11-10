@@ -36,6 +36,17 @@ NAMES2 = {
 }
 
 
+# Physical landscape pages for the appendix longtables (Yifan 2026-11-10: on Overleaf the /Rotate page attribute that
+# pdflscape sets did not take effect): the PDF page size is swapped with the pdfTeX/XeTeX page primitives
+# \\pdfpagewidth/\\pdfpageheight and the text is laid out on the rotated page with geometry's \\newgeometry; no
+# page-rotation attribute, no pdflscape. LuaTeX would need \\pagewidth/\\pageheight instead.
+LANDSCAPE_REQUIRES = ["% REQUIRES: booktabs, longtable, geometry",
+                      "% Landscape pages: pdfTeX/XeTeX page-size primitives \\pdfpagewidth/\\pdfpageheight + geometry (no pdflscape)."]
+LANDSCAPE_BEGIN = ["\\clearpage", "\\pdfpagewidth=\\paperheight \\pdfpageheight=\\paperwidth",
+                   "\\newgeometry{layoutwidth=\\paperheight,layoutheight=\\paperwidth,margin=1in}"]
+LANDSCAPE_END = ["\\clearpage", "\\pdfpagewidth=\\paperwidth \\pdfpageheight=\\paperheight", "\\restoregeometry"]
+
+
 def name2(c):
     return NAMES2.get(c, (NAMES.get(c, c), ""))
 
