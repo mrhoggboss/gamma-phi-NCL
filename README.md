@@ -18,8 +18,8 @@ source `src/` and `ext/` is byte-identical to `gamma-phi-ncl` (`src/` unchanged 
 | degenerate example | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
 The two protocol-set tables are emitted for the manuscript's SCOPF section; the manuscript revision checked here
-(Overleaf commit `e55ef05`) does not `\input` them yet. **Their data are partial**: repetition 3 of 11 of the 18
-instances was still running when this branch was built (see the SCOPF protocol section below).
+(Overleaf commit `e55ef05`) does not `\input` them yet. Their data are complete: all three repetitions of the 18
+instances, re-copied from `scopf-pool` when the block ended (see the SCOPF protocol section below).
 
 ## What "reproduced" means here
 
@@ -133,10 +133,9 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   start-up and warm-up, 4518–5887 s per complete (configuration, repetition); the solve and build times alone sum to
   515–1562 s per complete (configuration, repetition).
 - Emit: `benchmarks/paper/emit.sh scopf_pglib` (`tab_gpu_scopf_pglib.py`, `tab_scopf_pglib_appendix.py`; seconds).
-- **Partial data.** `benchmarks/results/paper/scopf_pglib/` holds repetitions 1 and 2 of all 18 instances and, for
-  repetition 3, 12 instances (S, SP, W) or 11 (U6A, LiftedKKT): repetition 3 of the 11 factorial instances was still
-  running on `scopf-pool` when this branch was built (2026-11-11). Re-copy the directory from `scopf-pool` when that
-  block ends and re-emit (`benchmarks/results/paper/scopf_pglib/SOURCE.txt`).
+- **Data.** `benchmarks/results/paper/scopf_pglib/` holds all three repetitions of all 18 instances for the five
+  configurations (270 rows, 270 configuration echoes), copied from `scopf-pool` (`results/pilot` as committed at
+  `76a53fe`) after the block ended on 2026-11-11 (`benchmarks/results/paper/scopf_pglib/SOURCE.txt`).
 
 ## Figure `fig:example-degenerate`
 

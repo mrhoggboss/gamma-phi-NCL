@@ -1,31 +1,24 @@
 Protocol SCOPF set (WO-69): the 18 instances of benchmarks/pilot/instances/scopf_pilot_factorial18.csv on branch
-scopf-pool (worktree /home/yifan_xu/MadNCL-public-pool) @ 3d6979e (results/pilot has uncommitted rows: cells settled after that commit).
+scopf-pool (worktree /home/yifan_xu/MadNCL-public-pool), results/pilot as committed at 76a53fe (worktree HEAD 4c61f4e).
 Rows of the 18 instances copied verbatim (header and column order unchanged) from the per-(config, repetition) CSVs;
 config_scopf_pglib__<instance>__<config>__<rep>.txt = the cell's config echo (results/pilot/config/<instance>__<config>[__<rep>].txt;
 the pilot's x1 cells, r1 of W, U6A and LiftedKKT on the 7 earlier instances, have no rep suffix there).
 instance list sha256=83d76e18702321471b8dae08be08141050558b18bb7f83fd8062d4e459758e77
 results/pilot/scopf_pilot__S__r1.csv sha256=aecc0ce9968b63afb051919a70448b769e5eaa1fb536889f2b44e224a1b9c520 -> scopf_pglib__S__r1.csv (18 rows)
 results/pilot/scopf_pilot__S__r2.csv sha256=63dc165ae2b4b6f15319170510458fd699afeed483ec19ec1c6adf769585e3c9 -> scopf_pglib__S__r2.csv (18 rows)
-results/pilot/scopf_pilot__S__r3.csv sha256=95107dba212c280a100fb0e33ba22868920ee0f1818306a4376225f57b55556a -> scopf_pglib__S__r3.csv (12 rows)
+results/pilot/scopf_pilot__S__r3.csv sha256=22347c197694b4abaf549fad8bce634e888c16d28c804fad86a811922b8c5817 -> scopf_pglib__S__r3.csv (18 rows)
 results/pilot/scopf_pilot__SP__r1.csv sha256=dc6e7817f0147019918f9fddf5e63110fb9dcf62a215304917d1d9dd30c08511 -> scopf_pglib__SP__r1.csv (18 rows)
 results/pilot/scopf_pilot__SP__r2.csv sha256=6d5121b492b13c7eef8771e643d141dc82bd386ad7043e7af6816ba41f6431da -> scopf_pglib__SP__r2.csv (18 rows)
-results/pilot/scopf_pilot__SP__r3.csv sha256=f747be33146a996b0cbfb45bb4210bd4f3f8e3c8bb8550137bbb4d01894e2830 -> scopf_pglib__SP__r3.csv (12 rows)
+results/pilot/scopf_pilot__SP__r3.csv sha256=793ddcc46b57a75886700b13c795bac5187f2f6f37c0b79c63c90126fc2cbc36 -> scopf_pglib__SP__r3.csv (18 rows)
 results/pilot/scopf_pilot__W__r1.csv sha256=a1e3ebdc24a36c39caf94a9332a00467bcbbfa2de0401633a4cdfabf93dff9cf -> scopf_pglib__W__r1.csv (18 rows)
 results/pilot/scopf_pilot__W__r2.csv sha256=7e00dad656489054fbe6ba1359c2fc6d0a295237982f11c60deda4465f914fd5 -> scopf_pglib__W__r2.csv (18 rows)
-results/pilot/scopf_pilot__W__r3.csv sha256=b6e6f36427e9d76f2da5106095a5a5478891821067d001e32ed96146b6ccd2ba -> scopf_pglib__W__r3.csv (12 rows)
+results/pilot/scopf_pilot__W__r3.csv sha256=ccc7834ccbb035b2587e7772623ceb5e9b412dcac1bb37b5db6b9460de375eb2 -> scopf_pglib__W__r3.csv (18 rows)
 results/pilot/scopf_pilot__U6A__r1.csv sha256=ca434921cdd6628bc009349c1a250d42cdf0830308b1b15f127438f6c825cc27 -> scopf_pglib__U6A__r1.csv (18 rows)
 results/pilot/scopf_pilot__U6A__r2.csv sha256=745ddd182ca4aff9c52e20d8d1c95931859aed358056d6b42b883d17f2decbe7 -> scopf_pglib__U6A__r2.csv (18 rows)
-results/pilot/scopf_pilot__U6A__r3.csv sha256=8408c2fa4049655761cfdb3bad5e7d72e1c244ec087763fbe2545a1de1f66179 -> scopf_pglib__U6A__r3.csv (11 rows)
+results/pilot/scopf_pilot__U6A__r3.csv sha256=5ad5751519db15ea6e88301f6d1da4f7e2ca05a33614538380c3d77b69c9e556 -> scopf_pglib__U6A__r3.csv (18 rows)
 results/pilot/scopf_pilot__liftedkkt__r1.csv sha256=1256cdb44a0f5d1d9ee661293741ce21e74a57a14f9145fa686f30bc4e303009 -> scopf_pglib__liftedkkt__r1.csv (18 rows)
 results/pilot/scopf_pilot__liftedkkt__r2.csv sha256=71cdac34f6dc178bb8a4be8a8bc3636c6bebebff958bfe8a850c756609a01c61 -> scopf_pglib__liftedkkt__r2.csv (18 rows)
-results/pilot/scopf_pilot__liftedkkt__r3.csv sha256=22256c9c7011ed9f7b4958878f269b5486e5a44cc4e848e1b27a9181a5448ebc -> scopf_pglib__liftedkkt__r3.csv (11 rows)
-config echoes copied: 238; rows without an echo: none
+results/pilot/scopf_pilot__liftedkkt__r3.csv sha256=99a03d129141f7778e570cb45325967af3e9cc998af340d9cd23044d04ed8bda -> scopf_pglib__liftedkkt__r3.csv (18 rows)
+config echoes copied: 270; rows without an echo: none
 
-PARTIAL DATA (paper-repro build, 2026-11-11 02:38 EST). Repetition 3 of the 11 factorial instances was still running on
-scopf-pool when this directory was carried into the paper-repro branch: the files here are unchanged from gamma-phi-ncl
-3383a34 (copied at 8789c29) and hold r3 rows of 12 instances for S, SP and W and of 11 for U6A and liftedkkt (r1 and r2:
-all 18). At the build time scopf-pool's merged r3 CSVs (results/pilot/scopf_pilot__<config>__r3.csv) held 14 of the 18
-instances for every configuration, and every row copied here was still byte-identical to its row there. When the block
-ends, re-copy this directory from scopf-pool (rows of the 18 instances of benchmarks/instances/scopf_pglib18.csv, header
-and column order unchanged, with the per-cell config echoes, as described above), then re-run
-benchmarks/paper/emit.sh scopf_pglib.
+COMPLETE DATA (paper-repro, re-copied 2026-11-11 after the factorial block ended). All 18 instances x 5 configurations x 3 repetitions (270 rows, 270 config echoes); this directory's rows and echoes are identical to gamma-phi-ncl 835508a benchmarks/results/paper/scopf_pglib/. The instance list of this branch, benchmarks/instances/scopf_pglib18.csv, is the same file (sha256 above). Re-emit: benchmarks/paper/emit.sh scopf_pglib.

@@ -1,7 +1,7 @@
 scopf_pglib: 18 instances, constr_viol_tol 0.0001
   configuration                per repetition             majority  gm fact
-  $\gamma$-NCL [W]             r1:7 r2:7 r3:4                    5   3864.4
-  $\varphi$-NCL [U6A]          r1:13 r2:17 r3:9                 14   1952.2
+  $\gamma$-NCL [W]             r1:7 r2:7 r3:6                    6   3661.1
+  $\varphi$-NCL [U6A]          r1:13 r2:17 r3:16                16   2037.5
   MadNCL [S]                   r1:1 r2:1 r3:0                    0      ---
-  MadNCL + parameters [SP]     r1:4 r2:6 r3:5                    5   3202.7
-  LiftedKKT $\epsilon=10^{-8}$ [liftedkkt] r1:7 r2:7 r3:7                    7   4518.1
+  MadNCL + parameters [SP]     r1:4 r2:6 r3:8                    6   3316.2
+  LiftedKKT $\epsilon=10^{-8}$ [liftedkkt] r1:7 r2:7 r3:11                   8   4479.9
