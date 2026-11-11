@@ -1,0 +1,2 @@
+base_status=LOCALLY_SOLVED rho=1.0e8 order=B ktop=0 window=300 candidates=75 screened=75 raw_admitted_1e-4=10 screen_s=218.9
+case=/home/yifan_xu/MadNCL-public-pool/benchmarks/out/scopf_pool_data/pglib/pglib_opf_case793_goc.m sha256=bd4eee7cdbc22f5ea1fdb2b5756a46c0d2b2e871a19df8b6169008435025992f

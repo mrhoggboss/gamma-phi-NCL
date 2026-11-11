@@ -1,0 +1,2 @@
+base_status=LOCALLY_SOLVED rho=1.0e8 order=B kadmit=16.0 max_screened=300 candidates=728 in_service=728 bridges=146 buses=500 gens=171 screened=23 admitted=16 screen_s=77.7
+case=/home/yifan_xu/MadNCL-public-pool/benchmarks/out/scopf_pool_data/pglib/pglib_opf_case500_goc.m sha256=36c298d571605019ef16c17dd74680adca1386d91ed47d69a0d909aebc90a1b6

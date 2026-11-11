@@ -1,0 +1,129 @@
+Protocol records of the 18 protocol SCOPF instances, copied verbatim (file contents unchanged) from branch scopf-pool
+(worktree /home/yifan_xu/MadNCL-public-pool, HEAD 16b120e) on 2026-11-11. Paths below are relative to
+scopf-pool's benchmarks/pilot/screen/out/. Two transformations, both lossless: islands.csv keeps the header and the rows of
+the three networks of the full table c4/islands.csv (665 of 5534 rows); the slice meta files of the two order-B screens are
+renamed (':' -> '-' in the slice range). census.md and lists.md are generated here: python3 ../build_lists.py census / lists.
+
+file (here) <- source (scopf-pool) sha256
+screens/case500_goc_A.csv <- screen_rho1e8/case500_goc_A.csv 8e54438be8069e2d58de4ef95f5023561b19379d79cc04252ee3cc3b052fcd27
+screens/case500_goc_A.meta.txt <- screen_rho1e8/case500_goc_A.meta.txt 7c6acdcff790cf66505a40e6c25fc6423cfe974233da7dc9c6752bbdb496f98d
+screens/case500_goc_B.csv <- screen_rho1e8/case500_goc_B.csv 8f5b58bf4ec50a4a4844b1cc044a6c168dc2acdab547b9bf27927c6a8d8b40b8
+screens/case500_goc_B.meta.txt <- screen_rho1e8/case500_goc_B.meta.txt 1a521514385bce1a6fab72c521777484505b6c8fdbe03e71f61f907a7d0c4707
+screens/case588_sdet_A.csv <- screen_rho1e8/case588_sdet_A.csv e7e1ac527bae94fae089d8e3e0e73e4cfc20419bd8e1702296a32ad06f6d9032
+screens/case588_sdet_A.meta.txt <- screen_rho1e8/case588_sdet_A.meta.txt 3d1659aced83eb3d53da6dc0f67c3c6d4ac2734e962020a76527b122e856f298
+screens/case793_goc_A.csv <- screen_rho1e8/case793_goc_A.csv 1496b54d700ccd7253b80dc1f2e3a75339e7fcf771bc5ff230f0aebb14502c86
+screens/case793_goc_A.meta.txt <- screen_rho1e8/case793_goc_A.meta.txt dccc38880bd8266c2168bcc6c020e83adb00c23634332d5c4c339200690ba912
+screens/case588_sdet_B.csv <- fact_B/case588_sdet_B.csv 745587bdf8254204208c039d364c26f649e3ace2ade581a079ad5c47d64e0ca5
+screens/case588_sdet_B.part_1-75.meta.txt <- fact_B/part_case588_sdet_B_1:75.meta.txt a3e75dff9db6d7ac05f63746c8003cbaeee20b108bc2c7ce8533af5e46a67911
+screens/case588_sdet_B.part_76-150.meta.txt <- fact_B/part_case588_sdet_B_76:150.meta.txt b8b527d0865bc1dd8e2667a32d0188c93f0559fdff3d2571cf980cce92744fe3
+screens/case588_sdet_B.part_151-225.meta.txt <- fact_B/part_case588_sdet_B_151:225.meta.txt 26ca2f016fabb4db3278ffa5389dc6f3badc0c607216e300548f08a7a2f80271
+screens/case588_sdet_B.part_226-300.meta.txt <- fact_B/part_case588_sdet_B_226:300.meta.txt 7b3a85a7dd7fc7e60482fcbf66c8819c91ef850bdd21e6d0cd78e102a65c92cf
+screens/case793_goc_B.csv <- fact_B/case793_goc_B.csv 96eda41205a71e42d1527062ba1e1f6901a86015ab7d24c2b010baabc0fe066e
+screens/case793_goc_B.part_1-75.meta.txt <- fact_B/part_case793_goc_B_1:75.meta.txt 0e35312479c734c6b29d7ecab94c8e9bac73f8d8a360cbbfabddd9614232f3d0
+screens/case793_goc_B.part_76-150.meta.txt <- fact_B/part_case793_goc_B_76:150.meta.txt 8dd2b43376bc22b24824c502bd48991d46183933e90a11a6928944577d56b147
+screens/case793_goc_B.part_151-225.meta.txt <- fact_B/part_case793_goc_B_151:225.meta.txt 85b4a9daf962d15efcf2e9930d346f9a51408f9daa9545f20ebe8e83c637fda6
+screens/case793_goc_B.part_226-300.meta.txt <- fact_B/part_case793_goc_B_226:300.meta.txt 9bf3487963073602eed67f034048bbec2d431b55ac390297e946867f439caf1f
+islands.csv <- c4/islands.csv (header + rows net in {case500_goc, case588_sdet, case793_goc}) 5ee9ef2afb89c4dd289d6bb7ca00885bb2ee8b49cfc8be328c24470fdf22de47
+k1/c3_3000it_600s/case500_goc_A__11.csv <- c3_k1/rows/case500_goc_A__11.csv c470c48a7db735f881cb0c565fff40f1366f7bc16c828b1b4c289b2785d16456
+k1/c3_3000it_600s/case500_goc_A__12.csv <- c3_k1/rows/case500_goc_A__12.csv b84f4438912e8cc3ca3a0559133437198672f7dfea84178fb303c8036733fc75
+k1/c3_3000it_600s/case500_goc_A__13.csv <- c3_k1/rows/case500_goc_A__13.csv 50ff9ef2d4f81cfaccce52dd11388d1402288fe188824930e9961a9b0764ebfb
+k1/c3_3000it_600s/case500_goc_A__14.csv <- c3_k1/rows/case500_goc_A__14.csv cc654a3d5550304b1a0ee37080df436424f2d073be2f16bd5d68421852a7afdb
+k1/c3_3000it_600s/case500_goc_A__15.csv <- c3_k1/rows/case500_goc_A__15.csv ddce9b61699a75fd2c61a54a0ca86a4f5fa59aa1bbf7fba3774e143b4dd85b8a
+k1/c3_3000it_600s/case500_goc_A__16.csv <- c3_k1/rows/case500_goc_A__16.csv 58931830173340469d6db61955c1ff414c0f279ec580337369138e3de1795cbe
+k1/c3_3000it_600s/case500_goc_A__18.csv <- c3_k1/rows/case500_goc_A__18.csv e2d37cc5ac31599a70974dd96c6db87c4678317374cdbec2866e001fba531041
+k1/c3_3000it_600s/case500_goc_A__19.csv <- c3_k1/rows/case500_goc_A__19.csv 3b00d0df5f8bdd3c18fcffa847b4b22147fc342fe25b9c6a3534f39344efb34a
+k1/c3_3000it_600s/case500_goc_A__1.csv <- c3_k1/rows/case500_goc_A__1.csv 4c2c91a564baa4d49a1cf904c30d98a1076491747f5f2fabe7dd29dd1ae86926
+k1/c3_3000it_600s/case500_goc_A__2.csv <- c3_k1/rows/case500_goc_A__2.csv 85c012e25a48735d89990df223e0d38a570639afed51b29d772a0c491956c7b6
+k1/c3_3000it_600s/case500_goc_A__3.csv <- c3_k1/rows/case500_goc_A__3.csv 537a457f36e5a88eae4d4e6a4b7e5c7924571203ee8227fd944228e5736af197
+k1/c3_3000it_600s/case500_goc_A__5.csv <- c3_k1/rows/case500_goc_A__5.csv 2a0104a7aff55d5447a7b9362ff34b2c6c2e2ff4082a19565e9b3dbdfcbaf276
+k1/c3_3000it_600s/case500_goc_A__6.csv <- c3_k1/rows/case500_goc_A__6.csv ac79ccb35dd71fc5fb544bad4ec4575d94ba1b107f527cbe4f5a9d14936f7e99
+k1/c3_3000it_600s/case500_goc_A__7.csv <- c3_k1/rows/case500_goc_A__7.csv f9c398a917deefdf25c59ca76909ccbcb9ca4da1b329ce89ca08a35cde2ef82b
+k1/c3_3000it_600s/case500_goc_A__8.csv <- c3_k1/rows/case500_goc_A__8.csv a1508424455c0ef44bb8fbf0a70f2516d485ac5023780cca46a6ed24edbd3083
+k1/c3_3000it_600s/case500_goc_A__9.csv <- c3_k1/rows/case500_goc_A__9.csv 99272cfc0145904f1453fafd47aa56c9eff9360b9558ce2fe935f2e7ea9cf0a4
+k1/c3_3000it_600s/case500_goc_B__146.csv <- c3_k1/rows/case500_goc_B__146.csv a1ce16d06d38cfef2bc55f3b13351d07b4507674238f5eecf1a614279ec4bd56
+k1/c3_3000it_600s/case500_goc_B__213.csv <- c3_k1/rows/case500_goc_B__213.csv 2ba4596ce23f26782f72edce7d4aa530a13b87e3690f958a733b25954ca19587
+k1/c3_3000it_600s/case500_goc_B__295.csv <- c3_k1/rows/case500_goc_B__295.csv 51ca0a44525f8e5cc9679db68abf1ca0d16a4160f5caa7e5f233de8b8ae50744
+k1/c3_3000it_600s/case500_goc_B__309.csv <- c3_k1/rows/case500_goc_B__309.csv 6a604391676908150ff590aa995f51606dca19f6dffc6f2bb4f06370f4630e4e
+k1/c3_3000it_600s/case500_goc_B__31.csv <- c3_k1/rows/case500_goc_B__31.csv 756b89205361586e668fcccfca339b6d4f424b36d4c122c6711b8942af631eb2
+k1/c3_3000it_600s/case500_goc_B__380.csv <- c3_k1/rows/case500_goc_B__380.csv ad897fb4e83b044f388731a4f6da3c9dcba2baa06c0fcba74dc92697ad8a62cb
+k1/c3_3000it_600s/case500_goc_B__42.csv <- c3_k1/rows/case500_goc_B__42.csv 165598eeb37316214482ca062696796c815d41a3aaa5739a0d43ab31fe26cab4
+k1/c3_3000it_600s/case500_goc_B__449.csv <- c3_k1/rows/case500_goc_B__449.csv fda1aed45e8b12d42f78835682a8351f19fe0098aa595d6f2428e6b85d135ce8
+k1/c3_3000it_600s/case500_goc_B__502.csv <- c3_k1/rows/case500_goc_B__502.csv 35c7ccdd5e99cfd2342e8ad57e29b3d03db9515b717786091ceaa3e0b2e9dbd8
+k1/c3_3000it_600s/case500_goc_B__50.csv <- c3_k1/rows/case500_goc_B__50.csv 8358adf0a617abe3bacfac01d5fdd188640497785406b7b4b07391f8ebcb1f73
+k1/c3_3000it_600s/case500_goc_B__511.csv <- c3_k1/rows/case500_goc_B__511.csv 3d3f60f65df021e03494895e2112edff508d417cb1786ac047eead72fa6d813a
+k1/c3_3000it_600s/case500_goc_B__542.csv <- c3_k1/rows/case500_goc_B__542.csv 02c68d4c219065f35b78564b5bba4670a5e0ee0cc35dc34461233068129b28f7
+k1/c3_3000it_600s/case500_goc_B__552.csv <- c3_k1/rows/case500_goc_B__552.csv 3e86e18c965ab94c65e32e4935472a4284472e2aada2818f4a4cfadb154f8be6
+k1/c3_3000it_600s/case500_goc_B__594.csv <- c3_k1/rows/case500_goc_B__594.csv b99daabb7985c25fdbee9b775cfd99d1d72c7e424cfe4da5b5879a6b1f1cf2f9
+k1/c3_3000it_600s/case500_goc_B__631.csv <- c3_k1/rows/case500_goc_B__631.csv e6951b37d97863bd59496f43e060492ef71d24508ad27a86dd842fe51cce9172
+k1/c3_3000it_600s/case500_goc_B__641.csv <- c3_k1/rows/case500_goc_B__641.csv 65967c5d8823edf9b6ca53d079b232abd156bb737e7b7105e90c9e998691008e
+k1/c3_3000it_600s/case588_sdet_A__10.csv <- c3_k1/rows/case588_sdet_A__10.csv 298da108d02ebaaee501f3ba1c31b4939161520e65199ddacfd87901fba993a0
+k1/c3_3000it_600s/case588_sdet_A__11.csv <- c3_k1/rows/case588_sdet_A__11.csv 035310e798a1e8de60d1c710b6ff7acb3548a406e9eb7af3317a66a49b86b705
+k1/c3_3000it_600s/case588_sdet_A__12.csv <- c3_k1/rows/case588_sdet_A__12.csv feb1f56d45f7fb13f03dc0534ab221334e09be9ca37e7b4e9acabc238a35095a
+k1/c3_3000it_600s/case588_sdet_A__13.csv <- c3_k1/rows/case588_sdet_A__13.csv ef829d11a2f2190b690f50e4f361b6d7fd8dcdabe48d30ece0da14e5ae1b8ec3
+k1/c3_3000it_600s/case588_sdet_A__15.csv <- c3_k1/rows/case588_sdet_A__15.csv 1cc3006b7076b1162c11de50c7833c76c929ad51e946c1fb562c197cb38cb9a2
+k1/c3_3000it_600s/case588_sdet_A__16.csv <- c3_k1/rows/case588_sdet_A__16.csv d2a365ff34c0ce2d2e0ce8391dc7d3167b43374977e140657c8c11e3d8995c6b
+k1/c3_3000it_600s/case588_sdet_A__17.csv <- c3_k1/rows/case588_sdet_A__17.csv d24a457e6b38afc672039e80effafd6bc872327c46050841995402595633b38c
+k1/c3_3000it_600s/case588_sdet_A__18.csv <- c3_k1/rows/case588_sdet_A__18.csv d848afeb40ff094215834978da6a5fdd0845ef8a7d445c4110705b09628ae849
+k1/c3_3000it_600s/case588_sdet_A__19.csv <- c3_k1/rows/case588_sdet_A__19.csv 5109ec6334a55544e4ce447f129390afef98638efdc32bc68ab243ad4f407f47
+k1/c3_3000it_600s/case588_sdet_A__3.csv <- c3_k1/rows/case588_sdet_A__3.csv 2fdd2b799ef6f78bf6b690e0ea6f136fad06e4306c05559bac7baf511d73cc0d
+k1/c3_3000it_600s/case588_sdet_A__4.csv <- c3_k1/rows/case588_sdet_A__4.csv 809f196ff85026a65c3751f1acbe73bfbf798ed4d3d2469e4949277512b6965d
+k1/c3_3000it_600s/case588_sdet_A__5.csv <- c3_k1/rows/case588_sdet_A__5.csv f5f6df68e0298221869e09f16bc1f880282b75f867b59482a874114ef6a625c6
+k1/c3_3000it_600s/case588_sdet_A__6.csv <- c3_k1/rows/case588_sdet_A__6.csv b511992a2ebda6c1f65c2b282bde0dfee47ea9bac4425628f42f82e9543c23c0
+k1/c3_3000it_600s/case588_sdet_A__7.csv <- c3_k1/rows/case588_sdet_A__7.csv cccf005b27d086cb25c52fc984b0aad648b268eeaf9b954ec5f0e0806b69acb0
+k1/c3_3000it_600s/case588_sdet_A__8.csv <- c3_k1/rows/case588_sdet_A__8.csv 9c0a954656db8d9c83bef3555de33a8faca53b9ab45abe7abb788b4835e728f6
+k1/c3_3000it_600s/case588_sdet_A__9.csv <- c3_k1/rows/case588_sdet_A__9.csv 86f709a9eaaf52d568d4adfb269ee439a5a4fe6338bd9cb840af6c3332d3e46e
+k1/c3_3000it_600s/case793_goc_A__12.csv <- c3_k1/rows/case793_goc_A__12.csv afbe0074dcc3d307820684bad6f03a456d7d300be0d22bd3e687160d12c88e22
+k1/c3_3000it_600s/case793_goc_A__13.csv <- c3_k1/rows/case793_goc_A__13.csv 619783f4e9b817f8ebd2be19b917911513986e3236544c59b3b68bace6df22b1
+k1/c3_3000it_600s/case793_goc_A__14.csv <- c3_k1/rows/case793_goc_A__14.csv 042a75eb90723c184f80692bb6b9dabc113869d4dd4ad541319d332cf3d3e147
+k1/c3_3000it_600s/case793_goc_A__15.csv <- c3_k1/rows/case793_goc_A__15.csv 1048c1aacd5b2d0bd5e340c29be20399224ec9aba7613a9b7a4960a5ab1bcf6c
+k1/c3_3000it_600s/case793_goc_A__16.csv <- c3_k1/rows/case793_goc_A__16.csv d9220fac4f37d252e221776cc9c978ac4c458313208d9f34d61f23a7cc6bd0ab
+k1/c3_3000it_600s/case793_goc_A__17.csv <- c3_k1/rows/case793_goc_A__17.csv 04a05b421746e5b041f2cc83037ee096e1678943e6983dc27d9e14281ec6b208
+k1/c3_3000it_600s/case793_goc_A__1.csv <- c3_k1/rows/case793_goc_A__1.csv 3b8aa8bd3183c11d8b355e9fcb1123d898c67a54e7e80851581ee596d2123a84
+k1/c3_3000it_600s/case793_goc_A__23.csv <- c3_k1/rows/case793_goc_A__23.csv 3143ae2bd89993208bc354cae21cbfdbc6870d38f23098d359f7ee0952d1ae2b
+k1/c3_3000it_600s/case793_goc_A__24.csv <- c3_k1/rows/case793_goc_A__24.csv f266b13787fff16696b2ead2808e19fd7e90b941886fa4e0cf4133892cee9575
+k1/c3_3000it_600s/case793_goc_A__2.csv <- c3_k1/rows/case793_goc_A__2.csv c9a4146d453b90b96996322b877fdb039fc1dbe7d62b2e877ea7f4ed02613cb8
+k1/c3_3000it_600s/case793_goc_A__30.csv <- c3_k1/rows/case793_goc_A__30.csv b2493bb90e243c79c89ab4e3079f2cfa506283c2ef10dffe9f32c68544d987ea
+k1/c3_3000it_600s/case793_goc_A__31.csv <- c3_k1/rows/case793_goc_A__31.csv 62408b51cdd8ae07127d05896971771be7c503c93c2ac8bc6fba9ecb9fa96b86
+k1/c3_3000it_600s/case793_goc_A__3.csv <- c3_k1/rows/case793_goc_A__3.csv 33c24cec366de48c039ca7a3fa851cde3a3b3b642997c91f01cb375026069a89
+k1/c3_3000it_600s/case793_goc_A__4.csv <- c3_k1/rows/case793_goc_A__4.csv 01ed2d4c3da167cfee10ed84f1423b00787ae93493e860cc00adb67e4deda914
+k1/c3_3000it_600s/case793_goc_A__7.csv <- c3_k1/rows/case793_goc_A__7.csv d8176d7a5d55217c020435c302c026077f93707cfe6df2af37615b36f09badca
+k1/c3_3000it_600s/case793_goc_A__8.csv <- c3_k1/rows/case793_goc_A__8.csv 92a63b1d3914cad63cb57c8d0018b322f3a119186e8ba51507b84b0d6ea4949c
+k1/k1_10000it_3600s/case588_sdet_B__126.csv <- fact_k1/rows/case588_sdet_B__126.csv a4223a5a250e4351bbe2401df1638ed8b3d4a4ecbe07da09d48a33806951c270
+k1/k1_10000it_3600s/case588_sdet_B__144.csv <- fact_k1/rows/case588_sdet_B__144.csv 11576e60259fd41c88c0ba19c46aa16b53c14b8c9ebfad6a3e4662d22f8d72e3
+k1/k1_10000it_3600s/case588_sdet_B__210.csv <- fact_k1/rows/case588_sdet_B__210.csv 9529c462778c9d1d08f516a484ad796d8c07280c633beb3c6a5d9724c3a16cb6
+k1/k1_10000it_3600s/case588_sdet_B__242.csv <- fact_k1/rows/case588_sdet_B__242.csv d39dde54bf58ba27cc1dbe25f43a845b2b8951e1fbdd34e9feb24f411bb39587
+k1/k1_10000it_3600s/case588_sdet_B__292.csv <- fact_k1/rows/case588_sdet_B__292.csv 76fcdac97b4da18b887d387c35017c445ce0c342f492d39d9fdb5a92c2947653
+k1/k1_10000it_3600s/case588_sdet_B__31.csv <- fact_k1/rows/case588_sdet_B__31.csv d8cedfcdbfac028f85345e883658fcd509bd2c973233362287520dcd8d51db38
+k1/k1_10000it_3600s/case588_sdet_B__377.csv <- fact_k1/rows/case588_sdet_B__377.csv aff8fbdb2ed5849f08be943b49e19b78395ca4282e90a1f5f005a24f0fe6ab46
+k1/k1_10000it_3600s/case588_sdet_B__42.csv <- fact_k1/rows/case588_sdet_B__42.csv 29b7367dd7ef522792a092bc18cc4cdf3b631d19f64c1c70c4375aa0fe89af4c
+k1/k1_10000it_3600s/case588_sdet_B__446.csv <- fact_k1/rows/case588_sdet_B__446.csv e5f96d084840eafe9e0df4002f9f007e393a66ded2b9df79113537b41e123aef
+k1/k1_10000it_3600s/case588_sdet_B__499.csv <- fact_k1/rows/case588_sdet_B__499.csv 1ea097f96d182809640b06e0a1de0b6afe0a225c42fcb0c6a1bc48ee41ae6768
+k1/k1_10000it_3600s/case588_sdet_B__49.csv <- fact_k1/rows/case588_sdet_B__49.csv c39cdccc46d6685eec99d5d724b1760ac42bac1f7394f3c002399e555fe3a5cb
+k1/k1_10000it_3600s/case588_sdet_B__538.csv <- fact_k1/rows/case588_sdet_B__538.csv 3035342b4840911a7032992d499afd6192f8d98452c965588bbbc69b23e8cc3c
+k1/k1_10000it_3600s/case588_sdet_B__587.csv <- fact_k1/rows/case588_sdet_B__587.csv a578f7d185c83e7984bebce6024e3a4d70bcea9c0be937fe1118ed93bf402249
+k1/k1_10000it_3600s/case588_sdet_B__589.csv <- fact_k1/rows/case588_sdet_B__589.csv be0fd733068e4226003a99a0d83a49cda83cd5ed000ed0d44059675a1dc07f4d
+k1/k1_10000it_3600s/case588_sdet_B__626.csv <- fact_k1/rows/case588_sdet_B__626.csv 2660b09ea6f20f6dad3086a3cce6da65386d65709f522a0a30f06eb5fa24c4fd
+k1/k1_10000it_3600s/case588_sdet_B__657.csv <- fact_k1/rows/case588_sdet_B__657.csv cccd7b1f0f261aeeda9b51b77790abda26b5419c7c5f1101d2dfc7c467219a19
+k1/k1_10000it_3600s/case588_sdet_B__681.csv <- fact_k1/rows/case588_sdet_B__681.csv fb5320d913a4e22756efd84586292384424ca09706759616326c24d32e9c023a
+k1/k1_10000it_3600s/case793_goc_B__144.csv <- fact_k1/rows/case793_goc_B__144.csv be0cb8710f645c4df95ac946c795294aa3d35a39ddd31ebb3fb97f04054ba65b
+k1/k1_10000it_3600s/case793_goc_B__210.csv <- fact_k1/rows/case793_goc_B__210.csv ca0a3239aa2bb8aa25bf795ed6577079f813e7802c1056292fbdd1143b841aba
+k1/k1_10000it_3600s/case793_goc_B__24.csv <- fact_k1/rows/case793_goc_B__24.csv 6d507ec1b58addf49ea7bf3403444626db49895660c2e38501820dcca40dd3f3
+k1/k1_10000it_3600s/case793_goc_B__306.csv <- fact_k1/rows/case793_goc_B__306.csv 97017e6321c814d936118fad44cfbeb0280d692b69ada68e1e60b777adf46047
+k1/k1_10000it_3600s/case793_goc_B__31.csv <- fact_k1/rows/case793_goc_B__31.csv 28d1edaa06eb432d6f7b4a95f7e7d948328ad1e90e315e8500d2a5109f99191e
+k1/k1_10000it_3600s/case793_goc_B__377.csv <- fact_k1/rows/case793_goc_B__377.csv 81fc6e3dfd21ccbbfdf82c61bbc0eec431f8c14a6c504ea775c60ccab54f0b87
+k1/k1_10000it_3600s/case793_goc_B__42.csv <- fact_k1/rows/case793_goc_B__42.csv d49ce2112a25e33929388f1956efaae5824984b178fe8ebe358c3f1d5e430f6e
+k1/k1_10000it_3600s/case793_goc_B__538.csv <- fact_k1/rows/case793_goc_B__538.csv 3b6b4434920ab255b6a3143bf4312638b6449b97da556d9fcf4ee69dc6cf2aee
+k1/k1_10000it_3600s/case793_goc_B__547.csv <- fact_k1/rows/case793_goc_B__547.csv 226d138fd488906866137386b37f9cbece2e895808080c58ccf734d4a61bdd07
+k1/k1_10000it_3600s/case793_goc_B__572.csv <- fact_k1/rows/case793_goc_B__572.csv 5e29224a820559d60b6d42f8a8918f3f3224b0bdd6590f107b3256f7a2408c76
+k1/k1_10000it_3600s/case793_goc_B__626.csv <- fact_k1/rows/case793_goc_B__626.csv fb74723989492f9c873e3eac415e6b69acff02f0fbd1bc659b50f914d3e00b5f
+k1/k1_10000it_3600s/case793_goc_B__636.csv <- fact_k1/rows/case793_goc_B__636.csv 32e65f95f834a99b577654c88a1111bb26b286456ed8ce3762b11328e78d61f2
+k1/k1_10000it_3600s/case793_goc_B__681.csv <- fact_k1/rows/case793_goc_B__681.csv 1ce65723c8f45aed5aba7a6a21f3b41be384841790da6163ddecd180a4aec5a1
+k1/k1_10000it_3600s/case793_goc_B__812.csv <- fact_k1/rows/case793_goc_B__812.csv fa6cffc0dc41cd0283f869e8596a541d44092bfa5dd6e343b369adf3deb8231d
+k1/k1_10000it_3600s/case793_goc_B__877.csv <- fact_k1/rows/case793_goc_B__877.csv 91c9f20f8e8d5ec452e950ebb013fef6e221b58d2bdecf74b9983f862c33bc35
+k1/k1_10000it_3600s/case793_goc_B__882.csv <- fact_k1/rows/case793_goc_B__882.csv fe9a2333e2465b853986dc8097f6867dd32dd2e0377fbe6c9d47675e6608255e
+
+Budgets of the K = 1 records (julia/k1_verify.jl, Ipopt-MA57, tol 1e-8): k1/c3_3000it_600s = the WO-69 Addendum C3 run
+(defaults C3_WALL=600, C3_MAXITER=3000; scopf-pool screen/out/c3_k1/run_c3.sh) for the lists of case500_goc A and B,
+case588_sdet A, case793_goc A; k1/k1_10000it_3600s = C3_WALL=3600 C3_MAXITER=10000 C3_FIRSTPR=1 (WO-69 factorial prep,
+scopf-pool commit 4d0be91) for case588_sdet B and case793_goc B. k1_10000it_3600s/case588_sdet_B__657.csv is untracked in
+scopf-pool: outage 657 was removed by the island rule before its K = 1 check finished; the row is informational.

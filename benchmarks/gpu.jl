@@ -16,6 +16,9 @@
 #                                     scopf: CSV with columns case,K,data (default instances/scopf23.csv)
 #              --data=<dir>           scopf: directory containing the case-file directories named in the
 #                                     `data` column (required for scopf; the case files are not distributed here)
+#              --contingencies=<file> scopf: a Julia file defining `CONTINGENCIES` (case name => branch list; it must
+#                                     also carry the "case118" key used by the warm-up); default
+#                                     instances/scopf_contingencies.jl
 #              --cases=<a,b,...>      restrict the run to these instance names
 #              --wall=<seconds>       wall-time limit per solve (default 1800)
 #              --tol=<t>              optimality and feasibility tolerance of every configuration (default 1e-8)
@@ -33,7 +36,7 @@
 include(joinpath(@__DIR__, "common.jl"))
 
 const POS, OPT = parse_args(ARGS)
-length(POS) == 3 || error("usage: gpu.jl <suite> <configs> <outdir> [--tag=] [--device=] [--instances=] [--data=] [--cases=] [--wall=] [--tol=] [--cvtol=] [--warmup=0]")
+length(POS) == 3 || error("usage: gpu.jl <suite> <configs> <outdir> [--tag=] [--device=] [--instances=] [--data=] [--contingencies=] [--cases=] [--wall=] [--tol=] [--cvtol=] [--warmup=0]")
 const SUITE = POS[1]
 SUITE in ("opf", "cops", "cops_ladder", "scopf") || error("unknown suite $SUITE")
 const CONFIGS = String.(split(POS[2], ","))
@@ -54,7 +57,8 @@ include(joinpath(@__DIR__, "arms.jl"))
 include(joinpath(@__DIR__, "liftedkkt.jl"))
 include(joinpath(@__DIR__, "models", "acopf_model.jl"))
 include(joinpath(@__DIR__, "models", "scopf_model.jl"))
-include(joinpath(@__DIR__, "instances", "scopf_contingencies.jl"))
+const CONTINGENCY_FILE = haskey(OPT, "contingencies") ? abspath(OPT["contingencies"]) : ""
+include(isempty(CONTINGENCY_FILE) ? joinpath(@__DIR__, "instances", "scopf_contingencies.jl") : CONTINGENCY_FILE)
 for c in CONFIGS; c in ARMS || c == "liftedkkt" || error("unknown configuration $c"); end
 
 if DEVICE == "cuda"
@@ -261,6 +265,7 @@ function main()
         println(io, "suite=$SUITE device=$DEVICE tag=$TAG wall=$WALL tol=$TOL constr_viol_tol=$CVTOL max_iter=$MAX_ITER ",
                 "linear_solver=$(LINEAR_SOLVER.linear_solver) suite_ipm=$(SUITE_IPM) pathof(MadNCL)=$(pathof(MadNCL))")
         SUITE == "scopf" && println(io, "scopf_model=$(SCOPF_MODEL)")
+        isempty(CONTINGENCY_FILE) || println(io, "contingencies=$(CONTINGENCY_FILE)")
         wm = warm()
         for config in CONFIGS
             slv = make_solver(wm, config)
