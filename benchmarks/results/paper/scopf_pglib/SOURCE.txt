@@ -20,3 +20,12 @@ results/pilot/scopf_pilot__liftedkkt__r1.csv sha256=1256cdb44a0f5d1d9ee661293741
 results/pilot/scopf_pilot__liftedkkt__r2.csv sha256=71cdac34f6dc178bb8a4be8a8bc3636c6bebebff958bfe8a850c756609a01c61 -> scopf_pglib__liftedkkt__r2.csv (18 rows)
 results/pilot/scopf_pilot__liftedkkt__r3.csv sha256=22256c9c7011ed9f7b4958878f269b5486e5a44cc4e848e1b27a9181a5448ebc -> scopf_pglib__liftedkkt__r3.csv (11 rows)
 config echoes copied: 238; rows without an echo: none
+
+PARTIAL DATA (paper-repro build, 2026-11-11 02:38 EST). Repetition 3 of the 11 factorial instances was still running on
+scopf-pool when this directory was carried into the paper-repro branch: the files here are unchanged from gamma-phi-ncl
+3383a34 (copied at 8789c29) and hold r3 rows of 12 instances for S, SP and W and of 11 for U6A and liftedkkt (r1 and r2:
+all 18). At the build time scopf-pool's merged r3 CSVs (results/pilot/scopf_pilot__<config>__r3.csv) held 14 of the 18
+instances for every configuration, and every row copied here was still byte-identical to its row there. When the block
+ends, re-copy this directory from scopf-pool (rows of the 18 instances of benchmarks/instances/scopf_pglib18.csv, header
+and column order unchanged, with the per-cell config echoes, as described above), then re-run
+benchmarks/paper/emit.sh scopf_pglib.

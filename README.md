@@ -1,79 +1,172 @@
-# MadNCL.jl
+# (γ,φ)-NCL — reproduction branch (`paper-repro`)
 
-[![Run tests](https://github.com/MadNLP/MadNCL.jl/actions/workflows/action.yml/badge.svg)](https://github.com/MadNLP/MadNCL.jl/actions/workflows/action.yml)
+This branch reproduces every number in the tables and the figure of the manuscript *(γ, φ)-NCL* and nothing more. It
+is the public MadNCL harness of branch `gamma-phi-ncl` (commit `3383a34`) with the protocol SCOPF set ported from the
+branch that generated it (`scopf-pool`), the theory figure's generator added, and everything else removed (COPS and the
+COPS size ladder, the ablation and one-sided configurations, the identity gates, the campaign scheduler). The solver
+source `src/` and `ext/` is byte-identical to `gamma-phi-ncl` (`src/` unchanged since `10238f9`).
 
-An implementation of [Algorithm NCL](https://link.springer.com/chapter/10.1007/978-3-319-90026-1_8) in Julia.
+| manuscript float | label | file the manuscript `\input`s | emitter |
+|---|---|---|---|
+| CUTEst table | `tab:cutest` | `tables/tab_cutest_ma57.tex` | `benchmarks/tables/tab_cutest.py` |
+| PGLIB table | `tab:gpu-opf` | `tables/tab_gpu_opf.tex` | `benchmarks/tables/tab_gpu_opf.py` |
+| PGLIB appendix | `tab:pglib-appendix` | `tables/tab_pglib_appendix.tex` | `benchmarks/tables/tab_pglib_appendix.py` |
+| SCOPF configuration | `tab:scopf-config` | `tables/tab_scopf_config.tex` | `benchmarks/tables/tab_scopf_config.py` |
+| SCOPF, reference lists | `tab:gpu-scopf` | `tables/tab_gpu_scopf.tex` | `benchmarks/tables/tab_gpu_scopf.py` |
+| SCOPF, protocol set | `tab:gpu-scopf-pglib` | `tables/tab_gpu_scopf_pglib.tex` | `benchmarks/tables/tab_gpu_scopf_pglib.py` |
+| SCOPF protocol appendix | `tab:scopf-pglib-appendix` | `tables/tab_scopf_pglib_appendix.tex` | `benchmarks/tables/tab_scopf_pglib_appendix.py` |
+| degenerate example | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-MadNCL is built as [MadNLP](https://github.com/MadNLP/MadNLP.jl)'s extension, and supports the solution of
-large-scale nonlinear programs on GPUs. MadNCL is particularly good at solving infeasible
-or degenerate optimization problems.
+The two protocol-set tables are emitted for the manuscript's SCOPF section; the manuscript revision checked here
+(Overleaf commit `e55ef05`) does not `\input` them yet. **Their data are partial**: repetition 3 of 11 of the 18
+instances was still running when this branch was built (see the SCOPF protocol section below).
 
-## Installation
+## What "reproduced" means here
 
-MadNCL can be installed and tested through the Julia package manager:
+The result CSVs under `benchmarks/results/paper/` are the campaign's, copied verbatim (rows, header and column order as
+the drivers wrote them), with the configuration echo of every cell next to them. The emitters turn them into the floats:
 
-```julia
-julia> ]
-pkg> add MadNCL
-pkg> test MadNCL
+```bash
+benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes benchmarks/out/paper/{tables,figures,summaries}
 ```
 
-## Quickstart
+On this branch that command writes exactly the eight files above, every one of them compiles at the manuscript's page
+geometry (`lib.sh compile_tables`), the five tables and the figure that the manuscript `\input`s are byte-identical to
+its files (Overleaf commit `e55ef05`), the two protocol tables are byte-identical to the `gamma-phi-ncl` emissions, and
+the console summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-11).
 
-MadNCL leverages [JuliaSmoothOptimizers](https://jso.dev)'s ecosystem.
-For instance, you can solve any instance in [CUTEst.jl](https://github.com/JuliaSmoothOptimizers/CUTEst.jl/) simply as:
+Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column but the timing columns (the CPU solvers
+are deterministic; a solve that ends at its wall-time cap can stop at a different iteration) and **to within GPU
+nondeterminism on the GPU, ±2 solves**: cuDSS's device reductions are not bitwise reproducible, so single repetitions
+differ (spread of the per-repetition solve counts in the banked data, `benchmarks/results/paper/<suite>/summary.txt`:
+PGLIB at most 2 per configuration, SCOPF reference lists up to 3, protocol set up to 4, between r1 and r2 of φ-NCL);
+every GPU suite is therefore run three times and scored by majority of three, and the manuscript makes no robustness
+claim about GPU solve-count differences of two instances or fewer (Section 5, "Budgets and scoring"). In this build the CPU claim was checked on the protocol records only (one K = 1 verification and two
+screened outages, identical but for their time columns, and the island table, byte-identical); the CUTEst table and the
+GPU suites were not rerun.
 
-```julia
-using MadNCL
-using CUTEst
-nlp = CUTEstModel("HS15")
-results = madncl(nlp)
+## Hardware and software of the campaign
+
+- 2 x Intel Xeon Gold 6130 (2 x 16 cores, 64 threads), 2 x NVIDIA Quadro GV100 (32 GB, compute capability 7.0),
+  NVIDIA driver 580.178.04 / CUDA 13.0 on this node at build time; CUTEst runs used 30 Distributed workers, the GPU
+  suites one device per cell.
+- CPU: Julia 1.10.11, `benchmarks/envs/cpu` (MadNLP 0.10.1, MadNLPHSL 0.7.3, CUTEst.jl 1.4.0 with its SIF collection
+  artifact, NLPModelsIpopt 0.11.3 / Ipopt 3.14.19), **HSL MA57 from a licensed HSL_jll** (2025.1.19).
+- GPU: Julia 1.11.2, `benchmarks/envs/gpu` (CUDA.jl 6.2.0, **cuDSS** via CUDSS.jl 0.7.0 / CUDSS_jll 0.7.1, MadNLPGPU
+  0.10.1, ExaModels 0.11.2, JuMP 1.30.1, PowerModels 0.21.6).
+- SCOPF protocol scripts: Julia 1.10.11, `benchmarks/envs/screen` (adds PowerModels 0.21.6, JuMP 1.32.1, Ipopt 1.16.0).
+- Emitters and the figure: Python 3 (standard library only); `pdflatex` and `pdfinfo` for the compile check.
+
+Setup: `julia --project=benchmarks/envs/cpu -e 'using Pkg; Pkg.instantiate()'`, the same for `envs/screen` and, with
+`julia +1.11.2`, `envs/gpu`. Every env takes MadNCL from this checkout (`path = "../../.."`). The CPU and screen
+Manifests record the path of our licensed HSL_jll; `Pkg.develop(path="<your HSL_jll.jl>")` in those two envs, and check
+that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stub).
+
+## Table `tab:cutest` — CUTEst on the CPU
+
+- Data: the 1070 constrained CUTEst problems of `benchmarks/instances/cutest_pop1070.txt`, fetched and decoded by
+  CUTEst.jl (the driver decodes missing ones before the run).
+- Run (all seven configurations: S, SP, W, U6A, liftedkkt, ipopt, madnlp; MA57, 30 workers, 3600 s per solve):
+
+  ```bash
+  benchmarks/paper/chain_cpu.sh                       # or one configuration:
+  julia --project=benchmarks/envs/cpu benchmarks/cutest.jl benchmarks/instances/cutest_pop1070.txt W ma57 30 3600 benchmarks/out/paper/cutest/W_r1 --trace
+  ```
+
+  Campaign elapsed per configuration at 30 workers: S 2.4 h, W 1.7 h, U6A 3.6 h, LiftedKKT 5.1 h, Ipopt 3.6 h,
+  MadNLP-augmented 4.3 h (`WALLTIME_cpu.csv` of the campaign, in `gamma-phi-ncl`'s uncommitted
+  `benchmarks/out/paper/logs/`); SP's logged elapsed covers only a 60-s resume, and its
+  per-solve times sum to 103 489 s (0.96 h of 30 workers, a lower bound). 20.6 h for the six others.
+- Emit: `benchmarks/paper/emit.sh cutest`, or
+  `python3 benchmarks/tables/tab_cutest.py benchmarks/results/paper/cutest --cap=3600 --out=<dir>` (seconds).
+
+## Tables `tab:gpu-opf` and `tab:pglib-appendix` — PGLIB on the GPU
+
+- Data: the 66 PGLIB v23.07 cases of `benchmarks/instances/pglib66.txt`, from the `PGLib_opf` artifact of
+  `benchmarks/Artifacts.toml` (downloaded on first use).
+- Run (five configurations x three repetitions, 1000 iterations, 1800 s per solve):
+
+  ```bash
+  benchmarks/paper/chain_gpu.sh <device> opf          # 15 cells; one cell is:
+  julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl opf W benchmarks/out/paper/opf/W_r1 --tag=r1 --trace
+  ```
+
+  Campaign elapsed per cell 720–1441 s, 4.0 h for the 15 (`WALLTIME_gpu1.csv`, last attempt of each cell).
+- Emit: `benchmarks/paper/emit.sh opf` (`tab_gpu_opf.py`, `tab_pglib_appendix.py`; seconds).
+
+## Tables `tab:scopf-config` and `tab:gpu-scopf` — SCOPF, the 23 reference-list instances
+
+- Data: the MATPOWER case files, downloaded and checked against `benchmarks/instances/scopf_data.sha256`:
+  `benchmarks/instances/fetch_scopf_data.sh <dir>` (`<dir>/data`, `<dir>/data_mp70`); the instance list is
+  `benchmarks/instances/scopf23.csv`, the contingency lists `benchmarks/instances/scopf_contingencies.jl` (from the
+  reference benchmark's harness).
+- Run (five configurations x three repetitions, 3000 iterations, 1800 s per solve; the SCOPF model and solver settings
+  are those of `tab:scopf-config`, read back from the configuration echoes):
+
+  ```bash
+  SCOPF_DATA=<dir> benchmarks/paper/chain_gpu.sh <device> scopf     # 15 cells; one cell is:
+  julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl scopf W benchmarks/out/paper/scopf/W_r1 --tag=r1 --trace --data=<dir>
+  ```
+
+  Campaign elapsed per cell 3182–7804 s, 21.7 h for the 15 (`WALLTIME_scopf.csv`).
+- Emit: `benchmarks/paper/emit.sh scopf` (`tab_gpu_scopf.py`, `tab_scopf_config.py`; seconds).
+
+## Tables `tab:gpu-scopf-pglib` and `tab:scopf-pglib-appendix` — SCOPF, the 18 protocol instances
+
+- Data: `benchmarks/instances/fetch_pglib_scopf_data.sh <dir>` writes `<dir>/pglib/` (the three PGLIB v23.07 networks
+  from the Julia artifact or the release tarball, their `_B` copies for the order-B instances, MATPOWER 7.0
+  `case118.m` for the warm-up) and checks it against `benchmarks/instances/scopf_pglib_data.sha256` (seconds).
+- Instances: `benchmarks/instances/scopf_pglib18.csv` and `benchmarks/instances/scopf_pglib_contingencies.jl`, generated
+  by the protocol of `benchmarks/scopf_protocol/README.md` (screen at penalty 1e8, residual < 1e-4 after at most 200
+  iterations, bridges kept; island rule; K = 1 verification by Ipopt-MA57; drop and backfill; orders A and B with seed
+  69; K ∈ {4, 8, 16}). Rebuild the lists from the protocol records in seconds:
+  `python3 benchmarks/scopf_protocol/build_lists.py lists --check=benchmarks/instances/scopf_pglib_contingencies.jl`.
+- Run (five configurations x three repetitions, the SCOPF settings of the 23):
+
+  ```bash
+  SCOPF_PGLIB_DATA=<dir> benchmarks/paper/chain_gpu.sh <device> scopf_pglib    # 15 cells; one cell is:
+  julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl scopf W benchmarks/out/paper/scopf_pglib/W_r1 --tag=r1 --trace \
+      --instances=benchmarks/instances/scopf_pglib18.csv --data=<dir> --contingencies=benchmarks/instances/scopf_pglib_contingencies.jl
+  ```
+
+  The campaign ran one instance per process (`--cases=<instance>` added): 240–481 s per instance (median 300 s) with
+  start-up and warm-up, 4518–5887 s per complete (configuration, repetition); the solve and build times alone sum to
+  515–1562 s per complete (configuration, repetition).
+- Emit: `benchmarks/paper/emit.sh scopf_pglib` (`tab_gpu_scopf_pglib.py`, `tab_scopf_pglib_appendix.py`; seconds).
+- **Partial data.** `benchmarks/results/paper/scopf_pglib/` holds repetitions 1 and 2 of all 18 instances and, for
+  repetition 3, 12 instances (S, SP, W) or 11 (U6A, LiftedKKT): repetition 3 of the 11 factorial instances was still
+  running on `scopf-pool` when this branch was built (2026-11-11). Re-copy the directory from `scopf-pool` when that
+  block ends and re-emit (`benchmarks/results/paper/scopf_pglib/SOURCE.txt`).
+
+## Figure `fig:example-degenerate`
+
+```bash
+python3 benchmarks/figures/make_fig_example_degenerate.py --out=<dir>     # ~35 s; or benchmarks/paper/emit.sh figure
 ```
 
-You gain more fine-grained control on the solver by tuning the options:
+Plain Python (standard library). Writes `<dir>/fig_example_degenerate.tex` (TikZ; needs `\usetikzlibrary{shapes.geometric,
+arrows.meta}`), byte-identical to the manuscript's `figures/fig_example_degenerate.tex` (sha256 `698f1364…390d7a`).
 
-```julia
-# Specify NCL's options
-ncl_options = MadNCL.NCLOptions{Float64}(
-    verbose=true,       # print convergence logs
-    scaling=false,      # specify if we should scale the problem
-    opt_tol=1e-8,       # tolerance on dual infeasibility
-    feas_tol=1e-8,      # tolerance on primal infeasibility
-    rho_init=1e1,       # initial augmented Lagrangian penalty
-    max_auglag_iter=20, # maximum number of outer iterations
-)
-# MadNLP's options are passed directly to madncl:
-results = madncl(
-    nlp;
-    ncl_options=ncl_options,
-    linear_solver=LDLSolver,   # factorize the KKT system with a LDL decomposition
-    print_level=MadNLP.INFO,   # activate logs inside MadNLP
-)
-```
+## Rerunning everything and comparing
 
-## (γ,φ)-NCL: per-row weights and penalty kernels
+Every chain writes under `benchmarks/out/paper/` and never into the banked `benchmarks/results/paper/`: each finished
+cell's CSV and configuration echo is copied, under the banked file names, into `benchmarks/out/paper/results/<suite>/`.
+Emit from the rerun with `RES=benchmarks/out/paper/results benchmarks/paper/emit.sh <suite>`. The chains are
+resumable (a cell killed part-way resumes from its finished rows), refuse a GPU that carries another process unless
+`GPU_DEVICE_NOGATE=1`, and log every foreign process seen on the device during a cell (`INTRUDER` lines; wall times of
+such cells are contaminated, solve counts are not).
 
-This branch extends MadNCL's augmented-Lagrangian subproblem to the penalty
+## The solver configurations
 
-```math
-\sum_i \frac{γ_i}{ρ} φ_i(-ρ r_i),
-```
-
-with per-row weights `γᵢ > 0` (`solver.ncl.γr`, default 1) and a penalty kernel `φ`:
-
-- `MadNCL.QuadraticKernel()` — `φ(t) = t²/2`, the classical MadNCL penalty (default);
-- `MadNCL.PowerKernel(p, λ)` — `φᵢ(t) = t²/2 + (λᵢ/p)|t|^p`, with per-row weights `λᵢ`
-  (`solver.ncl.λr`, initialized to `λ`).
-
-New kernels are added by subtyping `MadNCL.AbstractKernel` and implementing
-`phi(k, λ, t)`, `dphi(k, λ, t)`, `ddphi(k, λ, t)`. The weights can be updated automatically by
-the weight law `weight_law=:geometry`, and the subproblem
-acceptance test can be measured on the penalty force (`gate_metric=:force`): accept when
-|γᵢ φᵢ'(−ρ rᵢ)| ≤ φᵢ'(ρ · thr) on every row, thr = max(η, feas_tol), instead of ‖r‖∞ ≤ thr. At
-γ ≡ 1 the two tests coincide for every admissible kernel (φ' odd and increasing); for the quadratic
-kernel the force test reads maxᵢ γᵢ |rᵢ| ≤ thr. See the docstring of `MadNCL.NCLOptions`.
-
-### Reproducing the solver configurations of the paper
+| token | paper name | definition |
+|---|---|---|
+| `S` | MadNCL | `benchmarks/arms.jl` |
+| `SP` | MadNCL + parameters | `benchmarks/arms.jl` |
+| `W` | γ-NCL | `benchmarks/arms.jl` |
+| `U6A` | φ-NCL | `benchmarks/arms.jl` |
+| `liftedkkt` | LiftedKKT | `benchmarks/liftedkkt.jl` (GPU), `benchmarks/cutest.jl` (CPU) |
+| `ipopt` | Ipopt | `benchmarks/cutest.jl` (CPU only) |
+| `madnlp` | MadNLP-augmented | `benchmarks/cutest.jl` (CPU only) |
 
 All configurations use the tolerance `1e-8` and the gradient scaling `scaling_max_gradient=100`.
 With `μ* = (1e-8/100)^(1/1.05) ≈ 2.9936e-10`:
@@ -124,144 +217,26 @@ the KKT conditions of the problem solved by the interior-point method, with the 
 measured at μ = 0 and the multipliers scaled as in Ipopt (`s_max = 100`), and the constraint
 violation in the original scaling must not exceed `constr_viol_tol` (see `MadNCL.NCLOptions`).
 
-## Benchmarks
+The drivers print the full option set of every configuration, read back from the constructed solver, into the
+configuration echoes (`config_*.txt`) next to the results; `tab_scopf_config` is emitted from those echoes.
 
-`benchmarks/` holds the harness that produces the paper's numbers. Layout:
+## Layout
 
 | path | contents |
 |---|---|
-| `benchmarks/arms.jl` | the four solver configurations as named option sets: `S` (MadNCL), `SP` (MadNCL + parameters), `W` (γ-NCL), `U6A` (φ-NCL) |
-| `benchmarks/cutest.jl` | CUTEst on the CPU: one flat pool of (configuration × linear solver × problem) tasks over Distributed workers; the four configurations plus Ipopt, LiftedKKT (MadNLP, condensed KKT) and MadNLP (augmented KKT); MA57 or LDL |
-| `benchmarks/gpu.jl` | GPU suites: PGLIB OPF (`opf`), COPS (`cops`), the COPS size ladder (`cops_ladder`), SCOPF as MPCC (`scopf`); cuDSS LDL; one warm-up solve per configuration; `--device=cpu` runs the same code on the CPU for smoke tests |
-| `benchmarks/liftedkkt.jl` | the LiftedKKT comparator used by `gpu.jl` (configuration `liftedkkt`) |
-| `benchmarks/models/` | the AC-OPF model (ExaModels) and the SCOPF-as-MPCC model (JuMP + PowerModels) |
-| `benchmarks/instances/` | instance lists: CUTEst (1070 and a 16-problem smoke), certified CUTEst traps, PGLIB (all 66 cases, run for every configuration), SCOPF (23 case/contingency pairs, with the case-file directory of each) and the SCOPF contingency lists |
-| `benchmarks/tables/` | stdlib-Python emitters of the paper's tables and figure (LaTeX: booktabs, pgfplots) from the result CSVs, and a console summary of a CUTEst run |
-| `benchmarks/envs/{cpu,gpu}` | pinned environments: Julia 1.10.11 with MadNLP 0.10.1 and HSL MA57 (CPU); Julia 1.11.2 with CUDA 6.2, cuDSS 0.7, ExaModels 0.11.2 (GPU) |
-| `gates/` | identity gates of this branch against the research code it was extracted from |
-
-Each driver prints the full option set of every configuration, read back from the constructed solver,
-and writes it next to the results (`config.txt`, `config_<suite>__<tag>.txt`). The drivers take paths,
-devices and tags as arguments and read no environment variables.
-
-```bash
-# CUTEst, the four configurations and the three baselines, MA57, 30 workers, 3600 s per solve
-julia --project=benchmarks/envs/cpu benchmarks/cutest.jl benchmarks/instances/cutest_pop1070.txt \
-    S,SP,W,U6A,ipopt,liftedkkt,madnlp ma57 30 3600 results/cutest --trace
-python3 benchmarks/tables/summary.py results/cutest --cap=3600
-python3 benchmarks/tables/tab_cutest.py results/cutest --cap=3600
-
-# GPU suites, one repetition (tag r1)
-julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl opf S,SP,W,U6A,liftedkkt results/gpu --tag=r1
-julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl cops_ladder S,SP,W,liftedkkt results/gpu --tag=r1
-julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl scopf S,SP,W,U6A,liftedkkt results/gpu --tag=r1 \
-    --data=<directory with data/ and data_mp70/>
-python3 benchmarks/tables/tab_gpu_opf.py results/gpu   # main-text table: all 66 cases
-python3 benchmarks/tables/tab_pglib_appendix.py results/gpu   # appendix: all 66 cases, every configuration
-python3 benchmarks/tables/tab_cops_appendix.py results/gpu    # appendix: the 13 COPS instances, per-repetition statuses
-python3 benchmarks/tables/tab_gpu_scopf.py results/gpu
-python3 benchmarks/tables/tab_scopf_config.py results/gpu
-python3 benchmarks/tables/fig_gpu_scaling.py results/gpu
-```
-
-The COPS floats (`tab_cops_appendix`, and `fig_gpu_scaling` with `tab_gpu_ladder`) are no longer part of the manuscript (Yifan, 2026-11-10): their emitters and the banked COPS and COPS-ladder results stay here, but `benchmarks/paper/lib.sh` no longer emits them.
-
-The tolerances are inputs of both drivers: `--tol` (optimality and feasibility, default `1e-8`) and
-`--cvtol` (constraint violation in the original scaling, default `1e-4`), applied to every
-configuration; Ipopt receives both, while MadNLP (LiftedKKT and the augmented baseline) has no
-constraint-violation test and receives `--tol` only. The violation of every returned point is recorded
-(`viol`, `pr_res`), and the summary and the table emitters count a MadNLP solve only if that violation is
-within the run's `constr_viol_tol` (post-hoc guard, the same test the other solvers apply themselves); the
-unguarded count is printed in parentheses. The result files themselves are left as the solvers returned them.
-
-Data. CUTEst problems are fetched by CUTEst.jl, the PGLIB v23.07 cases by the artifact in
-`benchmarks/Artifacts.toml`, and the COPS models are built by COPSBenchmark.jl. The SCOPF case files
-(MATPOWER format) are not distributed here; fetch them with
-
-```bash
-benchmarks/instances/fetch_scopf_data.sh <dir>     # then pass --data=<dir> to gpu.jl
-```
-
-which downloads them from github.com/MATPOWER/matpower and checks them against
-`benchmarks/instances/scopf_data.sha256`:
-
-| directory | instances | files and MATPOWER release |
-|---|---|---|
-| `data/` | the 8 of the MadNCL paper | case118, case1354pegase, case2869pegase, case_ACTIVSg200 from MATPOWER 7.0 (identical in every release 7.0–8.1); case300 from MATPOWER 8.1 (it differs from the 7.0 file only in the TAP column of 22 transformer branches, which gives the same SCOPF model) |
-| `data_mp70/` | the 15 further pairs | case118, case300, case1354pegase, case2869pegase, case_ACTIVSg200, case_ACTIVSg500, case_ACTIVSg2000, all from MATPOWER 7.0 |
-
-The SCOPF model (`benchmarks/models/scopf_model.jl`) and the contingency lists
-(`benchmarks/instances/scopf_contingencies.jl`) come from the MadNCL paper's harness and
-github.com/frapac/pscc-scopf (see the attribution in each file).
-
-## JuMP
-
-MadNCL does not yet provide an extension for [MathOptInterface.jl](https://github.com/jump-dev/MathOptInterface.jl), but a JuMP model can be wrapped
-as a `MathOptNLPModel` using [NLPModelsJuMP.jl](https://github.com/JuliaSmoothOptimizers/NLPModelsJuMP.jl).
-
-```julia
-using JuMP
-using NLPModelsJuMP
-using MadNCL
-
-jm = Model()
-x0 = [10, 10, 10, 10]
-@variable(jm, x[i = 1:4], start = x0[i])
-@constraint(jm, x[1]^2 - x[2] - x[4]^2 == 0)
-@constraint(jm, x[2] - x[1]^3 - x[3]^2 == 0)
-@objective(jm, Min, -x[1])
-
-nlp = MathOptNLPModel(jm)
-results = madncl(nlp)
-```
-
-## GPU support
-
-MadNCL supports natively the solution of nonlinear programs on the GPU using MadNLPGPU.
-To evaluate your model on the GPU, we recommend using [ExaModels](https://github.com/exanauts/ExaModels.jl).
-For instance, you can implement the instance `elec` from the [COPS benchmark](https://www.mcs.anl.gov/~more/cops/) directly as:
-
-```julia
-using ExaModels
-
-function elec_model(np; seed = 2713, T = Float64, backend = nothing, kwargs...)
-    Random.seed!(seed)
-    # Set the starting point to a quasi-uniform distribution of electrons on a unit sphere
-    theta = (2pi) .* rand(np)
-    phi = pi .* rand(np)
-
-    core = ExaModels.ExaCore(T; backend= backend)
-    x = ExaModels.variable(core, 1:np; start = [cos(theta[i])*sin(phi[i]) for i=1:np])
-    y = ExaModels.variable(core, 1:np; start = [sin(theta[i])*sin(phi[i]) for i=1:np])
-    z = ExaModels.variable(core, 1:np; start = [cos(phi[i]) for i=1:np])
-    # Coulomb potential
-    itr = [(i,j) for i in 1:np-1 for j in i+1:np]
-    ExaModels.objective(core, 1.0 / sqrt((x[i] - x[j])^2 + (y[i] - y[j])^2 + (z[i] - z[j])^2) for (i,j) in itr)
-    # Unit-ball
-    ExaModels.constraint(core, x[i]^2 + y[i]^2 + z[i]^2 - 1 for i=1:np)
-
-    return ExaModels.ExaModel(core; kwargs...)
-end
-```
-
-You can instantiate the model and solve it on the GPU using CUDA and MadNLPGPU, respectively:
-```julia
-using CUDA
-using MadNLPGPU
-
-nlp = elec_model(100; backend=CUDABackend())
-
-results = madncl(
-    nlp;
-    print_level=MadNLP.INFO,                # activate logs inside MadNLP
-    kkt_system=MadNCL.K2rAuglagKKTSystem,   # we need to reformulate the Newton system inside MadNCL
-    linear_solver=MadNLPGPU.CUDSSSolver,    # factorize the KKT system on the GPU using NVIDIA cuDSS
-)
-```
+| `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels), unchanged from `gamma-phi-ncl` |
+| `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
+| `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
+| `benchmarks/models/` | the AC-OPF model (ExaModels) and the SCOPF-as-MPCC model (JuMP + PowerModels; from the MadNCL paper's harness and github.com/frapac/pscc-scopf) |
+| `benchmarks/instances/` | instance lists (CUTEst 1070 and its certified traps, used by the CUTEst summary; PGLIB 66; SCOPF 23 and 18), contingency lists, data fetch scripts and sha256 manifests |
+| `benchmarks/scopf_protocol/` | the generation protocol of the 18 protocol SCOPF instances: scripts, records, list builder |
+| `benchmarks/tables/`, `benchmarks/figures/` | the emitters (Python, standard library only) |
+| `benchmarks/paper/` | `chain_cpu.sh`, `chain_gpu.sh`, `emit.sh`, their shared `lib.sh`, `watch.sh` (stall watchdog), `gpu_device.sh` (device gate) |
+| `benchmarks/results/paper/` | the campaign's result CSVs, configuration echoes and summaries (`cutest`, `opf`, `scopf`, `scopf_pglib`) |
+| `benchmarks/envs/{cpu,gpu,screen}` | the pinned environments |
+| `test/` | the package's unit tests (`julia --project=. -e 'using Pkg; Pkg.test()'`) |
 
 ## Citing MadNCL.jl
-
-If you use MadNCL.jl in your research, we would greatly appreciate your citing it.
 
 ```bibtex
 @article{MadNCL,
