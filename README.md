@@ -1,10 +1,51 @@
-# (γ,φ)-NCL — reproduction branch (`paper-repro`)
+# (γ,φ)-NCL: code and data of the manuscript
 
-This branch reproduces every number in the tables and the figure of the manuscript *(γ, φ)-NCL* and nothing more. It
-is the public MadNCL harness of branch `gamma-phi-ncl` (commit `3383a34`) with the protocol SCOPF set ported from the
-branch that generated it (`scopf-pool`), the theory figure's generator added, and everything else removed (COPS and the
-COPS size ladder, the ablation and one-sided configurations, the identity gates, the campaign scheduler). The solver
-source `src/` and `ext/` is byte-identical to `gamma-phi-ncl` (`src/` unchanged since `10238f9`).
+This repository reproduces every number in the seven tables and the figure of the manuscript *(γ, φ)-NCL*. It holds
+the solver (MadNCL with per-row weights and penalty kernels), the benchmark drivers and the solver configurations, the
+campaign's result CSVs with the configuration echo of every run, the emitters that turn those CSVs into the
+manuscript's floats, the generation protocol of the protocol SCOPF instances, and the generator of the theory figure.
+
+## One command
+
+```bash
+./reproduce.sh
+```
+
+emits the seven tables and the figure from the campaign's results (`benchmarks/results/paper/`), compiles each at the
+manuscript's page geometry, and compares each byte for byte with the file the manuscript `\input`s (`manuscript/`):
+one line per float, `IDENTICAL`, or `DIFFERS` followed by the first lines of the diff; the exit status is 0 only if all
+eight are identical. It takes about a minute, runs from any directory, and writes only under `benchmarks/out/paper/`
+(gitignored; `PAPER_OUT=<dir>` moves it). Requirements: bash, Python 3 (standard library only), and `pdflatex` (with
+booktabs, longtable, geometry, tikz) and `pdfinfo` for the compile check; on a machine without TeX,
+`REPRO_NOCOMPILE=1 ./reproduce.sh` skips the compile check and still compares. Output (2026-11-11):
+
+```
+IDENTICAL  tab_cutest_ma57
+IDENTICAL  tab_gpu_opf
+IDENTICAL  tab_pglib_appendix
+IDENTICAL  tab_gpu_scopf
+IDENTICAL  tab_scopf_config
+IDENTICAL  tab_gpu_scopf_pglib
+IDENTICAL  tab_scopf_pglib_appendix
+IDENTICAL  fig_example_degenerate
+reproduce.sh: all 8 floats IDENTICAL to manuscript/
+```
+
+```bash
+./reproduce.sh rerun all --device 0
+```
+
+reruns every solve behind the tables (`rerun cpu`, `opf`, `scopf` or `scopf_pglib` runs one suite; `--device N` picks
+the GPU, default 0), fetching the SCOPF case files first when their sha256 check does not already pass, then emits
+from the rerun's results (`benchmarks/out/paper/results/`) and compares with `manuscript/` in the same way. It needs
+the Julia environments of "Hardware and software" below, a licensed HSL MA57 for the CPU suite and a CUDA GPU for the
+others. Compute, from the campaign's logs: CUTEst 20.6 h at 30 workers for six of the seven configurations, plus SP
+(its per-solve times sum to 0.96 h of 30 workers, a lower bound); PGLIB 4.0 h; SCOPF on the reference lists 21.7 h;
+the protocol SCOPF set 4518–5887 s per (configuration, repetition), 15 of them, in the campaign's one-instance-per-process
+mode (solve and build alone 515–1562 s per (configuration, repetition)); the GPU suites on one device. A CPU rerun is
+expected to reproduce the result CSVs in every column but the timing columns, so its table is expected to be
+identical; a GPU rerun matches only within the GPU nondeterminism band described below, so the comparison is
+informational there and the exit status is that of the emit.
 
 | manuscript float | label | file the manuscript `\input`s | emitter |
 |---|---|---|---|
@@ -17,9 +58,8 @@ source `src/` and `ext/` is byte-identical to `gamma-phi-ncl` (`src/` unchanged 
 | SCOPF protocol appendix | `tab:scopf-pglib-appendix` | `tables/tab_scopf_pglib_appendix.tex` | `benchmarks/tables/tab_scopf_pglib_appendix.py` |
 | degenerate example | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The two protocol-set tables are emitted for the manuscript's SCOPF section; the manuscript revision checked here
-(Overleaf commit `e55ef05`) does not `\input` them yet. Their data are complete: all three repetitions of the 18
-instances, re-copied from `scopf-pool` when the block ended (see the SCOPF protocol section below).
+The manuscript `\input`s all seven tables and the figure (checked 2026-11-11 against its Overleaf commit `6d581d7`:
+lines 521, 851, 861, 872, 874, 875, 894 and 895 of the manuscript's source); `manuscript/` holds those eight files.
 
 ## What "reproduced" means here
 
@@ -30,10 +70,10 @@ the drivers wrote them), with the configuration echo of every cell next to them.
 benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes benchmarks/out/paper/{tables,figures,summaries}
 ```
 
-On this branch that command writes exactly the eight files above, every one of them compiles at the manuscript's page
-geometry (`lib.sh compile_tables`), the five tables and the figure that the manuscript `\input`s are byte-identical to
-its files (Overleaf commit `e55ef05`), the two protocol tables are byte-identical to the `gamma-phi-ncl` emissions, and
-the console summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-11).
+That command writes exactly the eight files above, every one of them compiles at the manuscript's page geometry
+(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all eight are byte-identical to the
+manuscript's files (`manuscript/`, Overleaf commit `6d581d7`; `./reproduce.sh` makes that comparison), and the console
+summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-11).
 
 Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column but the timing columns (the CPU solvers
 are deterministic; a solve that ends at its wall-time cap can stop at a different iteration) and **to within GPU
@@ -41,14 +81,14 @@ nondeterminism on the GPU, ±2 solves**: cuDSS's device reductions are not bitwi
 differ (spread of the per-repetition solve counts in the banked data, `benchmarks/results/paper/<suite>/summary.txt`:
 PGLIB at most 2 per configuration, SCOPF reference lists up to 3, protocol set up to 4, between r1 and r2 of φ-NCL);
 every GPU suite is therefore run three times and scored by majority of three, and the manuscript makes no robustness
-claim about GPU solve-count differences of two instances or fewer (Section 5, "Budgets and scoring"). In this build the CPU claim was checked on the protocol records only (one K = 1 verification and two
-screened outages, identical but for their time columns, and the island table, byte-identical); the CUTEst table and the
-GPU suites were not rerun.
+claim about GPU solve-count differences of two instances or fewer (Section 5, "Budgets and scoring"). The CPU claim was checked on the protocol records (one K = 1 verification and two screened outages,
+identical but for their time columns, and the island table, byte-identical) and on the CUTEst smoke run of the CUTEst
+section below (32 rows); the full CUTEst table and the GPU suites were not rerun.
 
 ## Hardware and software of the campaign
 
 - 2 x Intel Xeon Gold 6130 (2 x 16 cores, 64 threads), 2 x NVIDIA Quadro GV100 (32 GB, compute capability 7.0),
-  NVIDIA driver 580.178.04 / CUDA 13.0 on this node at build time; CUTEst runs used 30 Distributed workers, the GPU
+  NVIDIA driver 580.178.04 / CUDA 13.0 at build time; CUTEst runs used 30 Distributed workers, the GPU
   suites one device per cell.
 - CPU: Julia 1.10.11, `benchmarks/envs/cpu` (MadNLP 0.10.1, MadNLPHSL 0.7.3, CUTEst.jl 1.4.0 with its SIF collection
   artifact, NLPModelsIpopt 0.11.3 / Ipopt 3.14.19), **HSL MA57 from a licensed HSL_jll** (2025.1.19).
@@ -74,9 +114,19 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   ```
 
   Campaign elapsed per configuration at 30 workers: S 2.4 h, W 1.7 h, U6A 3.6 h, LiftedKKT 5.1 h, Ipopt 3.6 h,
-  MadNLP-augmented 4.3 h (`WALLTIME_cpu.csv` of the campaign, in `gamma-phi-ncl`'s uncommitted
-  `benchmarks/out/paper/logs/`); SP's logged elapsed covers only a 60-s resume, and its
+  MadNLP-augmented 4.3 h (the campaign's `WALLTIME_cpu.csv`, see Provenance); SP's logged elapsed covers only a 60-s
+  resume, and its
   per-solve times sum to 103 489 s (0.96 h of 30 workers, a lower bound). 20.6 h for the six others.
+- Smoke run: the first N names of `benchmarks/instances/cutest_pop1070.txt`, e.g. with N = 8, four configurations and
+  8 workers:
+
+  ```bash
+  head -n 8 benchmarks/instances/cutest_pop1070.txt > benchmarks/out/smoke8.txt
+  julia --project=benchmarks/envs/cpu benchmarks/cutest.jl benchmarks/out/smoke8.txt W,U6A,S,SP ma57 8 3600 benchmarks/out/smoke
+  ```
+
+  Checked 2026-11-11: 79 s, and all 32 rows equal the banked rows of `benchmarks/results/paper/cutest/` in every column
+  but the time column.
 - Emit: `benchmarks/paper/emit.sh cutest`, or
   `python3 benchmarks/tables/tab_cutest.py benchmarks/results/paper/cutest --cap=3600 --out=<dir>` (seconds).
 
@@ -134,8 +184,8 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   515–1562 s per complete (configuration, repetition).
 - Emit: `benchmarks/paper/emit.sh scopf_pglib` (`tab_gpu_scopf_pglib.py`, `tab_scopf_pglib_appendix.py`; seconds).
 - **Data.** `benchmarks/results/paper/scopf_pglib/` holds all three repetitions of all 18 instances for the five
-  configurations (270 rows, 270 configuration echoes), copied from `scopf-pool` (`results/pilot` as committed at
-  `76a53fe`) after the block ended on 2026-11-11 (`benchmarks/results/paper/scopf_pglib/SOURCE.txt`).
+  configurations (270 rows, 270 configuration echoes); `benchmarks/results/paper/scopf_pglib/SOURCE.txt` records
+  their source (see Provenance).
 
 ## Figure `fig:example-degenerate`
 
@@ -150,7 +200,8 @@ arrows.meta}`), byte-identical to the manuscript's `figures/fig_example_degenera
 
 Every chain writes under `benchmarks/out/paper/` and never into the banked `benchmarks/results/paper/`: each finished
 cell's CSV and configuration echo is copied, under the banked file names, into `benchmarks/out/paper/results/<suite>/`.
-Emit from the rerun with `RES=benchmarks/out/paper/results benchmarks/paper/emit.sh <suite>`. The chains are
+Emit from the rerun with `RES=benchmarks/out/paper/results benchmarks/paper/emit.sh <suite>`
+(`./reproduce.sh rerun <suite>` runs the chain, this emit and the comparison with `manuscript/`). The chains are
 resumable (a cell killed part-way resumes from its finished rows), refuse a GPU that carries another process unless
 `GPU_DEVICE_NOGATE=1`, and log every foreign process seen on the device during a cell (`INTRUDER` lines; wall times of
 such cells are contaminated, solve counts are not).
@@ -206,7 +257,7 @@ of its budget at the looser tolerance (`benchmarks/arms.jl`, `benchmarks/liftedk
 
 One known label difference with the released MadNCL package: when the success test passes at the last
 allowed outer iteration (`max_auglag_iter`), the released package overwrites the status with
-`MAXIMUM_ITERATIONS_EXCEEDED`, while this branch reports `SOLVE_SUCCEEDED`. The iterate is the same; only the
+`MAXIMUM_ITERATIONS_EXCEEDED`, while this repository's solver reports `SOLVE_SUCCEEDED`. The iterate is the same; only the
 label differs. With S (20 outer iterations) this matters on runs that converge exactly at outer 20; on the
 SCOPF benchmark it relabels two runs (case_ACTIVSg500 and case_ACTIVSg200 with 100 contingencies) that the
 released package reports as iteration-limit failures.
@@ -217,13 +268,18 @@ measured at μ = 0 and the multipliers scaled as in Ipopt (`s_max = 100`), and t
 violation in the original scaling must not exceed `constr_viol_tol` (see `MadNCL.NCLOptions`).
 
 The drivers print the full option set of every configuration, read back from the constructed solver, into the
-configuration echoes (`config_*.txt`) next to the results; `tab_scopf_config` is emitted from those echoes.
+configuration echoes (`config_*.txt`) next to the results; `tab_scopf_config` is emitted from those echoes. Two banked
+echoes of γ-NCL, `benchmarks/results/paper/cutest/config_W.txt` and `benchmarks/results/paper/scopf/config_scopf__W__r1.txt`,
+carry the configuration's older label `((γ,φ)-MadNCL)` where a fresh echo prints `(γ-NCL)`: a label difference only,
+every option value is identical (checked on the CUTEst smoke run, and between the r1 and r2 echoes of `scopf`).
 
 ## Layout
 
 | path | contents |
 |---|---|
-| `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels), unchanged from `gamma-phi-ncl` |
+| `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
+| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `6d581d7`), the reference of `reproduce.sh` |
+| `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
 | `benchmarks/models/` | the AC-OPF model (ExaModels) and the SCOPF-as-MPCC model (JuMP + PowerModels; from the MadNCL paper's harness and github.com/frapac/pscc-scopf) |
@@ -245,3 +301,24 @@ configuration echoes (`config_*.txt`) next to the results; `tab_scopf_config` is
   year    = {2025},
 }
 ```
+
+## Provenance
+
+- This repository was cut from the authors' research repository: the public MadNCL harness of its branch
+  `gamma-phi-ncl` (commit `3383a34`), with the protocol SCOPF set ported from the branch that generated it
+  (`scopf-pool`), the theory figure's generator added, and everything else removed (COPS and the COPS size ladder, the
+  ablation and one-sided configurations, the identity gates, the campaign scheduler). The solver source `src/` and
+  `ext/` is byte-identical to `gamma-phi-ncl` (`src/` unchanged since `10238f9`).
+- `benchmarks/results/paper/{cutest,opf,scopf}/` are the campaign's results as banked on `gamma-phi-ncl`: every file is
+  identical to its counterpart there (whose directories also hold the removed configurations' files).
+  `benchmarks/results/paper/scopf_pglib/` was copied from `scopf-pool` (`results/pilot` as committed at `76a53fe`)
+  after the protocol block ended on 2026-11-11; its rows and echoes are identical to those banked on `gamma-phi-ncl`
+  (commit `835508a`); `SOURCE.txt` there lists every source file with its sha256.
+- The campaign's per-cell elapsed-time logs quoted above (`WALLTIME_cpu.csv`, `WALLTIME_gpu1.csv`,
+  `WALLTIME_scopf.csv`) are in `gamma-phi-ncl`'s uncommitted `benchmarks/out/paper/logs/`, not in this repository.
+- The two γ-NCL echoes with the label `((γ,φ)-MadNCL)` predate the renaming of the configurations' paper names on
+  `gamma-phi-ncl`.
+- Earlier checks of the emitted floats: the five tables and the figure that the manuscript `\input`ed at its Overleaf
+  commit `e55ef05` were byte-identical to its files, and the two protocol-set tables, not yet `\input` there, were
+  byte-identical to the `gamma-phi-ncl` emissions; at Overleaf commit `6d581d7` all eight are byte-identical
+  (`manuscript/`, 2026-11-11).

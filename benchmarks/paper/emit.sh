@@ -5,6 +5,7 @@
 #   emit.sh [suite ...]              (default: cutest opf scopf scopf_pglib figure)
 #   RES=<dir> emit.sh ...            read the results from <dir>/<suite>/ (default: the banked benchmarks/results/paper;
 #                                    benchmarks/out/paper/results after a rerun)
+#   REPRO_NOCOMPILE=1 emit.sh ...    skip the compile check (a machine without pdflatex/pdfinfo)
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 r=0
 for s in ${*:-$SUITES}; do

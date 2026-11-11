@@ -9,6 +9,7 @@
 #     results/<suite>/                  the result CSV and configuration echo of every finished cell, flat and named as in
 #                                       benchmarks/results/paper/<suite>/  (emit.sh with RES=benchmarks/out/paper/results)
 #     tables/, figures/                 the floats of the manuscript, as \input by it (tables/<name>.tex, figures/<name>.tex)
+#     compile/                          the compile check's scaffolding (_cc_<name>.{tex,log,pdf,...}), kept out of tables/
 #     summaries/<suite>.txt             console summaries (the banked benchmarks/results/paper/<suite>/summary.txt)
 #     logs/                             driver logs, WALLTIME_<chain>.csv (one line per cell), progress.txt (markers)
 # Suites: cutest (CPU), opf, scopf, scopf_pglib (GPU); `figure` is the theory figure (no data).
@@ -138,11 +139,14 @@ run_cpu_pool() {
 # two passes (the longtable column widths settle on the second), and FAIL if a fragment does not compile or has an
 # Overfull \hbox wider than 2 pt; a fragment holding a longtable (the appendix tables, set on physical landscape
 # pages) also FAILS unless every page of its PDF is wider than tall (pdfinfo page sizes). Prints one line per fragment.
+# The scaffolding goes to $OUT/compile/ (the fragment is found through TEXINPUTS), so that tables/ and figures/ hold only
+# the floats.
 compile_tables() {
-    local f n d doc rc=0 nf=0 over pages
+    local f n d doc rc=0 nf=0 over pages cdir=$OUT/compile
+    mkdir -p "$cdir"
     for f in "$@"; do
-        d=$(dirname "$f"); n=$(basename "$f" .tex)
-        nf=$((nf + 1)); doc=$d/_cc_$n.tex
+        d=$(cd "$(dirname "$f")" && pwd); n=$(basename "$f" .tex)
+        nf=$((nf + 1)); doc=$cdir/_cc_$n.tex
         {
             echo '\documentclass[11pt]{article}'
             echo '\usepackage[letterpaper,margin=1in]{geometry}'
@@ -153,19 +157,20 @@ compile_tables() {
             echo "\\input{$n}"
             echo '\end{document}'
         } > "$doc"
-        if ! (cd "$d" && pdflatex -interaction=nonstopmode -halt-on-error "_cc_$n.tex" > "_cc_$n.out" 2>&1 \
+        if ! (cd "$cdir" && export TEXINPUTS="$d:" \
+                     && pdflatex -interaction=nonstopmode -halt-on-error "_cc_$n.tex" > "_cc_$n.out" 2>&1 \
                      && pdflatex -interaction=nonstopmode -halt-on-error "_cc_$n.tex" > "_cc_$n.out" 2>&1); then
-            echo "  $n: COMPILE FAILED (see $d/_cc_$n.log)"; rc=1; continue
+            echo "  $n: COMPILE FAILED (see $cdir/_cc_$n.log)"; rc=1; continue
         fi
-        over=$(grep -o 'Overfull \\hbox ([0-9.]*pt too wide)' "$d/_cc_$n.log" | grep -o '[0-9.]*pt' | sort | uniq -c \
+        over=$(grep -o 'Overfull \\hbox ([0-9.]*pt too wide)' "$cdir/_cc_$n.log" | grep -o '[0-9.]*pt' | sort | uniq -c \
                | awk '{printf "%s%s", (NR > 1 ? ", " : ""), $2 ($1 > 1 ? " x" $1 : "")}')
-        if [ -n "$(grep -o 'Overfull \\hbox ([0-9.]*pt too wide)' "$d/_cc_$n.log" | grep -o '[0-9.]*' | awk '$1 > 2')" ]; then
+        if [ -n "$(grep -o 'Overfull \\hbox ([0-9.]*pt too wide)' "$cdir/_cc_$n.log" | grep -o '[0-9.]*' | awk '$1 > 2')" ]; then
             echo "  $n: OVERFULL ${over}"; rc=1
         else
             echo "  $n: ok${over:+ (overfull <= 2pt: $over)}"
         fi
         if grep -q 'begin{longtable}' "$f"; then
-            pages=$(pdfinfo -f 1 -l 100000 "$d/_cc_$n.pdf" 2>/dev/null | awk '/^Page +[0-9]+ size:/ {
+            pages=$(pdfinfo -f 1 -l 100000 "$cdir/_cc_$n.pdf" 2>/dev/null | awk '/^Page +[0-9]+ size:/ {
                         n++; s[$4 " x " $6]++; if (!($4 > $6)) bad++ }
                         END { printf "%d page(s), sizes", n; for (k in s) printf " %s pt x%d", k, s[k]; if (bad || !n) printf "; NOT LANDSCAPE: %d", bad + !n }')
             case $pages in *"NOT LANDSCAPE"*|"") echo "  $n: PAGES ${pages:-pdfinfo failed}"; rc=1;; *) echo "  $n: pages ok: $pages (all wider than tall)";; esac
@@ -184,7 +189,8 @@ FLOATS_figure="fig_example_degenerate"
 SUITES="cutest opf scopf scopf_pglib figure"
 
 # emit <suite>: write the suite's floats from the results in $RES/<suite> into $TABLES (the figure into $FIGURES) and
-# check that they compile; nothing else is written
+# check that they compile (REPRO_NOCOMPILE=1 skips the check, for a machine without pdflatex/pdfinfo); nothing else is
+# written
 emit() {
     local suite=$1 py=$PUB/benchmarks/tables r=0 f v files=()
     mkdir -p "$TABLES" "$FIGURES"
@@ -203,7 +209,11 @@ emit() {
     for f in ${!v}; do
         if [ "$suite" = figure ]; then files+=("$FIGURES/$f.tex"); else files+=("$TABLES/$f.tex"); fi
     done
-    compile_tables "${files[@]}" || r=1
+    if [ "${REPRO_NOCOMPILE:-0}" = 1 ]; then
+        echo "compile_tables skipped (REPRO_NOCOMPILE=1)"
+    else
+        compile_tables "${files[@]}" || r=1
+    fi
     mark "EMIT $suite rc=$r RES=$RES"
     return $r
 }
