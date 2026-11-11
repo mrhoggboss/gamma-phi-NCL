@@ -15,8 +15,6 @@ NAMES = {
     "S": "MadNCL",
     "SP": "MadNCL + parameters",
     "U6A": "$\\varphi$-NCL",
-    "ablation": "ablation",
-    "Wos": "$\\gamma$-NCL, one-sided ($\\gamma \\le 1$)",
     "liftedkkt": "LiftedKKT $\\epsilon=10^{-8}$",
     "ipopt": "Ipopt",
     "madnlp": "MadNLP-augmented",
@@ -28,8 +26,6 @@ NAMES2 = {
     "U6A": ("$\\varphi$-NCL", ""),
     "S": ("MadNCL", ""),
     "SP": ("MadNCL", "+ parameters"),
-    "ablation": ("ablation", ""),
-    "Wos": ("$\\gamma$-NCL, one-sided", "($\\gamma \\le 1$)"),
     "liftedkkt": ("LiftedKKT", "$\\epsilon=10^{-8}$"),
     "ipopt": ("Ipopt", ""),
     "madnlp": ("MadNLP", "augmented"),
@@ -71,9 +67,8 @@ def group_header(configs, span, lead, lead_labels=None):
     return out
 
 
-# The paper roster (Yifan 2026-11-09): MadNCL + parameters (SP) is in, the ablation is out of the manuscript (its data
-# stays banked), the one-sided γ-NCL (Wos) is not part of the paper. Every emitter shows exactly the configurations of
-# ORDER that are present in its result directory, in this order; any other configuration found there is left out.
+# The paper roster (Yifan 2026-11-09): every emitter shows exactly the configurations of ORDER that are present in its
+# result directory, in this order; any other configuration found there is left out.
 ORDER = ["W", "U6A", "S", "SP", "liftedkkt", "ipopt", "madnlp"]
 SUCCESS = {"SOLVE_SUCCEEDED", "first_order"}
 
@@ -217,6 +212,30 @@ def majority_status(rows_by_tag, name, config=None, cvtol=None):
         else:
             sts.append(r["status"])
     return max(sorted(set(sts)), key=sts.count)
+
+
+# Per-repetition status letters and short status names of the appendix tables (tab_scopf_pglib_appendix).
+SHORT = {"MAXIMUM_ITERATIONS_EXCEEDED": "iter.\\ limit", "INFEASIBLE_PROBLEM_DETECTED": "infeasible",
+         "MAXIMUM_WALLTIME_EXCEEDED": "wall limit", "SOLVED_TO_ACCEPTABLE_LEVEL": "acceptable",
+         "VIOLATION": "viol.", "MISSING": "not run", "BUILD_FAILED": "no build"}
+LETTER = {"MAXIMUM_ITERATIONS_EXCEEDED": "M", "INFEASIBLE_PROBLEM_DETECTED": "I", "MAXIMUM_WALLTIME_EXCEEDED": "W",
+          "SOLVED_TO_ACCEPTABLE_LEVEL": "A"}
+
+
+def short(st):
+    if st.startswith("ERROR"):
+        return "error"
+    return SHORT.get(st, st.lower().replace("_", " "))
+
+
+def letter(r, c, cvtol):
+    if r is None:
+        return "-"
+    if r["status"] in SUCCESS:
+        return "S" if success(r, c, None, cvtol) else "V"
+    if r["status"].startswith("ERROR"):
+        return "E"
+    return LETTER.get(r["status"], "?")
 
 
 def suite_scores(rows_by_tag, names, config, cvtol):

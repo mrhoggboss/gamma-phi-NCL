@@ -1,5 +1,4 @@
 [deps]
-COPSBenchmark = "3c263af4-7bba-497b-afe4-00c59a0a48a5"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 CUDSS = "45b445bb-4962-46a0-9369-b4df9d0f772e"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"

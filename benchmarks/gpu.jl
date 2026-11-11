@@ -1,10 +1,9 @@
-# GPU benchmark: PGLIB optimal power flow, COPS, the COPS size ladder, and the security-constrained
-# OPF problems written as MPCCs (SCOPF).
+# GPU benchmark: PGLIB optimal power flow and the security-constrained OPF problems written as MPCCs (SCOPF).
 #
 #   julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl <suite> <configs> <outdir> [options]
 #
-#   <suite>    opf | cops | cops_ladder | scopf
-#   <configs>  comma list of S, SP, W, U6A, ablation, Wos (benchmarks/arms.jl) and liftedkkt (benchmarks/liftedkkt.jl)
+#   <suite>    opf | scopf
+#   <configs>  comma list of S, SP, W, U6A (benchmarks/arms.jl) and liftedkkt (benchmarks/liftedkkt.jl)
 #   <outdir>   results: <suite>__<config>__<tag>.csv (rewritten after every instance; running the same command
 #              again resumes: rows already there are kept and their instances skipped) and
 #              config_<suite>__<tag>.txt (the full option set of every configuration, read back from the solvers)
@@ -38,7 +37,7 @@ include(joinpath(@__DIR__, "common.jl"))
 const POS, OPT = parse_args(ARGS)
 length(POS) == 3 || error("usage: gpu.jl <suite> <configs> <outdir> [--tag=] [--device=] [--instances=] [--data=] [--contingencies=] [--cases=] [--wall=] [--tol=] [--cvtol=] [--warmup=0]")
 const SUITE = POS[1]
-SUITE in ("opf", "cops", "cops_ladder", "scopf") || error("unknown suite $SUITE")
+SUITE in ("opf", "scopf") || error("unknown suite $SUITE")
 const CONFIGS = String.(split(POS[2], ","))
 const OUTDIR = abspath(POS[3])
 const TAG = get(OPT, "tag", "r1")
@@ -51,7 +50,7 @@ const CVTOL = parse(Float64, get(OPT, "cvtol", "1e-4"))
 const CASES = filter(!isempty, String.(split(get(OPT, "cases", ""), ",")))
 const TRACE = haskey(OPT, "trace")
 
-using MadNCL, MadNLP, ExaModels, NLPModels, PowerModels, COPSBenchmark, Printf
+using MadNCL, MadNLP, ExaModels, NLPModels, PowerModels, Printf
 using Pkg.Artifacts
 include(joinpath(@__DIR__, "arms.jl"))
 include(joinpath(@__DIR__, "liftedkkt.jl"))
@@ -88,28 +87,6 @@ ipm_kw(; max_iter=MAX_ITER) = (LINEAR_SOLVER..., max_iter=max_iter, max_wall_tim
                                print_level=MadNLP.ERROR, SUITE_IPM...)
 
 # ---- instances: (name, family, size, build) ----
-const COPS13 = [
-    ("bearing", (400, 400)), ("catmix", (3200,)), ("channel", (3200,)), ("elec", (400,)),
-    ("gasoil", (3200,)), ("marine", (3200,)), ("minsurf", (400, 400)), ("pinene", (3200,)),
-    ("polygon", (100,)), ("robot", (3200,)), ("rocket", (400,)), ("steering", (3200,)), ("torsion", (200, 200)),
-]
-const COPS_LADDER = [
-    ("bearing",  [(200, 200), (400, 400), (800, 800), (1600, 1600)]),
-    ("catmix",   [(800,), (3200,), (12800,), (51200,)]),
-    ("channel",  [(800,), (3200,), (12800,), (51200,)]),
-    ("elec",     [(100,), (400,), (1600,)]),
-    ("gasoil",   [(800,), (3200,), (12800,), (51200,)]),
-    ("marine",   [(800,), (3200,), (12800,), (51200,)]),
-    ("minsurf",  [(200, 200), (400, 400), (800, 800), (1600, 1600)]),
-    ("pinene",   [(800,), (3200,), (12800,), (51200,)]),
-    ("polygon",  [(25,), (100,), (400,)]),
-    ("robot",    [(800,), (3200,), (12800,), (51200,)]),
-    ("steering", [(800,), (3200,), (12800,), (51200,)]),
-    ("torsion",  [(100, 100), (200, 200), (400, 400), (800, 800)]),
-]
-cops_model(fam, sz) = ExaModels.ExaModel(getfield(COPSBenchmark, Symbol(fam, "_model"))(sz...); prod=true, backend=BACKEND)
-size_str(sz) = join(sz, "x")
-
 function scopf_build(datadir, case, K)
     jm = scopf_model(joinpath(datadir, case * ".m"), CONTINGENCIES[case][1:K]; SCOPF_MODEL...)
     return ExaModels.ExaModel(jm; prod=true, backend=BACKEND)
@@ -122,12 +99,6 @@ function instances()
         list = String.(filter(!isempty, strip.(readlines(file))))
         insts = [(c, "pglib", "", () -> ac_power_model(joinpath(pglib, c * ".m"); prod=true, backend=BACKEND)) for c in list]
         warm = () -> ac_power_model(joinpath(pglib, "pglib_opf_case1354_pegase.m"); prod=true, backend=BACKEND)
-    elseif SUITE == "cops"
-        insts = [(f, f, size_str(sz), () -> cops_model(f, sz)) for (f, sz) in COPS13]
-        warm = () -> cops_model("polygon", (100,))
-    elseif SUITE == "cops_ladder"
-        insts = [("$(f)_$(size_str(sz))", f, size_str(sz), () -> cops_model(f, sz)) for (f, szs) in COPS_LADDER for sz in szs]
-        warm = () -> cops_model("polygon", (100,))
     else
         haskey(OPT, "data") || error("scopf needs --data=<dir> (the directory holding the case-file directories)")
         file = get(OPT, "instances", joinpath(@__DIR__, "instances", "scopf23.csv"))

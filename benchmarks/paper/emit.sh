@@ -1,0 +1,16 @@
+#!/bin/bash
+# The manuscript's floats from the result CSVs: for each suite, its floats into benchmarks/out/paper/tables/ (the theory
+# figure into benchmarks/out/paper/figures/), each compiled at the manuscript's geometry (lib.sh compile_tables), then
+# the console summaries into benchmarks/out/paper/summaries/.
+#   emit.sh [suite ...]              (default: cutest opf scopf scopf_pglib figure)
+#   RES=<dir> emit.sh ...            read the results from <dir>/<suite>/ (default: the banked benchmarks/results/paper;
+#                                    benchmarks/out/paper/results after a rerun)
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+r=0
+for s in ${*:-$SUITES}; do
+    echo "== $s"
+    emit "$s" || r=1
+    summarize "$s" || r=1
+done
+echo "emit.sh rc=$r  tables: $TABLES  figures: $FIGURES  summaries: $SUMMARIES"
+exit $r

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tab_scopf_pglib_appendix — the 18 protocol SCOPF instances (see tab_gpu_scopf_pglib), one row each (appendix
 table), for every configuration of the paper roster found in the result directory; the layout of tab_pglib_appendix,
-with the per-repetition statuses of tab_cops_appendix.
+with per-repetition statuses (common.letter).
 
 Reads <resdir>/scopf_pglib__<config>__<tag>.csv. Rows ordered by bus count, network, order, K; columns: buses and the
 number of variables, then per configuration the interior-point iterations and factorizations, the wall time as an
@@ -16,9 +16,8 @@ to equal the column sums of the rows above it.
 Usage: python3 benchmarks/tables/tab_scopf_pglib_appendix.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
 import statistics, sys
-from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header, find, fmt, gm, majority, majority_status, ordered, read_cvtol,
-                    read_rows, success, suite_scores, write)
-from tab_cops_appendix import letter, short
+from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header, find, fmt, gm, letter, majority, majority_status, ordered, read_cvtol,
+                    read_rows, short, success, suite_scores, write)
 from tab_gpu_scopf_pglib import instance_names, parts, tex_name
 
 # TODO(caption): a draft (captions are Yifan's); port his wording verbatim once he writes it.

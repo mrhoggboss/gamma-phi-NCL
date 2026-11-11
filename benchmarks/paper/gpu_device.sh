@@ -3,9 +3,11 @@
 # intruder sampler (every 60 s, the compute processes on the device other than ours are logged with
 # their user; nothing is killed).
 #
-#   gates/gpu_device.sh <dev 0|1> <cap seconds> <log> -- <command...>
+#   benchmarks/paper/gpu_device.sh <dev 0|1> <cap seconds> <log> -- <command...>
 #
 # Exit status: the command's, or 3 if the device is busy at launch.
+# GPU_DEVICE_NOGATE=1 (Yifan 2026-11-11): launch on a busy device anyway; the busy state is logged (DEVICE_BUSY_IGNORED)
+# and the intruder sampler runs as usual. Default 0 = refuse (exit 3).
 set -u
 DEV=$1; CAP=$2; LOG=$3; shift 3
 [ "$1" = "--" ] && shift
@@ -14,8 +16,12 @@ UUID=$(nvidia-smi --query-gpu=index,uuid --format=csv,noheader | awk -F', ' -v d
 apps() { nvidia-smi --query-compute-apps=gpu_uuid,pid,used_memory --format=csv,noheader | awk -F', ' -v u="$UUID" '$1==u{print $2" "$3}'; }
 BUSY=$(apps)
 if [ -n "$BUSY" ]; then
-    echo "$(date -Is) DEVICE_BUSY dev=$DEV: $(echo "$BUSY" | while read -r p m; do echo "$p $m $(ps -o user= -p "$p")"; done | tr '\n' ';')" | tee -a "$LOG"
-    exit 3
+    if [ "${GPU_DEVICE_NOGATE:-0}" = 1 ]; then
+        echo "$(date -Is) DEVICE_BUSY_IGNORED dev=$DEV (GPU_DEVICE_NOGATE=1): $(echo "$BUSY" | while read -r p m; do echo "$p $m $(ps -o user= -p "$p")"; done | tr '\n' ';')" | tee -a "$LOG"
+    else
+        echo "$(date -Is) DEVICE_BUSY dev=$DEV: $(echo "$BUSY" | while read -r p m; do echo "$p $m $(ps -o user= -p "$p")"; done | tr '\n' ';')" | tee -a "$LOG"
+        exit 3
+    fi
 fi
 echo "$(date -Is) START dev=$DEV uuid=$UUID cap=$CAP cmd: $*" >> "$LOG"
 CUDA_VISIBLE_DEVICES=$DEV timeout --signal=KILL "$CAP" "$@" >> "$LOG" 2>&1 &

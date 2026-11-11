@@ -2,7 +2,7 @@
 
 julia_version = "1.11.2"
 manifest_format = "2.0"
-project_hash = "d312e5ad7ceeee4c2dfe3e1e3744c295ec3f204b"
+project_hash = "27faf80bf9063e90d106c68781d2ab6bdd8c53d4"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "d9aaef7c63466eee4de23b4d9dad03629df54bea"
@@ -134,12 +134,6 @@ version = "1.0.9+0"
 git-tree-sha1 = "389ad5c84de1ae7cf0e28e381131c98ea87d54fc"
 uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 version = "0.5.0"
-
-[[deps.COPSBenchmark]]
-deps = ["JuMP", "Random"]
-path = "/home/yifan_xu/MadNCL.jl/bench/paper_gpu/current_env/vendor/COPSBenchmark.jl"
-uuid = "3c263af4-7bba-497b-afe4-00c59a0a48a5"
-version = "0.1.0"
 
 [[deps.CUDA]]
 deps = ["CUDACore", "CUDATools", "Reexport", "cuBLAS", "cuFFT", "cuRAND", "cuSOLVER", "cuSPARSE"]
