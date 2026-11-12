@@ -183,11 +183,12 @@ compile_tables() {
 # The floats of each suite (the files the manuscript \inputs: tables/<name>.tex, figures/<name>.tex).
 FLOATS_cutest="tab_cutest_ma57"
 FLOATS_opf="tab_gpu_opf tab_pglib_appendix"
-# scopf: the configuration table (from the 23 reference-list runs) and the 41 SCOPF instances (the 23 reference-list
-# and the 18 protocol instances, from the scopf and scopf_pglib results) in one table and one appendix table. The
-# separate 23- and 18-instance tables of earlier manuscript versions (tab_gpu_scopf.py, tab_gpu_scopf_pglib.py,
-# tab_scopf_pglib_appendix.py) are no longer floats and are not emitted here; the scripts remain, runnable by hand.
-FLOATS_scopf="tab_scopf_config tab_gpu_scopf_all tab_scopf_all_appendix"
+# scopf: the 41 SCOPF instances (the 23 reference-list and the 18 protocol instances, from the scopf and scopf_pglib
+# results) in one table and one appendix table. The separate 23- and 18-instance tables of earlier manuscript versions
+# (tab_gpu_scopf.py, tab_gpu_scopf_pglib.py, tab_scopf_pglib_appendix.py) are no longer floats and are not emitted here;
+# the scripts remain, runnable by hand. The SCOPF configuration table (tab_scopf_config) left the manuscript at Overleaf
+# da30c73 and its emitter was removed.
+FLOATS_scopf="tab_gpu_scopf_all tab_scopf_all_appendix"
 FLOATS_figure="fig_example_degenerate"
 SUITES="cutest opf scopf figure"
 
@@ -202,8 +203,7 @@ emit() {
         cutest)      python3 "$py/tab_cutest.py" "$RES/cutest" --cap=3600 --out="$TABLES" || r=1 ;;
         opf)         python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES" || r=1
                      python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
-        scopf)       python3 "$py/tab_scopf_config.py" "$rs" --out="$TABLES" || r=1
-                     python3 "$py/tab_gpu_scopf_all.py" "$rs" "$rp" --out="$TABLES" || r=1
+        scopf)       python3 "$py/tab_gpu_scopf_all.py" "$rs" "$rp" --out="$TABLES" || r=1
                      python3 "$py/tab_scopf_all_appendix.py" "$rs" "$rp" --out="$TABLES" || r=1 ;;
         figure)      python3 "$PUB/benchmarks/figures/make_fig_example_degenerate.py" --out="$FIGURES" || r=1 ;;
         *) echo "emit: unknown suite $suite (expected one of $SUITES)" >&2; return 2 ;;

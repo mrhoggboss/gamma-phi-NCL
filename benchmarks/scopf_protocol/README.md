@@ -49,7 +49,7 @@ verification failed (`Maximum_Iterations_Exceeded`) on 14 of its first 64 admitt
 
 ## The reference lists under the protocol
 
-The first SCOPF instance set (Tables `tab:gpu-scopf` and `tab:scopf-config`, 23 instances) uses the contingency lists
+The first SCOPF instance set (the 23 reference-list instances of Tables `tab:gpu-scopf` and `tab:scopf-appendix`) uses the contingency lists
 published with the reference benchmark (`benchmarks/instances/scopf_contingencies.jl`) as published. Two checks connect
 them to the protocol above; their records are in `records/reference_screens/` and `records/k1/reference/`, and
 `python3 benchmarks/scopf_protocol/reference_check.py all --check` recomputes both tables from the records (seconds).

@@ -2,9 +2,9 @@
 # Reproduce every number in the tables and the figure of the manuscript.
 #
 #   ./reproduce.sh
-#       Emit the six tables and the figure from the banked results (benchmarks/results/paper), compile each at the
+#       Emit the five tables and the figure from the banked results (benchmarks/results/paper), compile each at the
 #       manuscript's page geometry, and byte-compare it with the copy the manuscript \inputs (manuscript/tables/,
-#       manuscript/figures/). One line per float; exit 0 only if all seven are IDENTICAL. About a minute.
+#       manuscript/figures/). One line per float; exit 0 only if all six are IDENTICAL. About a minute.
 #       Needs bash, python3, pdflatex and pdfinfo (REPRO_NOCOMPILE=1 skips the compile check).
 #
 #   ./reproduce.sh rerun <cpu|opf|scopf|scopf_pglib|all> [--device N]

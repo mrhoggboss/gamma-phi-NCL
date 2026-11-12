@@ -17,8 +17,8 @@ from common import (DEFAULT_OUT, LOOSE_STATUS, NAMES, assert_no_tokens, count_ce
                     gm, ordered, read_cvtol, read_rows, solved, solved_loose, success, write)
 
 # Caption: the manuscript's (Overleaf 498801f, Yifan's hand edit of tables/tab_cutest_ma57.tex, with the iterations
-# sentence removed on 2026-11-12: "we never measure iterations, so we remove it; the dagger note is moved to the
-# caption"), verbatim (captions are Yifan's); "@NPOP@" is filled with the population count (the run's instances minus
+# sentence removed at da30c73, 2026-11-12: "we never measure iterations, so we remove it; the dagger note is moved to
+# the caption"), verbatim (captions are Yifan's); "@NPOP@" is filled with the population count (the run's instances minus
 # the population rule's exclusions, benchmarks/instances/cutest_excluded_x0.txt). At 498801f Yifan also commented out
 # the iterations block (deleted at 8c9eb60, so it is not emitted) and removed the dagger note after the tabular (its
 # content moved into the caption). Float placement [hbp]: Overleaf 46f37ef.
