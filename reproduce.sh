@@ -2,17 +2,19 @@
 # Reproduce every number in the tables and the figure of the manuscript.
 #
 #   ./reproduce.sh
-#       Emit the seven tables and the figure from the banked results (benchmarks/results/paper), compile each at the
+#       Emit the six tables and the figure from the banked results (benchmarks/results/paper), compile each at the
 #       manuscript's page geometry, and byte-compare it with the copy the manuscript \inputs (manuscript/tables/,
-#       manuscript/figures/). One line per float; exit 0 only if all eight are IDENTICAL. About a minute.
+#       manuscript/figures/). One line per float; exit 0 only if all seven are IDENTICAL. About a minute.
 #       Needs bash, python3, pdflatex and pdfinfo (REPRO_NOCOMPILE=1 skips the compile check).
 #
 #   ./reproduce.sh rerun <cpu|opf|scopf|scopf_pglib|all> [--device N]
 #       Rerun the solves (cpu = CUTEst, benchmarks/paper/chain_cpu.sh; opf, scopf, scopf_pglib = the GPU suites,
 #       benchmarks/paper/chain_gpu.sh on device N, default 0; all = cpu, then opf, scopf and scopf_pglib), fetching the
 #       SCOPF case files first when their sha256 check does not already pass; then emit those floats from the rerun
-#       (benchmarks/out/paper/results) and compare them with manuscript/ in the same way. The comparison is
-#       informational there; the exit code is the emit's. Hours to days: see README.md, "One command".
+#       (benchmarks/out/paper/results) and compare them with manuscript/ in the same way. The SCOPF floats need both
+#       SCOPF result sets (scopf: the 23 reference-list instances, scopf_pglib: the 18 protocol instances); a set that was
+#       not rerun is read from the banked results. The comparison is informational there; the exit code is the emit's.
+#       Hours to days: see README.md, "One command".
 #
 # Everything is written under benchmarks/out/paper (PAPER_OUT=<dir> moves it); the banked results are never written.
 set -u
@@ -94,12 +96,20 @@ for r in $RUNS; do
         cpu)         "$PAPER/chain_cpu.sh"; EMITS="$EMITS cutest" ;;
         opf)         "$PAPER/chain_gpu.sh" "$DEV" opf; EMITS="$EMITS opf" ;;
         scopf)       fetch_if_needed "$SCOPF_DATA" "$INST/scopf_data.sha256" "$INST/fetch_scopf_data.sh"
-                     SCOPF_DATA=$SCOPF_DATA "$PAPER/chain_gpu.sh" "$DEV" scopf; EMITS="$EMITS scopf" ;;
+                     SCOPF_DATA=$SCOPF_DATA "$PAPER/chain_gpu.sh" "$DEV" scopf
+                     case " $EMITS " in *" scopf "*) ;; *) EMITS="$EMITS scopf" ;; esac ;;
         scopf_pglib) fetch_if_needed "$SCOPF_PGLIB_DATA" "$INST/scopf_pglib_data.sha256" "$INST/fetch_pglib_scopf_data.sh"
-                     SCOPF_PGLIB_DATA=$SCOPF_PGLIB_DATA "$PAPER/chain_gpu.sh" "$DEV" scopf_pglib; EMITS="$EMITS scopf_pglib" ;;
+                     SCOPF_PGLIB_DATA=$SCOPF_PGLIB_DATA "$PAPER/chain_gpu.sh" "$DEV" scopf_pglib
+                     case " $EMITS " in *" scopf "*) ;; *) EMITS="$EMITS scopf" ;; esac ;;
     esac
 done
 [ "$WHAT" = all ] && EMITS="$EMITS figure"
+# the SCOPF floats read both SCOPF result sets: a set not rerun here comes from the banked results
+case " $RUNS " in
+    *" scopf "*" scopf_pglib "*) ;;
+    *" scopf "*)       export SCOPF_PGLIB_RES=$RES/scopf_pglib; echo "note: scopf_pglib not rerun; the SCOPF floats read its banked results" ;;
+    *" scopf_pglib "*) export SCOPF_RES=$RES/scopf; echo "note: scopf not rerun; the SCOPF floats read its banked results" ;;
+esac
 RES=$RUNRES
 emit_and_compare $EMITS
 echo "Expected: a CPU rerun reproduces the result CSVs in every column but the timing columns, so its table matches;"

@@ -183,33 +183,30 @@ compile_tables() {
 # The floats of each suite (the files the manuscript \inputs: tables/<name>.tex, figures/<name>.tex).
 FLOATS_cutest="tab_cutest_ma57"
 FLOATS_opf="tab_gpu_opf tab_pglib_appendix"
-FLOATS_scopf="tab_gpu_scopf tab_scopf_config"
-FLOATS_scopf_pglib="tab_gpu_scopf_pglib tab_scopf_pglib_appendix"
+# scopf: the configuration table (from the 23 reference-list runs) and the 41 SCOPF instances (the 23 reference-list
+# and the 18 protocol instances, from the scopf and scopf_pglib results) in one table and one appendix table. The
+# separate 23- and 18-instance tables of earlier manuscript versions (tab_gpu_scopf.py, tab_gpu_scopf_pglib.py,
+# tab_scopf_pglib_appendix.py) are no longer floats and are not emitted here; the scripts remain, runnable by hand.
+FLOATS_scopf="tab_scopf_config tab_gpu_scopf_all tab_scopf_all_appendix"
 FLOATS_figure="fig_example_degenerate"
-SUITES="cutest opf scopf scopf_pglib figure"
-# The 41 SCOPF instances (the 23 reference-list and the 18 protocol instances) in one table and one appendix table,
-# from the scopf and scopf_pglib results: emitted only on request (emit.sh scopf_all), not in SUITES, so neither
-# emit.sh's default nor reproduce.sh's comparison includes them (they are not in manuscript/).
-FLOATS_scopf_all="tab_gpu_scopf_all tab_scopf_all_appendix"
+SUITES="cutest opf scopf figure"
 
 # emit <suite>: write the suite's floats from the results in $RES/<suite> into $TABLES (the figure into $FIGURES) and
 # check that they compile (REPRO_NOCOMPILE=1 skips the check, for a machine without pdflatex/pdfinfo); nothing else is
-# written
+# written. The scopf suite reads $RES/scopf and $RES/scopf_pglib (SCOPF_RES / SCOPF_PGLIB_RES override either).
 emit() {
     local suite=$1 py=$PUB/benchmarks/tables r=0 f v files=()
+    local rs=${SCOPF_RES:-$RES/scopf} rp=${SCOPF_PGLIB_RES:-$RES/scopf_pglib}
     mkdir -p "$TABLES" "$FIGURES"
     case $suite in
         cutest)      python3 "$py/tab_cutest.py" "$RES/cutest" --cap=3600 --out="$TABLES" || r=1 ;;
         opf)         python3 "$py/tab_gpu_opf.py" "$RES/opf" --out="$TABLES" || r=1
                      python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
-        scopf)       python3 "$py/tab_gpu_scopf.py" "$RES/scopf" --out="$TABLES" || r=1
-                     python3 "$py/tab_scopf_config.py" "$RES/scopf" --out="$TABLES" || r=1 ;;
-        scopf_pglib) python3 "$py/tab_gpu_scopf_pglib.py" "$RES/scopf_pglib" --out="$TABLES" || r=1
-                     python3 "$py/tab_scopf_pglib_appendix.py" "$RES/scopf_pglib" --out="$TABLES" || r=1 ;;
-        scopf_all)   python3 "$py/tab_gpu_scopf_all.py" "$RES/scopf" "$RES/scopf_pglib" --out="$TABLES" || r=1
-                     python3 "$py/tab_scopf_all_appendix.py" "$RES/scopf" "$RES/scopf_pglib" --out="$TABLES" || r=1 ;;
+        scopf)       python3 "$py/tab_scopf_config.py" "$rs" --out="$TABLES" || r=1
+                     python3 "$py/tab_gpu_scopf_all.py" "$rs" "$rp" --out="$TABLES" || r=1
+                     python3 "$py/tab_scopf_all_appendix.py" "$rs" "$rp" --out="$TABLES" || r=1 ;;
         figure)      python3 "$PUB/benchmarks/figures/make_fig_example_degenerate.py" --out="$FIGURES" || r=1 ;;
-        *) echo "emit: unknown suite $suite (expected one of $SUITES scopf_all)" >&2; return 2 ;;
+        *) echo "emit: unknown suite $suite (expected one of $SUITES)" >&2; return 2 ;;
     esac
     v="FLOATS_$suite"
     for f in ${!v}; do
@@ -225,14 +222,18 @@ emit() {
 }
 
 # summarize <suite>: the console summary of a suite's results (solved counts, cost, co-solved pairs) into
-# $SUMMARIES/<suite>.txt; the banked benchmarks/results/paper/<suite>/summary.txt are these summaries of the banked results
+# $SUMMARIES/<suite>.txt; the banked benchmarks/results/paper/<suite>/summary.txt are these summaries of the banked
+# results. The scopf suite writes scopf.txt and scopf_pglib.txt (each result set alone) and scopf_all.txt (the 41).
 summarize() {
     local suite=$1 py=$PUB/benchmarks/tables
+    local rs=${SCOPF_RES:-$RES/scopf} rp=${SCOPF_PGLIB_RES:-$RES/scopf_pglib}
     mkdir -p "$SUMMARIES"
     case $suite in
         cutest) python3 "$py/summary.py" "$RES/cutest" --traps="$INST/cutest_traps.txt" --cap=3600 > "$SUMMARIES/cutest.txt" 2>&1 ;;
-        opf|scopf|scopf_pglib) python3 "$py/summary_gpu.py" "$RES/$suite" "$suite" > "$SUMMARIES/$suite.txt" 2>&1 ;;
-        scopf_all) python3 "$py/summary_scopf_all.py" "$RES/scopf" "$RES/scopf_pglib" > "$SUMMARIES/scopf_all.txt" 2>&1 ;;
+        opf) python3 "$py/summary_gpu.py" "$RES/opf" opf > "$SUMMARIES/opf.txt" 2>&1 ;;
+        scopf) python3 "$py/summary_gpu.py" "$rs" scopf > "$SUMMARIES/scopf.txt" 2>&1 \
+                   && python3 "$py/summary_gpu.py" "$rp" scopf_pglib > "$SUMMARIES/scopf_pglib.txt" 2>&1 \
+                   && python3 "$py/summary_scopf_all.py" "$rs" "$rp" > "$SUMMARIES/scopf_all.txt" 2>&1 ;;
         figure) return 0 ;;
         *) echo "summarize: unknown suite $suite" >&2; return 2 ;;
     esac

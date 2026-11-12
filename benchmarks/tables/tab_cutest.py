@@ -16,24 +16,15 @@ import os, sys
 from common import (DEFAULT_OUT, LOOSE_STATUS, NAMES, assert_no_tokens, count_cell, cutest_excluded, drop_cutest_excluded, find, fmt,
                     gm, ordered, read_cvtol, read_rows, solved, solved_loose, success, write)
 
-# Caption: the manuscript's (overleaf_upload/tables/tab_cutest_ma57.tex), verbatim (captions are Yifan's).
-# TODO(caption, stale items to revise once the new numbers exist):
-#   - "@NPOP@ instances": filled with the population count (the run's instances minus the population rule's exclusions,
-#     benchmarks/instances/cutest_excluded_x0.txt).
-#   - "the three augmented-Lagrangian configurations": the table may now carry four (γ-NCL and φ-NCL).
-#   - "thirteen instances ... solve with their extrapolation step alone": a count from the banked runs.
-#   - the two \claudegreen{...} spans are pending review in the manuscript.
-CAPTION = ("CUTEst, @NPOP@ instances, split by how constrained the problem is. Here $m$ counts the dimension of $c$ "
-           "only: variable bounds are excluded, and a two-sided general constraint is counted as one row. "
-           "\\protect\\claudegreen{Every configuration factorizes with HSL MA57 at its default pivoting threshold and "
-           "with its automatic scaling switched on, under one wall-time limit of 3600\\,s per instance.} A solve counts "
-           "as a success when the solver's own termination test passes and its wall time is within budget. Cost is the "
-           "geometric mean of factorization counts over each configuration's own solved set, and is undefined where that "
-           "set is empty. Ipopt's cost is shown as a lower bound since its factorization counter is not exposed. "
-           "\\protect\\claudegreen{Iterations are the geometric mean of interior-point iterations over the same set, "
-           "counted across the whole run for the three augmented-Lagrangian configurations; thirteen instances that the "
-           "two MadNCL configurations solve with their extrapolation step alone, in zero interior-point iterations, are "
-           "left out of their iteration means.}")
+# Caption: the manuscript's (Overleaf 498801f, Yifan's hand edit of tables/tab_cutest_ma57.tex), verbatim (captions are
+# Yifan's); "@NPOP@" is filled with the population count (the run's instances minus the population rule's exclusions,
+# benchmarks/instances/cutest_excluded_x0.txt). At the same edit Yifan commented out the iterations block (emitted
+# below as "% " lines, so that the file stays byte-identical to the manuscript's) and removed the dagger note after the
+# tabular (its content moved into the caption).
+CAPTION = ("The performance of the solvers on @NPOP@ CUTEst instances. Iterations are the geometric mean of interior-point "
+           "iterations over the same set. \\textbf{Ipopt}'s cost is shown as a lower bound since its factorization counter "
+           "is not exposed. $^{\\dagger}$\\,In parentheses, also counting \\textbf{Ipopt}'s acceptable-level exit "
+           "(tolerance $10^{-6}$).")
 
 
 def main(argv):
@@ -84,14 +75,10 @@ def main(argv):
     T += ["\\\\[-6pt]", "\\multicolumn{5}{l}{\\emph{cost: geometric mean of factorizations over the solved set}}\\\\"]
     T += [f"{NAMES.get(c, c)} & " + " & ".join(("$\\geq$~" if c == "ipopt" and g == g else "") + fmt(g)
                                                 for _, g, _, _, _ in cells[c]) + " \\\\" for c in configs]
-    T += ["\\\\[-6pt]", "\\multicolumn{5}{l}{\\emph{geometric mean of iterations over the solved set}}\\\\"]
-    T += [f"{NAMES.get(c, c)} & " + " & ".join(fmt(i) for _, _, i, _, _ in cells[c]) + " \\\\" for c in configs]
+    # the iterations block, commented out in the manuscript (Yifan, Overleaf 498801f)
+    T += ["% \\\\[-6pt]", "% \\multicolumn{5}{l}{\\emph{geometric mean of iterations over the solved set}}\\\\"]
+    T += [f"% {NAMES.get(c, c)} & " + " & ".join(fmt(i) for _, _, i, _, _ in cells[c]) + " \\\\" for c in configs]
     T += ["\\bottomrule\\end{tabular}"]
-    if any(c in LOOSE_STATUS for c in configs):
-        # TODO(caption): a draft table note (the caption itself stays verbatim); Yifan's wording to replace it. A wrapped
-        # paragraph after the tabular (inside it, the one-line note widened the last column past the page).
-        T += ["\\par\\vspace{2pt}{\\footnotesize $^{\\dagger}$\\,Ipopt is counted only at its first-order exit; in "
-              "parentheses, also counting its acceptable-level exit (tolerance $10^{-6}$), as earlier campaigns did.}"]
     T += ["\\end{table}"]
     assert_no_tokens("\n".join(T))
     write(opt.get("out", DEFAULT_OUT), "tab_cutest_ma57.tex", T)

@@ -1,6 +1,6 @@
 # (γ,φ)-NCL: code and data of the manuscript
 
-This repository reproduces every number in the seven tables and the figure of the manuscript *(γ, φ)-NCL*. It holds
+This repository reproduces every number in the six tables and the figure of the manuscript *(γ, φ)-NCL*. It holds
 the solver (MadNCL with per-row weights and penalty kernels), the benchmark drivers and the solver configurations, the
 campaign's result CSVs with the configuration echo of every run, the emitters that turn those CSVs into the
 manuscript's floats, the generation protocol of the protocol SCOPF instances, and the generator of the theory figure.
@@ -11,10 +11,10 @@ manuscript's floats, the generation protocol of the protocol SCOPF instances, an
 ./reproduce.sh
 ```
 
-emits the seven tables and the figure from the campaign's results (`benchmarks/results/paper/`), compiles each at the
+emits the six tables and the figure from the campaign's results (`benchmarks/results/paper/`), compiles each at the
 manuscript's page geometry, and compares each byte for byte with the file the manuscript `\input`s (`manuscript/`):
 one line per float, `IDENTICAL`, or `DIFFERS` followed by the first lines of the diff; the exit status is 0 only if all
-eight are identical. It takes about a minute, runs from any directory, and writes only under `benchmarks/out/paper/`
+seven are identical. It takes about a minute, runs from any directory, and writes only under `benchmarks/out/paper/`
 (gitignored; `PAPER_OUT=<dir>` moves it). Requirements: bash, Python 3 (standard library only), and `pdflatex` (with
 booktabs, longtable, geometry, tikz) and `pdfinfo` for the compile check; on a machine without TeX,
 `REPRO_NOCOMPILE=1 ./reproduce.sh` skips the compile check and still compares. Output (2026-11-12):
@@ -23,12 +23,11 @@ booktabs, longtable, geometry, tikz) and `pdfinfo` for the compile check; on a m
 IDENTICAL  tab_cutest_ma57
 IDENTICAL  tab_gpu_opf
 IDENTICAL  tab_pglib_appendix
-IDENTICAL  tab_gpu_scopf
 IDENTICAL  tab_scopf_config
-IDENTICAL  tab_gpu_scopf_pglib
-IDENTICAL  tab_scopf_pglib_appendix
+IDENTICAL  tab_gpu_scopf_all
+IDENTICAL  tab_scopf_all_appendix
 IDENTICAL  fig_example_degenerate
-reproduce.sh: all 8 floats IDENTICAL to manuscript/
+reproduce.sh: all 7 floats IDENTICAL to manuscript/
 ```
 
 ```bash
@@ -37,7 +36,8 @@ reproduce.sh: all 8 floats IDENTICAL to manuscript/
 
 reruns every solve behind the tables (`rerun cpu`, `opf`, `scopf` or `scopf_pglib` runs one suite; `--device N` picks
 the GPU, default 0), fetching the SCOPF case files first when their sha256 check does not already pass, then emits
-from the rerun's results (`benchmarks/out/paper/results/`) and compares with `manuscript/` in the same way. It needs
+from the rerun's results (`benchmarks/out/paper/results/`) and compares with `manuscript/` in the same way (the SCOPF
+tables cover both SCOPF suites; a suite not rerun is read from the banked results). It needs
 the Julia environments of "Hardware and software" below, a licensed HSL MA57 for the CPU suite and a CUDA GPU for the
 others. Compute, from the campaign's logs: CUTEst 20.6 h at 30 workers for six of the seven configurations, plus SP
 (its per-solve times sum to 0.96 h of 30 workers, a lower bound); PGLIB 4.0 h; SCOPF on the reference lists 21.7 h;
@@ -53,14 +53,17 @@ informational there and the exit status is that of the emit.
 | PGLIB table | `tab:gpu-opf` | `tables/tab_gpu_opf.tex` | `benchmarks/tables/tab_gpu_opf.py` |
 | PGLIB appendix | `tab:pglib-appendix` | `tables/tab_pglib_appendix.tex` | `benchmarks/tables/tab_pglib_appendix.py` |
 | SCOPF configuration | `tab:scopf-config` | `tables/tab_scopf_config.tex` | `benchmarks/tables/tab_scopf_config.py` |
-| SCOPF, reference lists | `tab:gpu-scopf` | `tables/tab_gpu_scopf.tex` | `benchmarks/tables/tab_gpu_scopf.py` |
-| SCOPF, protocol set | `tab:gpu-scopf-pglib` | `tables/tab_gpu_scopf_pglib.tex` | `benchmarks/tables/tab_gpu_scopf_pglib.py` |
-| SCOPF protocol appendix | `tab:scopf-pglib-appendix` | `tables/tab_scopf_pglib_appendix.tex` | `benchmarks/tables/tab_scopf_pglib_appendix.py` |
+| SCOPF, the 41 instances | `tab:gpu-scopf` | `tables/tab_gpu_scopf_all.tex` | `benchmarks/tables/tab_gpu_scopf_all.py` |
+| SCOPF appendix, the 41 instances | `tab:scopf-appendix` | `tables/tab_scopf_all_appendix.tex` | `benchmarks/tables/tab_scopf_all_appendix.py` |
 | example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all seven tables and the figure (checked 2026-11-12 against its Overleaf commit `cc4c9bd`:
-line 72 of the manuscript's source for the figure, lines 824, 834, 844, 846, 847, 865 and 866 for the tables);
-`manuscript/` holds those eight files.
+The manuscript `\input`s all six tables and the figure (checked 2026-11-12: line 72 of the manuscript's source for the
+figure, lines 824, 834, 844, 846, 864 and 865 for the tables, in the source as of commit `da7c3ec`, which swaps in the
+two 41-instance tables on top of Overleaf commit `f240805`); `manuscript/` holds those seven files, byte copies of the
+manuscript's `tables/` and `figures/` at Overleaf commit `f240805` (identical at `da7c3ec`). The 41 SCOPF instances are the 23 reference-list instances and the 18 protocol instances; the earlier
+separate tables of the two sets (`tab_gpu_scopf.py`, `tab_gpu_scopf_pglib.py`, `tab_scopf_pglib_appendix.py`) are no
+longer floats of the manuscript and are not emitted by `emit.sh`; the scripts remain and can be run by hand (the first
+writes the label `tab:gpu-scopf` too, so its output must never be `\input` next to `tab_gpu_scopf_all.tex`).
 
 ## What "reproduced" means here
 
@@ -68,14 +71,17 @@ The result CSVs under `benchmarks/results/paper/` are the campaign's, copied ver
 the drivers wrote them), with the configuration echo of every cell next to them. The emitters turn them into the floats:
 
 ```bash
-benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes benchmarks/out/paper/{tables,figures,summaries}
+benchmarks/paper/emit.sh        # all six tables and the figure, ~45 s; writes benchmarks/out/paper/{tables,figures,summaries}
 ```
 
-That command writes exactly the eight files above, every one of them compiles at the manuscript's page geometry
-(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all eight are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `cc4c9bd`; `./reproduce.sh` makes that comparison), and the console
-summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was
-rewritten that day under the population rule).
+That command writes exactly the seven files above, every one of them compiles at the manuscript's page geometry
+(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all seven are byte-identical to the
+manuscript's files (`manuscript/`, Overleaf commit `f240805`; `./reproduce.sh` makes that comparison), and the console
+summaries `cutest.txt`, `opf.txt`, `scopf.txt` and `scopf_pglib.txt` equal the banked
+`benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was rewritten that day under
+the population rule); `scopf_all.txt` summarizes the 41 SCOPF instances (solved counts, nesting of the solved sets,
+instances solved by exactly one configuration and by none, co-solved cost ratios over all 41 and for K ≤ 16 and
+K ≥ 32).
 
 Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column but the timing columns (the CPU solvers
 are deterministic; a solve that ends at its wall-time cap can stop at a different iteration) and **to within GPU
@@ -159,7 +165,7 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   Campaign elapsed per cell 720–1441 s, 4.0 h for the 15 (`WALLTIME_gpu1.csv`, last attempt of each cell).
 - Emit: `benchmarks/paper/emit.sh opf` (`tab_gpu_opf.py`, `tab_pglib_appendix.py`; seconds).
 
-## Tables `tab:scopf-config` and `tab:gpu-scopf` — SCOPF, the 23 reference-list instances
+## SCOPF runs: the 23 reference-list instances
 
 - Data: the MATPOWER case files, downloaded and checked against `benchmarks/instances/scopf_data.sha256`:
   `benchmarks/instances/fetch_scopf_data.sh <dir>` (`<dir>/data`, `<dir>/data_mp70`); the instance list is
@@ -174,9 +180,9 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   ```
 
   Campaign elapsed per cell 3182–7804 s, 21.7 h for the 15 (`WALLTIME_scopf.csv`).
-- Emit: `benchmarks/paper/emit.sh scopf` (`tab_gpu_scopf.py`, `tab_scopf_config.py`; seconds).
+- Emit: the SCOPF tables below (`emit.sh scopf`).
 
-## Tables `tab:gpu-scopf-pglib` and `tab:scopf-pglib-appendix` — SCOPF, the 18 protocol instances
+## SCOPF runs: the 18 protocol instances
 
 - Data: `benchmarks/instances/fetch_pglib_scopf_data.sh <dir>` writes `<dir>/pglib/` (the three PGLIB v23.07 networks
   from the Julia artifact or the release tarball, their `_B` copies for the order-B instances, MATPOWER 7.0
@@ -197,22 +203,23 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   The campaign ran one instance per process (`--cases=<instance>` added): 240–481 s per instance (median 300 s) with
   start-up and warm-up, 4518–5887 s per complete (configuration, repetition); the solve and build times alone sum to
   515–1562 s per complete (configuration, repetition).
-- Emit: `benchmarks/paper/emit.sh scopf_pglib` (`tab_gpu_scopf_pglib.py`, `tab_scopf_pglib_appendix.py`; seconds).
+- Emit: the SCOPF tables below (`emit.sh scopf`).
 - **Data.** `benchmarks/results/paper/scopf_pglib/` holds all three repetitions of all 18 instances for the five
   configurations (270 rows, 270 configuration echoes); `benchmarks/results/paper/scopf_pglib/SOURCE.txt` records
   their source (see Provenance).
 
-## The 41 SCOPF instances in one table (draft floats, not in `manuscript/`)
+## Tables `tab:scopf-config`, `tab:gpu-scopf` and `tab:scopf-appendix` — SCOPF, the 41 instances
 
-The 23 reference-list and the 18 protocol instances, from the same result CSVs and with the same scoring (majority of
-three, medians over the succeeding repetitions, LiftedKKT within constr_viol_tol), merged into one main table and one
-appendix table: `benchmarks/paper/emit.sh scopf_all` writes `tab_gpu_scopf_all.tex` (label `tab:gpu-scopf`, the label
-the manuscript text cites for the merged table; it replaces `tab_gpu_scopf.tex`, which has the same label, so never
-`\input` both) and `tab_scopf_all_appendix.tex` (label `tab:scopf-appendix`), both with draft captions, and the summary
-`benchmarks/out/paper/summaries/scopf_all.txt` (solved counts, nesting of the solved sets, instances solved by exactly
-one configuration and by none, co-solved cost ratios over all 41 and for K ≤ 16 and K ≥ 32). Emitters:
-`tab_gpu_scopf_all.py`, `tab_scopf_all_appendix.py`, `summary_scopf_all.py`. They are emitted only on request:
-`emit.sh` without arguments and `./reproduce.sh` cover the eight floats of `manuscript/` only.
+`benchmarks/paper/emit.sh scopf` (seconds) writes the three SCOPF floats: `tab_scopf_config.tex` (`tab_scopf_config.py`,
+from the configuration echoes of the 23 reference-list runs), and the 41 instances, the 23 reference-list and the 18
+protocol instances in one table and one appendix table, from both result sets with the scoring of the other GPU tables
+(majority of three, medians over the succeeding repetitions, LiftedKKT within constr_viol_tol): `tab_gpu_scopf_all.tex`
+(`tab_gpu_scopf_all.py`, label `tab:gpu-scopf`; the reference networks, a thin rule, then the protocol networks, K
+increasing) and `tab_scopf_all_appendix.tex` (`tab_scopf_all_appendix.py`, label `tab:scopf-appendix`, landscape). It
+also writes the summaries `scopf.txt`, `scopf_pglib.txt` (each set alone) and `scopf_all.txt` (the 41,
+`summary_scopf_all.py`). The two 41-instance tables still carry draft captions (`[DRAFT CAPTION]`), as the manuscript
+does. The result directories are `benchmarks/results/paper/scopf/` and `benchmarks/results/paper/scopf_pglib/`
+(`SCOPF_RES=<dir>` and `SCOPF_PGLIB_RES=<dir>` override either).
 
 ## Figure `fig:example-degenerate`
 
@@ -308,7 +315,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `cc4c9bd`), the reference of `reproduce.sh` |
+| `manuscript/` | the six tables and the figure as the manuscript `\input`s them (Overleaf commit `f240805`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
@@ -358,5 +365,9 @@ every option value is identical (checked on the CUTEst smoke run, and between th
   rule; at `70d2cd6` the three panel titles gained a second line ("Classical ALM", "Ours, custom weights", "Ours, custom
   kernel"), set in bold at `b70e85d` ("Ours" of panel (c)) and `1bec9fa` ("Classical ALM", "Ours" of panel (b)), as
   carried into the generator (drawing unchanged); at `cc4c9bd` the steepest-descent paths are thicker (line width 1.1 pt,
-  arrow tips 4.5 pt, start dots 1.4 pt; Yifan: "thicken the trajectory"); the other six tables are unchanged since
-  `6d581d7`, and all eight are byte-identical (`manuscript/`, Overleaf `cc4c9bd`, 2026-11-12).
+  arrow tips 4.5 pt, start dots 1.4 pt; Yifan: "thicken the trajectory"); at `498801f` Yifan edited two tables by hand
+  (`tab_cutest_ma57`: new caption, the iterations block commented out, the dagger note after the tabular removed;
+  `tab_gpu_opf`: float placement `[hbp]`), carried into `tab_cutest.py` and `tab_gpu_opf.py` byte for byte; at
+  `f240805` the two 41-instance SCOPF tables replace the three separate tables of the 23 and the 18 (`tab_gpu_scopf`,
+  `tab_gpu_scopf_pglib`, `tab_scopf_pglib_appendix`); all seven floats are byte-identical (`manuscript/`, Overleaf
+  `f240805`, 2026-11-12).
