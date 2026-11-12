@@ -53,7 +53,7 @@ informational there and the exit status is that of the emit.
 | PGLIB appendix | `tab:pglib-appendix` | `tables/tab_pglib_appendix.tex` | `benchmarks/tables/tab_pglib_appendix.py` |
 | SCOPF, the 41 instances | `tab:gpu-scopf` | `tables/tab_gpu_scopf_summary.tex` | `benchmarks/tables/tab_gpu_scopf_summary.py` |
 | SCOPF appendix, the 41 instances | `tab:scopf-appendix` | `tables/tab_scopf_all_appendix.tex` | `benchmarks/tables/tab_scopf_all_appendix.py` |
-| example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
+| Figure 1, in the Introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
 The manuscript `\input`s all five tables and the figure (checked 2026-11-12 against its Overleaf commit `4500ec4`: line
 72 of the manuscript's source for the figure, lines 824, 835, 846, 859 and 860 for the tables); `manuscript/` holds those six files. The
@@ -118,7 +118,7 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   bounds), which makes the comparison between the interior-point baselines and the augmented-Lagrangian
   configurations fair (Yifan, 2026-11-12): the four augmented-Lagrangian configurations stop on 9 of these instances
   with `InvalidNumberException` (:grad, :cons or :jac) before any iteration, whereas LiftedKKT solves 5 of those 9,
-  MadNLP-augmented 4 and Ipopt 3; all seven configurations solve the tenth, LIN. The census
+  MadNLP-aug 4 and Ipopt 3; all seven configurations solve the tenth, LIN. The census
   `benchmarks/instances/cutest_x0_census.csv` (f, grad f, c, J and the bound check at x0 for all 1070, written by
   `julia --project=benchmarks/envs/cpu benchmarks/cutest_x0_census.jl`) defines the 10 excluded
   instances of `benchmarks/instances/cutest_excluded_x0.txt`: DITTERT, LHAIFAM, LIN, NET2, NET3, NET4, S365, S365MOD,
@@ -134,7 +134,7 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   ```
 
   Campaign elapsed per configuration at 30 workers: S 2.4 h, W 1.7 h, U6A 3.6 h, LiftedKKT 5.1 h, Ipopt 3.6 h,
-  MadNLP-augmented 4.3 h (the campaign's `WALLTIME_cpu.csv`, see Provenance); SP's logged elapsed covers only a 60-s
+  MadNLP-aug 4.3 h (the campaign's `WALLTIME_cpu.csv`, see Provenance); SP's logged elapsed covers only a 60-s
   resume, and its
   per-solve times sum to 103 489 s (0.96 h of 30 workers, a lower bound). 20.6 h for the six others.
 - Smoke run: the first N names of `benchmarks/instances/cutest_pop1070.txt`, e.g. with N = 8, four configurations and
@@ -263,7 +263,7 @@ such cells are contaminated, solve counts are not).
 | `U6A` | φ-NCL | `benchmarks/arms.jl` |
 | `liftedkkt` | LiftedKKT | `benchmarks/liftedkkt.jl` (GPU), `benchmarks/cutest.jl` (CPU) |
 | `ipopt` | Ipopt | `benchmarks/cutest.jl` (CPU only) |
-| `madnlp` | MadNLP-augmented | `benchmarks/cutest.jl` (CPU only) |
+| `madnlp` | MadNLP-aug | `benchmarks/cutest.jl` (CPU only) |
 
 All configurations use the tolerance `1e-8` and the gradient scaling `scaling_max_gradient=100`.
 With `μ* = (1e-8/100)^(1/1.05) ≈ 2.9936e-10`:
@@ -277,7 +277,7 @@ using MadNCL, MadNLP
 S = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
                                fold_dual_regularization=false)
 
-# MadNCL + parameters: MadNCL with the constants of the (γ,φ) runs, and MadNLP's acceptable-level exit
+# MadNCL + parameters: MadNCL with the constants of the two proposed methods (ρ_max, μ_min, K_max), and MadNLP's acceptable-level exit
 # disabled (pass acceptable_tol=0.0 to madncl, as below).
 SP = MadNCL.NCLOptions{Float64}(opt_tol=1e-8, feas_tol=1e-8, scaling_max_gradient=100.0,
                                 mu_min=μstar, max_auglag_iter=40, rho_max=1e14,
@@ -306,8 +306,11 @@ One known label difference with the released MadNCL package: when the success te
 allowed outer iteration (`max_auglag_iter`), the released package overwrites the status with
 `MAXIMUM_ITERATIONS_EXCEEDED`, while this repository's solver reports `SOLVE_SUCCEEDED`. The iterate is the same; only the
 label differs. With S (20 outer iterations) this matters on runs that converge exactly at outer 20; on the
-SCOPF benchmark it relabels two runs (case_ACTIVSg500 and case_ACTIVSg200 with 100 contingencies) that the
-released package reports as iteration-limit failures.
+SCOPF benchmark it relabels two runs (case_ACTIVSg200 with 50 contingencies, repetition 1, and case300 with 100
+contingencies, repetition 3); the first removes ACTIVSg200@50 from MadNCL's majority-solved set (6 would become 5 of
+41). None of the protocol or PGLIB runs is affected. On CUTEst it relabels GAUSSELM and ORTHRDS2C (767 would become
+765). (The runs are those of S with `SOLVE_SUCCEEDED` and `n_outer` = 20 in the banked CSVs; the released package
+overwrites the status when the loop ends at `iter >= max_auglag_iter`.)
 
 The success test is the same for every configuration: the returned primal-dual pair must satisfy
 the KKT conditions of the problem solved by the interior-point method, with the complementarity
@@ -320,6 +323,9 @@ from them until the manuscript dropped it at Overleaf `da30c73`; its emitter was
 echoes of γ-NCL, `benchmarks/results/paper/cutest/config_W.txt` and `benchmarks/results/paper/scopf/config_scopf__W__r1.txt`,
 carry the configuration's older label `((γ,φ)-MadNCL)` where a fresh echo prints `(γ-NCL)`: a label difference only,
 every option value is identical (checked on the CUTEst smoke run, and between the r1 and r2 echoes of `scopf`).
+Likewise the r1 echoes of φ-NCL in `opf/` and `scopf/` (`config_opf__U6A__r1.txt`, `config_scopf__U6A__r1.txt`) carry
+the older label `(power-kernel cell (p = 6, λ = 1e-2))` where a fresh echo prints `(φ-NCL)`; every option value is
+identical to their r2 echoes (only the tag and the warm-up time differ).
 
 ## Layout
 
@@ -364,8 +370,14 @@ every option value is identical (checked on the CUTEst smoke run, and between th
   (commit `835508a`); `SOURCE.txt` there lists every source file with its sha256.
 - The campaign's per-cell elapsed-time logs quoted above (`WALLTIME_cpu.csv`, `WALLTIME_gpu1.csv`,
   `WALLTIME_scopf.csv`) are in `gamma-phi-ncl`'s uncommitted `benchmarks/out/paper/logs/`, not in this repository.
-- The two γ-NCL echoes with the label `((γ,φ)-MadNCL)` predate the renaming of the configurations' paper names on
-  `gamma-phi-ncl`.
+- The two γ-NCL echoes with the label `((γ,φ)-MadNCL)` and the two φ-NCL r1 echoes with the label `(power-kernel cell
+  (p = 6, λ = 1e-2))` predate the renaming of the configurations' paper names on `gamma-phi-ncl`.
+- Internal labels that appear in the protocol records and their SOURCE files: `WO-69` (with its Addendum and gate
+  sub-labels) is the campaign's internal name of the protocol work; `S0′` is its comparison of the full reference
+  screens (`benchmarks/scopf_protocol/records/reference_screens/`); `C3` is the K = 1 check at 3000 iterations / 600 s
+  (`records/k1/c3_3000it_600s/`), and `C3b` its re-run of the wall-capped outages at 10000 iterations / 3600 s; the
+  "factorial block" is the ×3 runs of the 18 protocol instances (`benchmarks/results/paper/scopf_pglib/`);
+  `scopf_pilot_factorial18.csv` is `scopf-pool`'s name for `benchmarks/instances/scopf_pglib18.csv`.
 - Earlier checks of the emitted floats: the five tables and the figure that the manuscript `\input`ed at its Overleaf
   commit `e55ef05` were byte-identical to its files, and the two protocol-set tables, not yet `\input` there, were
   byte-identical to the `gamma-phi-ncl` emissions; at Overleaf commit `6d581d7` all eight were byte-identical
