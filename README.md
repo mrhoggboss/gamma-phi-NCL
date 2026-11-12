@@ -202,6 +202,18 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   configurations (270 rows, 270 configuration echoes); `benchmarks/results/paper/scopf_pglib/SOURCE.txt` records
   their source (see Provenance).
 
+## The 41 SCOPF instances in one table (draft floats, not in `manuscript/`)
+
+The 23 reference-list and the 18 protocol instances, from the same result CSVs and with the same scoring (majority of
+three, medians over the succeeding repetitions, LiftedKKT within constr_viol_tol), merged into one main table and one
+appendix table: `benchmarks/paper/emit.sh scopf_all` writes `tab_gpu_scopf_all.tex` (label `tab:gpu-scopf`, the label
+the manuscript text cites for the merged table; it replaces `tab_gpu_scopf.tex`, which has the same label, so never
+`\input` both) and `tab_scopf_all_appendix.tex` (label `tab:scopf-appendix`), both with draft captions, and the summary
+`benchmarks/out/paper/summaries/scopf_all.txt` (solved counts, nesting of the solved sets, instances solved by exactly
+one configuration and by none, co-solved cost ratios over all 41 and for K ≤ 16 and K ≥ 32). Emitters:
+`tab_gpu_scopf_all.py`, `tab_scopf_all_appendix.py`, `summary_scopf_all.py`. They are emitted only on request:
+`emit.sh` without arguments and `./reproduce.sh` cover the eight floats of `manuscript/` only.
+
 ## Figure `fig:example-degenerate`
 
 ```bash

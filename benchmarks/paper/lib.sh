@@ -187,6 +187,10 @@ FLOATS_scopf="tab_gpu_scopf tab_scopf_config"
 FLOATS_scopf_pglib="tab_gpu_scopf_pglib tab_scopf_pglib_appendix"
 FLOATS_figure="fig_example_degenerate"
 SUITES="cutest opf scopf scopf_pglib figure"
+# The 41 SCOPF instances (the 23 reference-list and the 18 protocol instances) in one table and one appendix table,
+# from the scopf and scopf_pglib results: emitted only on request (emit.sh scopf_all), not in SUITES, so neither
+# emit.sh's default nor reproduce.sh's comparison includes them (they are not in manuscript/).
+FLOATS_scopf_all="tab_gpu_scopf_all tab_scopf_all_appendix"
 
 # emit <suite>: write the suite's floats from the results in $RES/<suite> into $TABLES (the figure into $FIGURES) and
 # check that they compile (REPRO_NOCOMPILE=1 skips the check, for a machine without pdflatex/pdfinfo); nothing else is
@@ -202,8 +206,10 @@ emit() {
                      python3 "$py/tab_scopf_config.py" "$RES/scopf" --out="$TABLES" || r=1 ;;
         scopf_pglib) python3 "$py/tab_gpu_scopf_pglib.py" "$RES/scopf_pglib" --out="$TABLES" || r=1
                      python3 "$py/tab_scopf_pglib_appendix.py" "$RES/scopf_pglib" --out="$TABLES" || r=1 ;;
+        scopf_all)   python3 "$py/tab_gpu_scopf_all.py" "$RES/scopf" "$RES/scopf_pglib" --out="$TABLES" || r=1
+                     python3 "$py/tab_scopf_all_appendix.py" "$RES/scopf" "$RES/scopf_pglib" --out="$TABLES" || r=1 ;;
         figure)      python3 "$PUB/benchmarks/figures/make_fig_example_degenerate.py" --out="$FIGURES" || r=1 ;;
-        *) echo "emit: unknown suite $suite (expected one of $SUITES)" >&2; return 2 ;;
+        *) echo "emit: unknown suite $suite (expected one of $SUITES scopf_all)" >&2; return 2 ;;
     esac
     v="FLOATS_$suite"
     for f in ${!v}; do
@@ -226,6 +232,7 @@ summarize() {
     case $suite in
         cutest) python3 "$py/summary.py" "$RES/cutest" --traps="$INST/cutest_traps.txt" --cap=3600 > "$SUMMARIES/cutest.txt" 2>&1 ;;
         opf|scopf|scopf_pglib) python3 "$py/summary_gpu.py" "$RES/$suite" "$suite" > "$SUMMARIES/$suite.txt" 2>&1 ;;
+        scopf_all) python3 "$py/summary_scopf_all.py" "$RES/scopf" "$RES/scopf_pglib" > "$SUMMARIES/scopf_all.txt" 2>&1 ;;
         figure) return 0 ;;
         *) echo "summarize: unknown suite $suite" >&2; return 2 ;;
     esac
