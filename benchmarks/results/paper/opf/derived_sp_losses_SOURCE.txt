@@ -1,0 +1,27 @@
+derived_sp_losses.csv: the eight PGLIB cases that MadNCL solves by majority of three and MadNCL + parameters (SP) does not
+(the "loses eight instances" of Section 5), one row per SP repetition (24 rows): the SP status and outer-iteration count
+(opf__SP__r<k>.csv, columns status and n_outer), the penalty rho and the outer branch of SP's last outer iteration
+(final_rho, final_branch: the last row of that instance in the per-outer trace), and the driver's dual_feas at exit
+(opf__SP__r<k>.csv, column dual_feas). Derived 2026-11-13 for the consistency audit (bench/MANUSCRIPT_CONSISTENCY_AUDIT.md,
+item D2). The traces are not banked in this repository; they are the campaign's, on gamma-phi-ncl (MadNCL-public, commit
+835508a, gitignored benchmarks/out/paper/opf/SP_r<k>/), whose opf__SP__r<k>.csv are byte-identical to the banked
+opf__SP__r<k>.csv here, and each trace's last outer index equals the banked n_outer (asserted). The traces carry no dual
+residual column, so dual_feas comes from the banked CSVs.
+
+Summary: the six MAXIMUM_ITERATIONS_EXCEEDED cases (case1354_pegase, case2000_goc, case24464_goc, case2853_sdet,
+case3120sp_k, case3375wp_k) end at n_outer = 40 with rho = 1e14 (rho_max) in every repetition, dual_feas 3.0e3 to 2.3e5;
+the two INFEASIBLE_PROBLEM_DETECTED cases end at rho = 1.1e13 (case1803_snem, n_outer 16) and 1.21e13 (case19402_goc,
+n_outer 17), below rho_max. Every row's last branch is rho_bump.
+
+source trace sha256
+/home/yifan_xu/MadNCL-public/benchmarks/out/paper/opf/SP_r1/trace__opf__SP__r1.csv 68f7389e438ef18a54f42b883a67437870e01f9cab666ac70ae065ab5fca0554
+/home/yifan_xu/MadNCL-public/benchmarks/out/paper/opf/SP_r2/trace__opf__SP__r2.csv 3483f55744b2f143d5ce56d337d6e148d57f802e626750ec6c19c0c56c20b79f
+/home/yifan_xu/MadNCL-public/benchmarks/out/paper/opf/SP_r3/trace__opf__SP__r3.csv 3d77e3a30ae88c6f96b3529e8ada3c7fdd8102002a0e46511ce1083616a7c741
+
+Derivation (Python, standard library; run from benchmarks/tables):
+  from common import find, read_rows, suite_scores, read_cvtol
+  R = "benchmarks/results/paper/opf"; T = "<gamma-phi-ncl>/benchmarks/out/paper/opf"
+  data = {c: {t: read_rows(p, "instance") for t, p in tags.items()} for c, tags in find(R, r"opf__(.+?)__(.+?)\.csv").items()}
+  names = sorted(data["S"]["r1"]); sc = {c: suite_scores(data[c], names, c, read_cvtol(R, {})) for c in ("S", "SP")}
+  lost = sorted(set(sc["S"]["solved"]) - set(sc["SP"]["solved"]))      # the eight
+  last row of each (rep, instance) in T/SP_<rep>/trace__opf__SP__<rep>.csv -> final_rho, final_branch

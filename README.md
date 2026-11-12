@@ -170,6 +170,10 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   the solved count of every repetition ("solved (of N)") and, as the last row, the cost of the summary table
   ("factorizations (geom. mean)": the geometric mean over the majority-solved instances of the median factorization
   count of the succeeding repetitions), both labels spanning the identifier columns.
+- Derived record: `benchmarks/results/paper/opf/derived_sp_losses.csv` lists, for the eight cases MadNCL + parameters
+  loses against MadNCL, each repetition's status, outer-iteration count, final penalty ρ and final dual residual
+  (`dual_feas`); ρ comes from the campaign's per-outer traces, which are not in this repository
+  (`derived_sp_losses_SOURCE.txt` gives their sha256 and the derivation).
 
 ## SCOPF runs: the 23 reference-list instances
 
