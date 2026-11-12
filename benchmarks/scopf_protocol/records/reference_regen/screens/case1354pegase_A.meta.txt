@@ -1,0 +1,2 @@
+base_status=LOCALLY_SOLVED rho=1.0e8 order=A kadmit=64.0 max_screened=300 candidates=1991 in_service=1991 bridges=561 buses=1354 gens=260 screened=103 admitted=64 screen_s=878.7
+case=/home/yifan_xu/MadNCL-paper-repro/benchmarks/out/scopf_data/data_mp70/case1354pegase.m sha256=1b08b25a2f6c1d540d090009dfaff41ff2b05784a2d8d302a7ad695821557b89

@@ -169,7 +169,10 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
 - Data: the MATPOWER case files, downloaded and checked against `benchmarks/instances/scopf_data.sha256`:
   `benchmarks/instances/fetch_scopf_data.sh <dir>` (`<dir>/data`, `<dir>/data_mp70`); the instance list is
   `benchmarks/instances/scopf23.csv`, the contingency lists `benchmarks/instances/scopf_contingencies.jl` (from the
-  reference benchmark's harness).
+  reference benchmark's harness), used as published. How they relate to the protocol of the 18 is recorded in
+  `benchmarks/scopf_protocol/README.md` ("The reference lists under the protocol"): the screens reproduce the published
+  lists of `case118`, `case300`, `case_ACTIVSg200` and `case2869pegase`, not those of `case_ACTIVSg500`,
+  `case1354pegase` and `case_ACTIVSg2000`; every published entry was verified alone (K = 1).
 - Run (five configurations x three repetitions, 3000 iterations, 1800 s per solve; the SCOPF model and solver settings
   are those of `tab:scopf-config`, read back from the configuration echoes):
 

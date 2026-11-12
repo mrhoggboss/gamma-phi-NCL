@@ -68,8 +68,9 @@ the published list:
 
 The protocol therefore reproduces the published lists of `case118`, `case300` and `case_ACTIVSg200`, and does **not**
 recover the list of `case_ACTIVSg500`. The networks `case1354pegase`, `case2869pegase` and `case_ACTIVSg2000` were
-**not screened**. The island rule and drop-and-backfill were not applied to any published list: the 23-instance set uses
-the lists exactly as published, and this section only checks them.
+screened afterwards, with the whole protocol applied (below, "The protocol applied to the reference networks"). The
+island rule and drop-and-backfill were not applied to any published list: the 23-instance set uses the lists exactly as
+published, and this section only checks them.
 
 **Single-contingency verification.** Every listed outage that the 23 instances use was solved alone as the K = 1
 SCOPF problem of the protocol's step 5 (harness model, Ipopt + MA57, tol 1e-8; `julia/k1_verify.jl`,
@@ -114,6 +115,64 @@ C3_WALL=3600 C3_MAXITER=10000 C3_FIRSTPR=1 julia --project=benchmarks/envs/scree
     benchmarks/scopf_protocol/julia/k1_verify.jl $R/jobs.txt $R       # start as many workers as you like on one jobs file
 ```
 
+### The protocol applied to the reference networks
+
+The whole protocol, in order A (increasing branch key), was also applied to `case_ACTIVSg500`, `case1354pegase`,
+`case2869pegase` and `case_ACTIVSg2000` (2026-11-12; records in `records/reference_regen/`, provenance in its
+`SOURCE.txt`; `python3 benchmarks/scopf_protocol/reference_regen.py compare --check` recomputes `compare.md` from the
+records in seconds). Steps: the screen at penalty 1e8 with the admission rule above, stopped at 64 admitted
+(`julia/screen_run2.jl`; for `case_ACTIVSg500` the full screen of `records/reference_screens/`), the island rule
+(`julia/islands.jl`), the K = 1 verification at the protocol budget (10000 iterations, 3600 s) of the admitted outages
+that had no K = 1 row yet (the first 100 island-passing admitted outages of `case_ACTIVSg500`, the first 40 of the
+other three; 84 solves; the published entries reuse their rows of `records/k1/reference/`), and drop and backfill with
+the rules of `build_lists.py`, to a list as long as the largest K of the reference set. **The published lists stay as
+they are; nothing here replaces one.**
+
+The screens reproduce the published lists of `case118`, `case300`, `case_ACTIVSg200` (above) and `case2869pegase`, and
+not those of `case_ACTIVSg500`, `case1354pegase` and `case_ACTIVSg2000`:
+
+| network | branches screened (64 admitted) | protocol list = published list | at every K the reference set uses (overlap of the first K) | why they differ |
+|---|---|---|---|---|
+| `case2869pegase` | 74 | yes (16 entries) | K = 8: 8, K = 16: 16 | — |
+| `case_ACTIVSg500` | 597 (full screen) | no, first difference at entry 5 | K = 4: 4, 8: 5, 10: 6, 16: 12, 32: 26, 50: 44, 64: 56, 100: 91 | the published list holds 9 entries the screen rejects (branches 8, 9, 11, 12, 26, 27, 72, 73, 131; scaled residuals 2.7e-4 to 4.9e-4, three of them at the iteration limit); every admitted branch up to its last entry (140) is in it |
+| `case1354pegase` | 103 | no, first difference at entry 1 | K = 8: 0, 16: 3, 32: 9 | the published list starts at branch 26 and skips 47 admitted branches with smaller keys up to 103 (4, 5, 6, 8, 9, …); it holds 5 entries the screen rejects (branches 27, 75, 86, 98, 99; scaled residuals 1.5e-4 to 4.5e-4, all at the iteration limit; 27 a bridge), and 10 entries beyond the 103 screened branches |
+| `case_ACTIVSg2000` | 88 | no, first difference at entry 1 | K = 8: 3, 16: 5 | the screen admits all 16 published entries, but the published list skips 22 admitted branches with smaller keys up to its last entry (49): 1, 2, 3, 4, 8, … |
+
+So the published `case1354pegase` and `case_ACTIVSg2000` lists are not in increasing-branch-key order among the outages
+the screen admits, and `case_ACTIVSg500`'s is, but admits nine more. In none of the four did the island rule drop an
+outage among the first n admitted, and the K = 1 verification dropped none of them either: the protocol list is the
+first n admitted outages.
+
+The 84 K = 1 solves of the outages added here (`compare.md`, last table):
+
+| network | solves | `Solve_Succeeded` | other outcomes (branch: status, unscaled violation, protocol verdict) | max iterations | max solve time (s) |
+|---|---|---|---|---|---|
+| `case_ACTIVSg500` | 9 | 9 | none | 341 | 36.3 |
+| `case1354pegase` | 27 | 25 | 6, 8: `Restoration_Failed` at 1.9e-12 and 2.1e-12, kept | 2543 | 780.3 |
+| `case2869pegase` | 24 | 22 | 18: wall time at 1.3e-3, dropped; 27: wall time at 1.2e-4, kept | 3397 | 3606.7 |
+| `case_ACTIVSg2000` | 24 | 17 | wall time at 3600 s on 3, 8, 12, 39, 41 (violations 2.2e-6 to 3.1e-4, kept) and 50, 53 (9.1e-3 and 3.1e-3, dropped) | 2332 | 3897.1 |
+
+The three outages the verification drops (`case2869pegase` 18, `case_ACTIVSg2000` 50 and 53) are beyond the first 16
+admitted of their networks, so they do not enter the protocol lists. To rerun (CPU; the screens took 15–33 minutes,
+the 84 solves 96 minutes of wall time with at most 29 processes at a time):
+
+```bash
+D=benchmarks/out/scopf_data; benchmarks/instances/fetch_scopf_data.sh $D
+G=benchmarks/out/scopf_protocol/regen; mkdir -p $G/screens
+for n in case1354pegase case2869pegase case_ACTIVSg2000; do
+    julia --project=benchmarks/envs/screen benchmarks/scopf_protocol/julia/screen_run2.jl $D/data_mp70/$n.m A 64 $G/screens/${n}_A 1e8 &
+done; wait
+julia --project=benchmarks/envs/screen benchmarks/scopf_protocol/julia/islands.jl $G/islands.csv \
+    case_ACTIVSg500=$D/data_mp70/case_ACTIVSg500.m case1354pegase=$D/data_mp70/case1354pegase.m \
+    case2869pegase=$D/data_mp70/case2869pegase.m case_ACTIVSg2000=$D/data_mp70/case_ACTIVSg2000.m
+python3 benchmarks/scopf_protocol/reference_regen.py jobs $D > $G/jobs.txt    # reads records/reference_regen/
+C3_WALL=3600 C3_MAXITER=10000 C3_FIRSTPR=1 julia --project=benchmarks/envs/screen \
+    benchmarks/scopf_protocol/julia/k1_verify.jl $G/jobs.txt $G/k1    # start as many workers as you like on one jobs file
+```
+
+(`reference_regen.py` reads its screens, islands and rows from `records/reference_regen/`; copy the outputs there, as
+`SOURCE.txt` lists them, to recompute `compare.md` from a rerun.)
+
 ## Files
 
 | path | contents |
@@ -132,6 +191,8 @@ C3_WALL=3600 C3_MAXITER=10000 C3_FIRSTPR=1 julia --project=benchmarks/envs/scree
 | `records/census.md`, `records/lists.md` | `build_lists.py census` and `build_lists.py lists` on the records |
 | `records/reference_screens/` | the full screens of the four reference networks, the original comparison `S0p_compare.txt`, `SOURCE.txt` |
 | `records/k1/reference/` | the K = 1 rows of the published lists (`k1_10000it_3600s/`, `c3_3000it_600s/`), `summary.txt`, `SOURCE.txt` |
+| `reference_regen.py` | the protocol applied to four reference networks: `compare` (`records/reference_regen/compare.md`), `jobs` (the K = 1 jobs still missing) |
+| `records/reference_regen/` | its screens, islands, the 84 K = 1 rows (`k1/k1_10000it_3600s/`), `compare.md`, `SOURCE.txt` |
 | `records/SOURCE.txt` | provenance: every record's source path on scopf-pool and its sha256 |
 
 All scripts run on the CPU in `benchmarks/envs/screen` (Julia 1.10.11; MadNCL from this checkout, MadNLP 0.10.1,

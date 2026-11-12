@@ -1,0 +1,125 @@
+The protocol of ../../README.md applied in order A to four networks of the reference SCOPF set (case_ACTIVSg500,
+case1354pegase, case2869pegase, case_ACTIVSg2000), run in this checkout on 2026-11-12, CPU (2 x Xeon Gold 6130),
+Julia 1.10.11, benchmarks/envs/screen (PowerModels 0.21.6, JuMP 1.32.1, Ipopt.jl 1.16.0 / Ipopt 3.14.19, licensed
+HSL_jll 2025.1.19), on the MATPOWER 7.0 case files of benchmarks/instances/fetch_scopf_data.sh <D> (<D>/data_mp70/; the
+sha256 of each file is in its screen's meta file and in ../../../instances/scopf_data.sha256). Nothing here changes an
+instance list: the published lists (benchmarks/instances/scopf_contingencies.jl) stay as they are.
+
+screens/<net>_A.{csv,raw.csv,meta.txt}  julia/screen_run2.jl <D>/data_mp70/<net>.m A 64 <out>/screens/<net>_A 1e8, started
+                     2026-11-12T01:21 (EST), the three in parallel: order A (increasing PowerModels branch key), penalty
+                     1e8, admitted iff the scaled ||r||_inf < 1e-4 after at most 200 iterations (any status, bridges
+                     kept), stopped at 64 admitted (case1354pegase: 103 branches screened, 878.7 s; case2869pegase: 74,
+                     1968.1 s; case_ACTIVSg2000: 88, 1207.8 s). case_ACTIVSg500 is not screened again: its full S0'
+                     screen (../reference_screens/case_ACTIVSg500_full_rho1e8.csv, order full = increasing branch key,
+                     the same rule) is used.
+islands.csv          julia/islands.jl islands.csv case_ACTIVSg500=<D>/data_mp70/case_ACTIVSg500.m case1354pegase=...
+                     case2869pegase=... case_ACTIVSg2000=... (every bridge of the four networks: 2043 rows).
+k1/k1_10000it_3600s/ julia/k1_verify.jl rows (label A) at the protocol budget (C3_MAXITER=10000 C3_WALL=3600 C3_FIRSTPR=1),
+                     84 rows: the first 100 (case_ACTIVSg500) or 40 (the other three) island-passing admitted outages that
+                     had no K = 1 row in ../k1/reference/ (python3 ../../reference_regen.py jobs <D>), in three jobs files
+                     (case1354pegase 27 + case_ACTIVSg500 9; case_ACTIVSg2000 24; case2869pegase 24), at most 29 processes at a
+                     time, the workers of a batch sharing its jobs file, first row 2026-11-12T01:38, last 03:14 (EST). The outages of the published
+                     lists reuse their rows in ../k1/reference/ (label EPSR; the same case files): k1_10000it_3600s/ for
+                     case1354pegase, case2869pegase, case_ACTIVSg2000 and case_ACTIVSg500 entries 65-100, c3_3000it_600s/
+                     (3000 iterations, 600 s) for case_ACTIVSg500 entries 1-64.
+compare.md           python3 ../../reference_regen.py compare (recomputed and compared with --check).
+
+The run outputs (logs, claims, per-solve Ipopt tails) are in the gitignored benchmarks/out/scopf_protocol/regen/; the
+files here are byte copies of its screens/ (csv, raw.csv, meta.txt; not the logs), islands.csv and k1/rows/.
+
+file sha256
+compare.md 29bec3b872a2f6d601baec0c3dc21e25bb8ba749c3e6ed394f139aeafb6f0871
+islands.csv de98873ed531757a82c261f74f3bb17bb5a756ff620754a5a18d2d869a84cb7c
+k1/k1_10000it_3600s/case1354pegase_A__14.csv 40e75ede9a99bb03e3d9a138bacf094b85734f868de7c245ad40d73d3f15f333
+k1/k1_10000it_3600s/case1354pegase_A__15.csv ca76809ad646f54123254936b96c28c8e4c40f8366aceba7f2b9d437cbc3cb58
+k1/k1_10000it_3600s/case1354pegase_A__18.csv 0de70ae1f7d47172be0d58118c5d825d0feaabaeff095d25be90c6ff6c476731
+k1/k1_10000it_3600s/case1354pegase_A__20.csv 1968d381a0875d2e5c44c4a1c2626722019fb7a7db49d6450aecaa1f424a1ddd
+k1/k1_10000it_3600s/case1354pegase_A__21.csv e3649c928edd1775fc1f6c3ee2a13911d7840c570c9a5d1f93efa29a10c2a007
+k1/k1_10000it_3600s/case1354pegase_A__22.csv 26be82f01a747941e334f3b5d1e9006e211c048c42faaecaa8c02757bea630aa
+k1/k1_10000it_3600s/case1354pegase_A__23.csv 8b27b11fe036518bb8a6a48dcd95d15b491d45240959f14701e3881665d13e67
+k1/k1_10000it_3600s/case1354pegase_A__30.csv 48e5118c00a10481aea9a672267368b751283b896b96c719589d8a83eb612242
+k1/k1_10000it_3600s/case1354pegase_A__37.csv 9e15384b670dc9a45f3aa7f22b759e2a10f7aa5e44f88e92c18dde2ef1436df8
+k1/k1_10000it_3600s/case1354pegase_A__38.csv f3fc639201ffb8a82ffb7e98db13cf290aba29ff931aa29d14eb9223978a5dfe
+k1/k1_10000it_3600s/case1354pegase_A__43.csv 25ec32b627267c785285696d52bf8d28ee99e8cf3c46afd248217b40588e3b25
+k1/k1_10000it_3600s/case1354pegase_A__44.csv 1adb20ff9419deb8be7618359a4af9ffe0997575571eb43ec8ee4766cea4653d
+k1/k1_10000it_3600s/case1354pegase_A__47.csv 8ca48e5f62b0c9c02b2a4e4f4e5ca02230201cc3a59ecb7c515bdd5220edb64e
+k1/k1_10000it_3600s/case1354pegase_A__48.csv 71fd3e54051bbb17524cc863d61108b4e44c70bc4a0e529c552e45bfb3e5a8d2
+k1/k1_10000it_3600s/case1354pegase_A__49.csv cb01a51f20d445c425492ab16488d00ccfc64bc8674ca92685e53acd618dfbe9
+k1/k1_10000it_3600s/case1354pegase_A__4.csv 8cab33aa34218abbaff01febdef614c28ae7eb6a2c007bb12ce8cbd5794d065a
+k1/k1_10000it_3600s/case1354pegase_A__50.csv 402f03006d11f22f12ca2fc7f99c5f416b231193b8da2999d63b84007f079521
+k1/k1_10000it_3600s/case1354pegase_A__51.csv 912f0d6500fa8c31091255f304935a82322442cf9e565227bd10853a42db96be
+k1/k1_10000it_3600s/case1354pegase_A__52.csv 6e1896141049cdbe4765b3e51642dac96ff5211990316843db9ff37b5f736e19
+k1/k1_10000it_3600s/case1354pegase_A__54.csv 88ecf996ef52a1b43098f4229b38e57091e41bad01f29630932a663553405236
+k1/k1_10000it_3600s/case1354pegase_A__56.csv 3a0060a338781dfb45d124b4bd45a49043d2c703b727573fde9d8c1cb8171cdb
+k1/k1_10000it_3600s/case1354pegase_A__5.csv e1b36fd93127d0f970951ec9e6cf406550b2f5055131f2775e0bd3fa7551b092
+k1/k1_10000it_3600s/case1354pegase_A__60.csv 5ce218c6d9b2a06878be00e4b2a35e6fd004b50271a2a2dfe4e7e2a58fe560d3
+k1/k1_10000it_3600s/case1354pegase_A__61.csv 29e94538005eecd74850d592ccf666e149a4e0f9ad3de1c044a9fa589640cf54
+k1/k1_10000it_3600s/case1354pegase_A__6.csv 52de575f7bacba25e865202900aac7a82c0e60afb79c7d78966ec2297a9a8fc0
+k1/k1_10000it_3600s/case1354pegase_A__8.csv 281507f1d31dbee75249e0dec2c703ad1232253c605c5e11cf370ed295249899
+k1/k1_10000it_3600s/case1354pegase_A__9.csv a63b9d8c72f485be977bf40afbe1d8d2cdd54bfe74c4e3475c49cf7a15c53340
+k1/k1_10000it_3600s/case2869pegase_A__17.csv ae06399c54f53fe04e9b67902790b39fa305384c78e98ddb967c5023550f5cfe
+k1/k1_10000it_3600s/case2869pegase_A__18.csv 39a359ec2e8b7cc3aeb0a3f674a9af30f00051737a1b564e5268c2ce04e24858
+k1/k1_10000it_3600s/case2869pegase_A__20.csv fd4599ac6f5c0955de55f6281c40ccb2ab5f87155ac63a71ab8ea6d0f15e95b1
+k1/k1_10000it_3600s/case2869pegase_A__21.csv 009f7a46fb42ee2d2eae613cf40452d58a6e7708ed8218bc3751f131a51ea5f9
+k1/k1_10000it_3600s/case2869pegase_A__22.csv 6027d9d22fbc34aec0df233134e83d80176f97beb70e8ea47faabe4c2e9e16e1
+k1/k1_10000it_3600s/case2869pegase_A__23.csv 8fdade87d91d99bf16a13ceadfa1a76b86fb8142239d4dafef2163bc0b898fa5
+k1/k1_10000it_3600s/case2869pegase_A__24.csv b741d341014d14b926e2b1857f7f30b992b37cdb5c1807aafc85d9b573d4319a
+k1/k1_10000it_3600s/case2869pegase_A__25.csv 807a85fd19a5e58b7296fe5efe4edb4ca5af03766276d957bc4b72c71974725b
+k1/k1_10000it_3600s/case2869pegase_A__27.csv 61782812ab74d1ef446b0c3ae4116f2119304b5fcfaffea740e0bba4f8f22f10
+k1/k1_10000it_3600s/case2869pegase_A__28.csv 6baf2c2268b8e9ef6d0fdf1e4ebe8fb053450f4200715960d2a4d93e88cd7bc5
+k1/k1_10000it_3600s/case2869pegase_A__29.csv a4f0537c852dea45fe10cf9636aadaf8cb3ec18a1a90ad8cd698d5b487762a69
+k1/k1_10000it_3600s/case2869pegase_A__30.csv f2cf020040de19e6b00ded3de2fabe9dd687ff670f5a439acaafbe858b0eb0ba
+k1/k1_10000it_3600s/case2869pegase_A__31.csv 083783fe097aec64dabdc92e4789fcfec7ed61d5e4e3e0d7941bc9c304f5e592
+k1/k1_10000it_3600s/case2869pegase_A__32.csv 62d449f57b9cefdfa5882778bf8206867ba925be870ed74ce5aefacc587958d0
+k1/k1_10000it_3600s/case2869pegase_A__33.csv b70939f8698e92699c223e233040e160fbe524031df7bd7cdf34097116e28f5c
+k1/k1_10000it_3600s/case2869pegase_A__34.csv 1af0dea6332327031dbc53a28ba2d48e98c006ec65123b87b6c15d77dea97228
+k1/k1_10000it_3600s/case2869pegase_A__35.csv 6a0dfb162b12042acfca0987420a8ce6a25630c3fdb9b4f816acc96d9c5d291a
+k1/k1_10000it_3600s/case2869pegase_A__36.csv f0ae4344bcbac25004a7a540881be95c8da9aa54f92581c299a417cdeb6072dc
+k1/k1_10000it_3600s/case2869pegase_A__39.csv 3b0dd9a0cdc9d4c19a2672a5ff1b8194329140cdfe22245bcad46a4b8ae8d7cd
+k1/k1_10000it_3600s/case2869pegase_A__40.csv dd4d580882b1bd1f87d779ab0fda5881543dc8332b251c3e0790c8f2d9e031e2
+k1/k1_10000it_3600s/case2869pegase_A__41.csv e345c492f449cf8651a37310b6d5f465a8071b4ac02c0c9fb8d7580e4b54ee77
+k1/k1_10000it_3600s/case2869pegase_A__42.csv eb08bec71c1dd229d307db5c315a9f306d69f738ee3ee39ff06e8887d5ced3a8
+k1/k1_10000it_3600s/case2869pegase_A__45.csv 66e29ef415942b798f8619dc91d3767ccd201715a903b861ba0ec061206a4b45
+k1/k1_10000it_3600s/case2869pegase_A__46.csv ca8c8b61e34c3b0cd321b724d01c22ab3433e9b92f8f7fbbb481a1b6d68e4463
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__10.csv b99000c28883eb39c3c71a863c09f52e7d4443d7896bb4178ce74097126d91b8
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__12.csv 0e9e84c8ff5d2cfee33ebbefc149d5cdb385c9666fc2fe8998ffcb1dd5d782a2
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__14.csv baaced746380a1d528206eeabed4dfa5326f88f5bc6c5d28139e04bcfce3645b
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__16.csv b93d0ec4c8459eeb5c8afe70682e97952218d9f018bae8693f343d2a86d5792d
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__18.csv 6b903a9925fa2c6b52a10b8131f9f5f61a116b0205d5114b046bf29005ba5dbd
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__1.csv 0d306d07b918960a6992b4fe7b7784d4e6ec67c329ffdea3aefdfa312cd137a7
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__25.csv c329d756473ee4ae20250748f39610c11e619ce58eb8507979ffba75022b794c
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__26.csv 0410d51c512dc40928c3ff154ad11088efcdcbff2ec6b1a9902ccde1f4d51b0b
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__2.csv 7c194686ac6bb491084660ca603d782148df93ef16788ed457f64cff21765499
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__34.csv 45e5f5f8c9db5fe4df395fb715a5f90c7ee988ee7bf7572494c6abbc9fd3dfa2
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__36.csv 25280f371c685183be839b73091e9167597c650c0beb2caf8780222a40f22c33
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__38.csv 4e2d1a0a7b08a2cfda3800029a514af49e39f57dd372d200c4cf40a980141272
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__39.csv ddf63596cf4a43289ec08bc6999d2b8de4a34fb2247bc347e9c984bba0f701f2
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__3.csv 955cb3c7ab77489b8b8194b232ef892cd0af34e728a349d0318bf4fa00a88f20
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__40.csv f059c32b23f99a79f6fecf4349c15c86e67f93b212638f8215bd56455177cb42
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__41.csv 65fe0a5659497b69ff1aafe7ee5c110dd745fedf26c7f230c7053ddba3e54b45
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__43.csv 4fc68b6411479672f68f81fe576909cb72fcb694dd49e8c9d3daa8c9a7f80b35
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__44.csv ac1d128cf9d68597050e604011563c183c9d687c4d00cacc6013d3af46a3031b
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__45.csv 2bf726c12f498fb0be79d3995032cf3d861e1d9eb18dbc8fc213fa0eb8d7db83
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__4.csv 00757348bced9ab0002961538b8f7ad24a8f98ad2765a0d87d72ac4f8ccb7f4f
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__50.csv 91401ccc1619b524665720df941ef249694c33a29f65299198d57334623ed597
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__53.csv dcacd521b5b5ca0e6821f87986181f4b1f50a69556f9ae5b2172c0cb16b1fb50
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__8.csv 798c1ad76f3e1c3ca959868a25f2775d3e927e7a828bda867b3328b2bcf601cc
+k1/k1_10000it_3600s/case_ACTIVSg2000_A__9.csv 181cb69e1b7668fddb22f66c725263ff3ea8d46cda13ef5f7cfbb79c7cf4e2a4
+k1/k1_10000it_3600s/case_ACTIVSg500_A__142.csv 381598ab54eb65de343e15825b391efbd8fa032d392126796eed63ff50cce1ab
+k1/k1_10000it_3600s/case_ACTIVSg500_A__146.csv c7cab0b4d305dd4b40747766ab26945e51a23c60d19f8f06325fbdf1e4155240
+k1/k1_10000it_3600s/case_ACTIVSg500_A__148.csv 17a96e6ab880ff88bdffaa21dde3102fcf25706536dc0fbc1bfb5272e9f5010b
+k1/k1_10000it_3600s/case_ACTIVSg500_A__149.csv d9b5bdec160e0432c2b2cef79150926195c6e5fc3469398fe337b881d26c0d0c
+k1/k1_10000it_3600s/case_ACTIVSg500_A__151.csv b3ee23fc23466ee8b6a443f9cc8696b4546e85e7d08b15186f16a647f24d4cae
+k1/k1_10000it_3600s/case_ACTIVSg500_A__153.csv 3391a0ef4482bc00fd8aa385ebb71cde597f2c4a41d5b0bce43210a7707d2d49
+k1/k1_10000it_3600s/case_ACTIVSg500_A__154.csv 4c4460a530b74b0307cd611b0750b2c61bfd122b66b539ba345b1c8fb8782c84
+k1/k1_10000it_3600s/case_ACTIVSg500_A__156.csv e6e13dc2a9540e8917394309be023c714b3d7b12ad2233133cad9cd8824b9a0e
+k1/k1_10000it_3600s/case_ACTIVSg500_A__157.csv a4c2f5dbf29c203909556f27a250173499dd3b6f94eab4a1cb6089e3c732234c
+screens/case1354pegase_A.csv d55b55be489a32eaf41179bb806b8b682bd64cb4efbb485777940e0ba44eb619
+screens/case1354pegase_A.meta.txt 99aeeb0e8899c0eb4b2b6f682f595a7daa8f1ceb388805a2fead8fe00b653b5a
+screens/case1354pegase_A.raw.csv 212758787e908d42744378edc5839ae0787d993a32e67d315f9589eaf7e8f1ce
+screens/case2869pegase_A.csv 12a94c3c32762c4ea9f9fefb5504d99d2d2dd0b6f351d6cd10b5b9f43499706f
+screens/case2869pegase_A.meta.txt c8511a6093c97988c62a94e6a187936ae416ee7903724a7268a387106c48f302
+screens/case2869pegase_A.raw.csv baa972b226655ed1e16aabc5448138f5ebd8b306c960b4fcc409dc362a52f000
+screens/case_ACTIVSg2000_A.csv 74bdde0341d1f1ea5fea14b37e1ebf0556eb1bc156bf0623886b1c7db0d309a5
+screens/case_ACTIVSg2000_A.meta.txt 7ba9e7c4a4d67faf176c525b8c3a462ac3f48cbe08de5dcf1f4856b21b4915a9
+screens/case_ACTIVSg2000_A.raw.csv a7dd4b557745010abb52066553c848d87f656e34be6ecde96acaa7aa55c3a80e
