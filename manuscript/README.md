@@ -1,9 +1,10 @@
 # The manuscript's floats
 
 `tables/*.tex` (the five tables) and `figures/fig_example_degenerate.tex` are the files the manuscript *(γ, φ)-NCL*
-`\input`s, byte copies of the manuscript's `tables/` and `figures/` at its Overleaf commit `7e9363f` (2026-11-12):
+`\input`s, byte copies of the manuscript's `tables/` and `figures/` at its Overleaf commit `4500ec4` (2026-11-12):
 - `tab_pglib_appendix` and `tab_scopf_all_appendix` list, per configuration and repetition, the factorization count of
-  a solve or the reason for the non-solve, from `7e9363f` on (captions at `0eae8ef`); the 41-row SCOPF appendix was
+  a solve or the reason for the non-solve, from `7e9363f` on (captions at `0eae8ef`), with the per-repetition solved
+  counts and the geometric-mean factorization row as footer from `4500ec4` on; the 41-row SCOPF appendix was
   added at `f240805` (replacing the separate tables of the 23 reference-list and the 18 protocol instances) and is
   `\input` from `b912c04` on;
 - `tab_gpu_scopf_summary` (the 41 SCOPF instances, the layout of the PGLIB table) replaced the 41-row `tab_gpu_scopf_all`
@@ -17,7 +18,7 @@
   (c) was changed at `f5b534b`, the three panel titles gained their second line at `70d2cd6`, with its bold words set at
   `b70e85d` and `1bec9fa`, and the steepest-descent paths were thickened at `cc4c9bd`.
 
-Lines of the `\input`s at `7e9363f`: 72 (figure); 824, 835, 846, 859, 860 (tables).
+Lines of the `\input`s at `4500ec4`: 72 (figure); 824, 835, 846, 859, 860 (tables).
 
 `../reproduce.sh` emits these six files from the result CSVs and checks the output against the copies here, byte for
 byte. They are reference copies only: nothing in this repository writes them. They change only when the manuscript's

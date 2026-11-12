@@ -55,7 +55,7 @@ informational there and the exit status is that of the emit.
 | SCOPF appendix, the 41 instances | `tab:scopf-appendix` | `tables/tab_scopf_all_appendix.tex` | `benchmarks/tables/tab_scopf_all_appendix.py` |
 | example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all five tables and the figure (checked 2026-11-12 against its Overleaf commit `7e9363f`: line
+The manuscript `\input`s all five tables and the figure (checked 2026-11-12 against its Overleaf commit `4500ec4`: line
 72 of the manuscript's source for the figure, lines 824, 835, 846, 859 and 860 for the tables); `manuscript/` holds those six files. The
 41 SCOPF instances are the 23 reference-list instances and the 18 protocol instances. Not emitted by `emit.sh`, because
 they are no longer floats of the manuscript: the 41-row SCOPF table (`tab_gpu_scopf_all.py`; its module also supplies
@@ -75,7 +75,7 @@ benchmarks/paper/emit.sh        # all five tables and the figure, ~45 s; writes 
 
 That command writes exactly the six files above, every one of them compiles at the manuscript's page geometry
 (`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all six are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `7e9363f`; `./reproduce.sh` makes that comparison), and the console
+manuscript's files (`manuscript/`, Overleaf commit `4500ec4`; `./reproduce.sh` makes that comparison), and the console
 summaries `cutest.txt`, `opf.txt`, `scopf.txt` and `scopf_pglib.txt` equal the banked
 `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was rewritten that day under
 the population rule); `scopf_all.txt` summarizes the 41 SCOPF instances (solved counts, nesting of the solved sets,
@@ -166,7 +166,10 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   per configuration and repetition, the factorization count of a solve or the reason for the non-solve (an italic word:
   infeas. = local infeasibility declared, max it. = iteration limit, wall = wall-time limit, restor. = restoration
   failed, step = step too small, error = evaluation or other error); no iteration or wall-time columns; landscape pages,
-  `\footnotesize` with `\tabcolsep` 2.5pt (the largest size at which both appendix tables fit the text width).
+  `\footnotesize` with `\tabcolsep` 2.5pt (the largest size at which both appendix tables fit the text width). Footer:
+  the solved count of every repetition ("solved (of N)") and, as the last row, the cost of the summary table
+  ("factorizations (geom. mean)": the geometric mean over the majority-solved instances of the median factorization
+  count of the succeeding repetitions), both labels spanning the identifier columns.
 
 ## SCOPF runs: the 23 reference-list instances
 
@@ -223,8 +226,8 @@ over the succeeding repetitions, LiftedKKT within constr_viol_tol): `tab_gpu_sco
 each repetition, the majority count and the geometric mean of factorizations) and `tab_scopf_all_appendix.tex`
 (`tab_scopf_all_appendix.py`, label `tab:scopf-appendix`, landscape; one row per instance, the reference networks and
 then the protocol networks, K increasing, with no rule between them; per configuration and repetition the
-factorization count of a solve or the reason for the non-solve, with the words, type size and column separation of the
-PGLIB appendix). It also writes the summaries `scopf.txt`, `scopf_pglib.txt` (each
+factorization count of a solve or the reason for the non-solve, with the words, type size, column separation and
+footer rows of the PGLIB appendix). It also writes the summaries `scopf.txt`, `scopf_pglib.txt` (each
 set alone) and `scopf_all.txt` (the 41, `summary_scopf_all.py`). The result directories are `benchmarks/results/paper/scopf/` and `benchmarks/results/paper/scopf_pglib/`
 (`SCOPF_RES=<dir>` and `SCOPF_PGLIB_RES=<dir>` override either).
 
@@ -323,7 +326,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the five tables and the figure as the manuscript `\input`s them (Overleaf commit `7e9363f`), the reference of `reproduce.sh` |
+| `manuscript/` | the five tables and the figure as the manuscript `\input`s them (Overleaf commit `4500ec4`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
@@ -384,6 +387,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
   `tab_scopf_config` also left the manuscript (its emitter was removed); at `c4923de` the PGLIB caption is Yifan's new
   wording (carried into `tab_gpu_opf.py`); at `dd0dd0d` the summary table `tab_gpu_scopf_summary` (the layout of the PGLIB
   table) replaces the 41-row `tab_gpu_scopf_all` as `tab:gpu-scopf`; at `0eae8ef` the two appendix tables and the SCOPF
-  summary get Yifan's final captions, and at `7e9363f` the appendix tables list per repetition the factorization count or
-  the reason for the non-solve, with no iteration, wall-time or median columns (Yifan: "we do not use walltime anymore");
-  all six floats are byte-identical (`manuscript/`, Overleaf `7e9363f`, 2026-11-12).
+  summary get Yifan's final captions, at `7e9363f` the appendix tables list per repetition the factorization count or
+  the reason for the non-solve, with no iteration, wall-time or median columns (Yifan: "we do not use walltime anymore"),
+  and at `4500ec4` they end with the geometric-mean factorization row of the summary tables;
+  all six floats are byte-identical (`manuscript/`, Overleaf `4500ec4`, 2026-11-12).
