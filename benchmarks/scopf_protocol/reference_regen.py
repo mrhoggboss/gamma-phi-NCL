@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """reference_regen -- the protocol applied to four networks of the reference SCOPF set, compared with the published lists
-(Python standard library only; seconds). Nothing here changes an instance list.
+(records/published_contingencies.jl), and the protocol lists of the three networks whose published list the screen does
+not reproduce (Python standard library only; seconds).
 
   python3 benchmarks/scopf_protocol/reference_regen.py compare [--check]
+  python3 benchmarks/scopf_protocol/reference_regen.py lists [--write | --check]
   python3 benchmarks/scopf_protocol/reference_regen.py jobs <data dir>
 
 For case_ACTIVSg500, case1354pegase, case2869pegase and case_ACTIVSg2000 the protocol of README.md is applied in order A
@@ -19,6 +21,12 @@ compare  per network: the protocol list, its drops and backfills, and at every K
          first K entries with the published list and the first differing entry; for case_ACTIVSg500 also the published
          entries the screen rejects; then the K = 1 outcomes of the rows added here (label A) and their protocol
          verdicts. With --check the output must equal records/reference_regen/compare.md.
+lists    benchmarks/instances/scopf_contingencies.jl as the benchmark runs it (Yifan 2026-11-13): the published lists of
+         case118, case300, case_ACTIVSg200 and case2869pegase (which the protocol's screen reproduces) unchanged, and the
+         protocol lists of case_ACTIVSg500, case1354pegase and case_ACTIVSg2000 (order A, island rule, K = 1
+         verification; asserted: no drops, no backfills, no missing K = 1 row, 100 / 32 / 16 entries, the first 4 of
+         case_ACTIVSg500 equal to the published ones, case2869pegase equal to its published list). Prints the file;
+         --write writes it, --check compares it with the file.
 jobs     the K = 1 jobs (<net>,A,<branch>,<data dir>/data_mp70/<net>.m) still missing: the first 100 (case_ACTIVSg500) or
          40 (the other three) island-passing admitted outages without a row.
 """
@@ -37,8 +45,13 @@ NETS = [("case_ACTIVSg500", 100, (4, 8, 10, 16, 32, 50, 64, 100), 100),
 ST = {"1": "SUCC", "2": "ACCEPTABLE", "3": "SMALL_STEP", "4": "DIVERGING", "5": "INFEASIBLE", "6": "MAXITER"}
 
 
+PUBLISHED = os.path.join(REC, "published_contingencies.jl")          # the reference benchmark's lists as published
+LISTS = os.path.join(os.path.dirname(HERE), "instances", "scopf_contingencies.jl")   # the lists the benchmark runs
+REGEN = ("case_ACTIVSg500", "case1354pegase", "case_ACTIVSg2000")   # the published lists the screen does not reproduce
+
+
 def published():
-    src = open(os.path.join(os.path.dirname(HERE), "instances", "scopf_contingencies.jl")).read()
+    src = open(PUBLISHED).read()
     return {m.group(1): [int(x) for x in m.group(2).replace("\n", " ").split(",") if x.strip()]
             for m in re.finditer(r'"(\w+)" => \[([^\]]*)\]', src)}
 
@@ -194,12 +207,51 @@ def jobs(data):
     return "\n".join(J) + ("\n" if J else "")
 
 
+def lists_file():
+    """The benchmark's contingency-list file: the published file with the lists of REGEN replaced by the protocol lists."""
+    P, ISL, K = published(), islands(), k1rows()
+    assert jobs("<data>") == "", "K = 1 rows missing (reference_regen.py jobs)"
+    new = {}
+    for net, n, _, _ in NETS:
+        x = build(net, n, ISL, K)
+        assert x["pending"] is None and not x["drops"] and not x["backs"] and len(x["final"]) == n, (net, x["pending"])
+        if net in REGEN:
+            new[net] = x["final"]
+        else:
+            assert x["final"] == P[net][:n], net          # case2869pegase: the screen reproduces the published list
+    assert new["case_ACTIVSg500"][:4] == P["case_ACTIVSg500"][:4]   # so case_ACTIVSg500_nK4 is unchanged
+    src = open(PUBLISHED).read()
+    head = ("# Contingency lists of the SCOPF benchmark: for each case, the branches whose outage defines scenarios\n"
+            "# 2, 3, ... (an instance with K contingencies uses the first K). case118, case300, case_ACTIVSg200 and\n"
+            "# case2869pegase: the published lists of `data/contingencies.jl` of github.com/frapac/pscc-scopf (F. Pacaud),\n"
+            "# also packaged as `benchmarks/data/contingencies.jl` in github.com/MadNLP/MPCCbenchmark.jl, which the\n"
+            "# protocol's screen reproduces. case_ACTIVSg500, case1354pegase and case_ACTIVSg2000: the protocol lists\n"
+            "# (Yifan 2026-11-13; order A, island rule, K = 1 verification: benchmarks/scopf_protocol/reference_regen.py\n"
+            "# lists, records/reference_regen/); their published lists are kept in\n"
+            "# benchmarks/scopf_protocol/records/published_contingencies.jl.\n")
+    body = src[src.index("CONTINGENCIES = Dict("):]
+    for net, L in new.items():
+        m = re.search(r'    "%s" => \[[^\]]*\],\n' % net, body)
+        assert m, net
+        body = body[:m.start()] + '    "%s" => [%s],\n' % (net, ", ".join(map(str, L))) + body[m.end():]
+    return head + "\n" + body
+
+
 if __name__ == "__main__":
     a = [x for x in sys.argv[1:] if not x.startswith("--")]
-    if not a or a[0] not in ("compare", "jobs") or (a[0] == "jobs" and len(a) < 2):
+    if not a or a[0] not in ("compare", "jobs", "lists") or (a[0] == "jobs" and len(a) < 2):
         print(__doc__); sys.exit(2)
     if a[0] == "jobs":
         print(jobs(a[1]), end=""); sys.exit(0)
+    if a[0] == "lists":
+        s = lists_file()
+        if "--write" in sys.argv:
+            open(LISTS, "w").write(s); print("wrote", os.path.relpath(LISTS, os.path.dirname(os.path.dirname(HERE)))); sys.exit(0)
+        print(s, end="")
+        if "--check" in sys.argv:
+            same = s == open(LISTS).read()
+            print("check vs benchmarks/instances/scopf_contingencies.jl:", "IDENTICAL" if same else "DIFFERS"); sys.exit(0 if same else 1)
+        sys.exit(0)
     s = compare(); print(s, end="")
     if "--check" in sys.argv:
         same = s == open(os.path.join(G, "compare.md")).read()
