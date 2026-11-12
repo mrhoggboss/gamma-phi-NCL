@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""make_fig_example_degenerate -- the manuscript's Figure fig:example-degenerate (Section 3.2, Example ex:degenerate),
-TikZ code written to <out>/fig_example_degenerate.tex (plain Python, standard library only; ~35 s).
+"""make_fig_example_degenerate -- the manuscript's Figure fig:example-degenerate (the Example of the introduction), TikZ
+code written to <out>/fig_example_degenerate.tex (plain Python, standard library only; ~20 s).
 
   python3 benchmarks/figures/make_fig_example_degenerate.py [--out=<dir>]     (default: benchmarks/out/paper/figures)
 
-The instance min x1 s.t. x1^2 - x2^2 - 4 = 0, x1 - 2 = 0 under three (weight, kernel) choices: level sets of the selected
-merit Theta(x) = sum_i gamma_i |c_i(x)|^p / p (marching squares on a 241 x 161 grid), the stationary points, the basin
-separatrix of the spurious minimizer (steepest-descent flow from a 61 x 41 grid), and two steepest-descent paths.
-The plotting code is the generator that wrote the manuscript's file (session scratch make_figs.py of 2026-11-11), unchanged
-but for the output path and the caption, which is the manuscript's caption verbatim (captions are Yifan's; the scratch
-generator still carried its draft, '[DRAFT] ... Gray curves ...').
+The instance: c1(x) = x1^2 - x2^2 - 4 = 0, c2(x) = x1 - 4 = 0, no objective; the feasible set is the two points
+(4, +-sqrt(12)), where the constraint Jacobian has full rank. Three panels, one per (weight, kernel) choice:
+(a) gamma = (1, 1), p = 2; (b) gamma = (1, 4), p = 2; (c) gamma = (1, 1), p = 6. Each panel draws, on the frame
+[-3, 5] x [-3.8, 3.8] (TikZ unit 0.6 cm), the level sets of the selected merit Theta(x) = sum_i gamma_i |c_i(x)|^p / p
+(marching squares on a 241 x 161 grid), the zero sets of c1 and c2, the feasible points, the stationary points of Theta
+(located by a damped 2-D Newton search from a 31 x 21 grid of starts and classified by the Hessian: a filled dot for a
+spurious local minimizer, an open dot for a saddle), the boundary of the spurious minimizer's basin (dashed; the
+steepest-descent flow from a 121 x 80 grid, classified by its end point), and the steepest-descent paths of Theta from
+the starts (-2.6, 2.6) and (0.8, 2.6). The caption is the manuscript's (captions are Yifan's). The defaults are the
+arguments that wrote the manuscript's file (Overleaf commit 9254149):
+  --a=0 --b=4 --frame=-3,5,-3.8,3.8 --scale=0.6 --starts=-2.6:2.6,0.8:2.6
+(c2(x) = x1 + a x2 - b; the tilt a stays 0 for the manuscript). They can still be overridden on the command line;
+emit.sh passes only --out. The stationary points of each panel are printed on stdout.
 """
 import os, sys
-_opt = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
+_opt = {"a": "0", "b": "4", "frame": "-3,5,-3.8,3.8", "scale": "0.6", "starts": "-2.6:2.6,0.8:2.6"}
+_opt.update(dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a))
 OUTDIR = _opt.get("out", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "out", "paper", "figures"))
-CAPTION = r"""\caption{A degenerate instance: $\min x_1$ subject to $c_1(x) = x_1^2 - x_2^2 - 4 = 0$ (blue) and $c_2(x) = x_1 - 2 = 0$ (red). The feasible set is the single point $(2,0)$ (star), where the line is tangent to the hyperbola and the constraint Jacobian has rank one. White curves are level sets of the selected merit $\Theta(x) = \sum_i \gamma_i |c_i(x)|^p/p$; a filled dot is a spurious local minimizer of $\Theta$, an open dot a saddle, the dashed curve the boundary of the spurious minimizer's basin, and the two thin paths are steepest-descent paths of $\Theta$ from two starting points. With unit weights (a) a run started left of the saddle ends infeasible; weight $4$ on the line (b) removes the spurious minimizer; the power kernel (c) keeps it and moves it.}"""
 import math
 from collections import defaultdict
 def contours(F,xs,ys,level):
@@ -74,10 +81,10 @@ def panel(f,X0,X1,Y0,Y1,levels,zero_sets,stationary,targets,starts,scale,title,N
             if len(line)<3: continue
             out.append('\\draw[white, line width=0.45pt] '+' -- '.join('(%.3f,%.3f)'%p for p in line[::2]+[line[-1]])+';')
     # basin separatrix: classify a coarse grid by the flow endpoint
-    if separatrix and len(targets)>1:
-        BX,BY=61,41; bxs=[X0+(X1-X0)*i/(BX-1) for i in range(BX)]; bys=[Y0+(Y1-Y0)*j/(BY-1) for j in range(BY)]
-        trapkey=[k for k in targets if k!='feasible'][0]
-        B=[[1.0 if flow(f,x,y,targets)[0]==trapkey else 0.0 for y in bys] for x in bxs]
+    if separatrix and any(k.startswith('trap') for k in targets):
+        BX,BY=121,80; bxs=[X0+(X1-X0)*i/(BX-1) for i in range(BX)]; bys=[Y0+(Y1-Y0)*j/(BY-1) for j in range(BY)]
+        trapkey='trap'
+        B=[[1.0 if flow(f,x,y,targets)[0].startswith('trap') else 0.0 for y in bys] for x in bxs]
         for line in contours(B,bxs,bys,0.5):
             if len(line)<3: continue
             out.append('\\draw[black, densely dashed, line width=0.5pt] '+' -- '.join('(%.3f,%.3f)'%p for p in line)+';')
@@ -94,25 +101,67 @@ def panel(f,X0,X1,Y0,Y1,levels,zero_sets,stationary,targets,starts,scale,title,N
         else: out.append('\\draw[black, fill=white, line width=0.6pt] (%.3f,%.3f) circle (1.6pt);'%(x,y))
     out.append('\\node[anchor=north, font=\\scriptsize, align=center] at (%g,%g) {%s};'%((X0+X1)/2,Y0-0.08,title))
     out.append('\\end{tikzpicture}'); return out
-# ---------- Yifan's instance ----------
-def thY(g1,g2,p):
-    return lambda x1,x2: g1*abs(x1*x1-x2*x2-4)**p/p+g2*abs(x1-2)**p/p
-X0,X1,Y0,Y1=-3.0,3.0,-2.0,2.0
+
+
+# ---------- regular, asymmetric variant: c1 = x1^2 - x2^2 - 4, c2 = x1 + A x2 - B ----------
+A=float(_opt.get("a","0.15")); B=float(_opt.get("b","2.5"))
+def c1(x1,x2): return x1*x1-x2*x2-4
+def c2(x1,x2): return x1+A*x2-B
+def sp(t,q): return math.copysign(abs(t)**q,t)
+def theta(g1,g2,p): return lambda x1,x2: g1*abs(c1(x1,x2))**p/p+g2*abs(c2(x1,x2))**p/p
+def gradH(g1,g2,p,x1,x2):
+    C1,C2=c1(x1,x2),c2(x1,x2); n1=(2*x1,-2*x2); n2=(1.0,A)
+    w1,w2=g1*sp(C1,p-1),g2*sp(C2,p-1); k1,k2=g1*(p-1)*abs(C1)**(p-2),g2*(p-1)*abs(C2)**(p-2)
+    g=(w1*n1[0]+w2*n2[0], w1*n1[1]+w2*n2[1])
+    H=[[k1*n1[0]*n1[0]+k2*n2[0]*n2[0]+w1*2, k1*n1[0]*n1[1]+k2*n2[0]*n2[1]],[k1*n1[0]*n1[1]+k2*n2[0]*n2[1], k1*n1[1]*n1[1]+k2*n2[1]*n2[1]+w1*(-2)]]
+    return g,H
+def stationary_points(g1,g2,p,X0,X1,Y0,Y1):
+    found=[]
+    for i in range(31):
+        for j in range(21):
+            x,y=X0+(X1-X0)*i/30,Y0+(Y1-Y0)*j/20
+            ok=False
+            for it in range(200):
+                g,H=gradH(g1,g2,p,x,y); det=H[0][0]*H[1][1]-H[0][1]*H[1][0]
+                if abs(det)<1e-14: break
+                dx=( H[1][1]*g[0]-H[0][1]*g[1])/det; dy=(-H[1][0]*g[0]+H[0][0]*g[1])/det
+                s=1.0; st=math.hypot(dx,dy)
+                if st>0.5: s=0.5/st
+                x-=s*dx; y-=s*dy
+                if math.hypot(*gradH(g1,g2,p,x,y)[0])<1e-11: ok=True; break
+            if not ok or not (X0<=x<=X1 and Y0<=y<=Y1): continue
+            if abs(c1(x,y))<1e-6 and abs(c2(x,y))<1e-6: continue
+            if any(math.hypot(x-u,y-v)<1e-3 for u,v,_ in found): continue
+            g,H=gradH(g1,g2,p,x,y); tr=H[0][0]+H[1][1]; det=H[0][0]*H[1][1]-H[0][1]*H[1][0]
+            kind='MIN' if (det>0 and tr>0) else ('MAX' if (det>0 and tr<0) else 'saddle')
+            found.append((x,y,kind))
+    return found
+X0,X1,Y0,Y1=[float(v) for v in _opt.get("frame","-3,3,-2,2").split(",")]; SCALE=float(_opt.get("scale","0.78"))
+qa,qb,qc=A*A-1,-2*A*B,B*B-4; disc=math.sqrt(qb*qb-4*qa*qc)
+feas=[(B-A*y,y) for y in ((-qb+disc)/(2*qa),(-qb-disc)/(2*qa))]
+for (fx,fy) in feas:
+    det=(2*fx)*A-(-2*fy)*1.0
+    print('feasible point (%.3f, %.3f): det J = %.3f'%(fx,fy,det))
 hyp=lambda s:[(s*math.sqrt(4+t*t),t) for t in [Y0+(Y1-Y0)*k/80 for k in range(81)]]
-zsY=[('blue!70!black, line width=0.9pt',hyp(1)),('blue!70!black, line width=0.9pt',hyp(-1)),('red!70!black, line width=0.9pt',[(2,Y0),(2,Y1)])]
-def levelsY(f,xm,n=8):
-    tmin=f(2,0); tref=f(xm,0) if xm is not None else f(-1.7,0)
+zs=[('blue!70!black, line width=0.9pt',hyp(1)),('blue!70!black, line width=0.9pt',hyp(-1)),('red!70!black, line width=0.9pt',[(B-A*Y0,Y0),(B-A*Y1,Y1)])]
+def levels(f,tref,n=8):
     vals=[f(x,y) for x in (X0,X1) for y in (Y0,Y1)]; tmax=max(vals)
     base=max(tref*0.2,1e-3); return [base*(tmax/base)**((k+0.5)/n) for k in range(n)]
-outY=['% GENERATED: Yifan instance min x1 s.t. x1^2-x2^2-4=0, x1-2=0; level sets of the selected merit, stationary points, basin separatrix, steepest-descent paths.','\\begin{figure}[tbp]\\centering']
-pan=[((1,1),2,-1.707,-0.293,'(a) $\\gamma=(1,1)$, $p=2$'),((1,4),2,None,None,'(b) $\\gamma=(1,4)$, $p=2$'),((1,1),6,-1.154,-0.016,'(c) $\\gamma=(1,1)$, $p=6$')]
-for (g1,g2),p,xt,xsd,title in pan:
-    f=thY(g1,g2,p); targets={'feasible':(2.0,0.0)}; stat=[('feasible',(2,0))]
-    if xt is not None: targets['trap']=(xt,0.0); stat+=[('trap',(xt,0)),('saddle',(xsd,0))]
-    starts=[(-2.6,1.6),(0.6,1.6)]
-    outY+=panel(f,X0,X1,Y0,Y1,levelsY(f,xt),zsY,stat,targets,starts,0.78,title)
-outY.append(CAPTION)
-outY.append('\\label{fig:example-degenerate}\\end{figure}')
+pan=[((1,1),2,'(a) $\\gamma=(1,1)$, $p=2$'),((1,4),2,'(b) $\\gamma=(1,4)$, $p=2$'),((1,1),6,'(c) $\\gamma=(1,1)$, $p=6$')]
+out=['%% GENERATED: regular instance x1^2-x2^2-4=0, x1-%g=0 (no objective); level sets of the selected merit, stationary points, basin separatrix, steepest-descent paths.'%B,'\\begin{figure}[t]\\centering']
+for (g1,g2),p,title in pan:
+    f=theta(g1,g2,p); pts=stationary_points(g1,g2,p,X0,X1,Y0,Y1)
+    print(title, [(round(x,3),round(y,3),k,round(f(x,y),3)) for x,y,k in pts])
+    targets={'feasible':feas[0],'feasible2':feas[1]}; stat=[('feasible',feas[0]),('feasible',feas[1])]
+    nt=0; tref=None
+    for x,y,k in pts:
+        if k=='MIN': nt+=1; targets['trap%d'%nt]=(x,y); stat.append(('trap',(x,y))); tref=f(x,y)
+        elif k=='saddle': stat.append(('saddle',(x,y)))
+    if tref is None: tref=f(-1.7,0)
+    starts=[tuple(float(v) for v in s.split(":")) for s in _opt.get("starts","-2.6:1.6,0.6:1.6").split(",")]
+    out+=panel(f,X0,X1,Y0,Y1,levels(f,tref),zs,stat,targets,starts,SCALE,title)
+out.append(r"""\caption{A regular instance: $c_1(x) = x_1^2 - x_2^2 - 4 = 0$ (blue) and $c_2(x) = x_1 - 4 = 0$ (red), with no objective. The feasible set is the two points $(4, \pm\sqrt{12})$ (stars), where the line crosses the hyperbola and the constraint Jacobian has full rank. White curves are level sets of the selected merit $\Theta(x) = \sum_i \gamma_i |c_i(x)|^p/p$; a filled dot is a spurious local minimizer of $\Theta$, an open dot a saddle, the dashed curve the boundary of the spurious minimizer's basin, and the two thin paths are steepest-descent paths of $\Theta$ from two starting points. With unit weights and the quadratic kernel (a), a path started left of the dashed curve ends infeasible; weight $4$ on the line (b) and the power kernel with $p = 6$ (c) both remove the spurious minimizer, and every path ends at a feasible point.}""")
+out.append('\\label{fig:example-degenerate}\\end{figure}')
 os.makedirs(OUTDIR, exist_ok=True)
-open(os.path.join(OUTDIR, 'fig_example_degenerate.tex'),'w').write('\n'.join(outY)+'\n')
-print('  -> ' + os.path.join(OUTDIR, 'fig_example_degenerate.tex'))
+open(os.path.join(OUTDIR, 'fig_example_degenerate.tex'),'w').write('\n'.join(out)+'\n')
+print('wrote', os.path.join(OUTDIR, 'fig_example_degenerate.tex'))
