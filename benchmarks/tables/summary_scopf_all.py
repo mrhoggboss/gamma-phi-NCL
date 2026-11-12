@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Console summary of the 41 SCOPF instances (the 23 reference-list instances and the 18 protocol instances; the
-scoring of tab_gpu_scopf_all: majority of the repetitions, median factorizations of the succeeding repetitions,
-LiftedKKT within the runs' constr_viol_tol). Prints: the solved counts (per repetition, by majority, and by group);
+scoring of tab_gpu_scopf_summary (common.suite_scores): majority of the repetitions, median factorizations of the
+succeeding repetitions, LiftedKKT within the runs' constr_viol_tol). Prints: the solved counts (per repetition, by majority, and by group);
 the nesting of the majority-solved sets; the instances solved by exactly one configuration and by none; and the
 co-solved geometric-mean factorization ratios phi/LK, phi/gamma, phi/SP, gamma/LK over all 41, K <= 16 and K >= 32
 (and per group).

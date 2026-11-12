@@ -3,8 +3,8 @@
 #
 #   benchmarks/instances/fetch_scopf_data.sh <dest>
 #
-# Creates <dest>/data (the paper's 8 instances) and <dest>/data_mp70 (the 15 further instances); pass
-# --data=<dest> to benchmarks/gpu.jl. Releases (tags of github.com/MATPOWER/matpower):
+# Creates <dest>/data (the case files of the 8 instances of scopf23.csv whose data column is `data`) and <dest>/data_mp70
+# (those of the other 15); pass --data=<dest> to benchmarks/gpu.jl. Releases (tags of github.com/MATPOWER/matpower):
 #   data_mp70/  all seven files from MATPOWER 7.0 (2019-06-21)
 #   data/       case118, case1354pegase, case2869pegase, case_ACTIVSg200 from MATPOWER 7.0 (the same files
 #               are in every release 7.0 to 8.1), and case300 from MATPOWER 8.1 (2025; it differs from the

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""tab_gpu_scopf_pglib — the protocol SCOPF set, per instance (manuscript float tab:gpu-scopf-pglib): the 18
-security-constrained complementarity problems generated from PGLIB by the contingency-selection protocol (WO-69),
-3 networks (case500_goc, case588_sdet, case793_goc) x K in {4, 8, 16} contingencies x two screening orders (A, B).
+"""tab_gpu_scopf_pglib — the 18 protocol SCOPF instances, per instance: a table of earlier manuscript versions, NOT a
+float and not emitted (an unreported extra, runnable by hand; kept for instance_names, imported by the unreported extra
+tab_scopf_pglib_appendix.py; its parts and tex_name are common.pglib_scopf_parts and common.pglib_scopf_tex); protocol:
+benchmarks/scopf_protocol/README.md. 3 networks (case500_goc, case588_sdet, case793_goc) x K in {4, 8, 16}
+contingencies x two screening orders (A, B).
 
 Layout, roster order and scoring of tab_gpu_scopf.py. Reads <resdir>/scopf_pglib__<config>__<tag>.csv (rows copied from
 the WO-69 pilot runs, benchmarks/results/paper/scopf_pglib/SOURCE.txt). With several repetitions, a configuration
@@ -14,28 +16,17 @@ test: its solves count only if the returned point's raw violation (pr_res) is wi
 
 Usage: python3 benchmarks/tables/tab_gpu_scopf_pglib.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
-import re, sys
-from common import DEFAULT_OUT, assert_no_tokens, find, fmt, gm, group_header, majority, ordered, read_cvtol, read_rows, write
+import sys
+from common import (DEFAULT_OUT, PGLIB_SCOPF_PAT, assert_no_tokens, find, fmt, gm, group_header, majority, ordered,
+                    pglib_scopf_parts, pglib_scopf_tex, read_cvtol, read_rows, write)
 
-# TODO(caption): a draft (captions are Yifan's); port his wording verbatim once he writes it.
-CAPTION = ("[DRAFT CAPTION] The protocol security-constrained complementarity problems generated from PGLIB, per "
+# Unreported extra (an earlier manuscript layout); not a float, no caption will be written.
+CAPTION = ("The protocol security-constrained complementarity problems generated from PGLIB, per "
            "instance (network, screening order, number of contingencies $K$), majority of three repetitions. For each "
            "solve, the entry is the median interior-point iteration count and factorization count over the "
            "repetitions that succeed; a dash is a non-solve.")
-PAT = re.compile(r"pglib_opf_case(\d+)_(.+?)(_B)?_nK(\d+)")
-
-
-def parts(name):
-    """(buses, network, order, K) of an instance name such as pglib_opf_case500_goc_B_nK8."""
-    m = PAT.fullmatch(name)
-    if not m:
-        raise SystemExit(f"unexpected instance name {name}")
-    return int(m[1]), f"{m[1]}_{m[2]}", "B" if m[3] else "A", int(m[4])
-
-
-def tex_name(name):
-    _, net, order, k = parts(name)
-    return "\\texttt{" + net.replace("_", "\\_") + "~" + order + "}@" + str(k)
+# the instance-name helpers, re-exported from common
+PAT, parts, tex_name = PGLIB_SCOPF_PAT, pglib_scopf_parts, pglib_scopf_tex
 
 
 def instance_names(data, configs):

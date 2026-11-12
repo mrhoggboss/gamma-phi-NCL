@@ -1,23 +1,23 @@
-"""Shared helpers of the table and figure emitters (Python standard library only).
+"""Shared helpers of the table emitters and console summaries (Python standard library only).
 
-Configuration tokens in the result files are mapped to the names used in the paper. Every emitter
-writes LaTeX (booktabs tables, pgfplots figures) under benchmarks/out/tables unless --out is given.
+Configuration tokens in the result files are mapped to the names used in the paper. Every table emitter writes LaTeX
+tables (booktabs; longtable for the appendices) under benchmarks/out/tables unless --out is given.
 """
 import csv, glob, math, os, re, statistics
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_OUT = os.path.join(os.path.dirname(HERE), "out", "tables")
 
-# Paper names (settled by Yifan 2026-11-03): the two instantiations of the (γ,φ)-NCL framework are γ-NCL
+# Paper names (settled by Yifan 2026-11-03): the two proposed methods of the (γ, φ)-NCL framework are γ-NCL
 # (adaptive weights, configuration W) and φ-NCL (power kernel p = 6, λ = 1e-2, configuration U6A).
 NAMES = {
     "W": "$\\gamma$-NCL",
     "S": "MadNCL",
     "SP": "MadNCL + parameters",
     "U6A": "$\\varphi$-NCL",
-    "liftedkkt": "LiftedKKT $\\epsilon=10^{-8}$",
+    "liftedkkt": "LiftedKKT $\\varepsilon=10^{-8}$",
     "ipopt": "Ipopt",
-    "madnlp": "MadNLP-augmented",
+    "madnlp": "MadNLP-aug",
 }
 # Two-part names for column headers (first line, second line), so that a configuration's header is no wider than its
 # columns (Yifan 2026-11-10: tables overflowed the page). Row-label tables keep the one-line NAMES.
@@ -26,9 +26,9 @@ NAMES2 = {
     "U6A": ("$\\varphi$-NCL", ""),
     "S": ("MadNCL", ""),
     "SP": ("MadNCL", "+ parameters"),
-    "liftedkkt": ("LiftedKKT", "$\\epsilon=10^{-8}$"),
+    "liftedkkt": ("LiftedKKT", "$\\varepsilon=10^{-8}$"),
     "ipopt": ("Ipopt", ""),
-    "madnlp": ("MadNLP", "augmented"),
+    "madnlp": ("MadNLP-aug", ""),
 }
 
 
@@ -41,6 +41,35 @@ LANDSCAPE_REQUIRES = ["% REQUIRES: booktabs, longtable, geometry",
 LANDSCAPE_BEGIN = ["\\clearpage", "\\pdfpagewidth=\\paperheight \\pdfpageheight=\\paperwidth",
                    "\\newgeometry{layoutwidth=\\paperheight,layoutheight=\\paperwidth,margin=1in}"]
 LANDSCAPE_END = ["\\clearpage", "\\pdfpagewidth=\\paperwidth \\pdfpageheight=\\paperheight", "\\restoregeometry"]
+
+
+# Instance names of the SCOPF tables (moved here from tab_gpu_scopf.py and tab_gpu_scopf_pglib.py, which re-export them
+# as tt, PAT, parts and tex_name): the reported SCOPF floats get their row order and printed names from these.
+def scopf_ref_tex(name):
+    """Short name of a reference-list instance: case118_nK100 -> \\texttt{case118}@100, case_ACTIVSg2000_nK16 ->
+    \\texttt{ACTIVSg2000}@16, case1354pegase_nK8 -> \\texttt{1354pegase}@8."""
+    m = re.fullmatch(r"(.+?)_nK(\d+)", name)
+    if not m:
+        return "\\texttt{" + name.replace("_", "\\_") + "}"
+    net = m[1][5:] if m[1].startswith("case_") else (m[1][4:] if re.fullmatch(r"case\d+pegase", m[1]) else m[1])
+    return "\\texttt{" + net.replace("_", "\\_") + "}@" + m[2]
+
+
+PGLIB_SCOPF_PAT = re.compile(r"pglib_opf_case(\d+)_(.+?)(_B)?_nK(\d+)")
+
+
+def pglib_scopf_parts(name):
+    """(buses, network, order, K) of a protocol instance name such as pglib_opf_case500_goc_B_nK8."""
+    m = PGLIB_SCOPF_PAT.fullmatch(name)
+    if not m:
+        raise SystemExit(f"unexpected instance name {name}")
+    return int(m[1]), f"{m[1]}_{m[2]}", "B" if m[3] else "A", int(m[4])
+
+
+def pglib_scopf_tex(name):
+    """Printed name of a protocol instance: network, order and K (\\texttt{500\\_goc~A}@8)."""
+    _, net, order, k = pglib_scopf_parts(name)
+    return "\\texttt{" + net.replace("_", "\\_") + "~" + order + "}@" + str(k)
 
 
 def name2(c):
@@ -232,7 +261,8 @@ def majority_status(rows_by_tag, name, config=None, cvtol=None):
     return max(sorted(set(sts)), key=sts.count)
 
 
-# Per-repetition status letters and short status names of the appendix tables (tab_scopf_pglib_appendix).
+# Status letters and short status names of the unreported extra tab_scopf_pglib_appendix only (the manuscript's appendix
+# tables use FAIL_WORD/rep_cell below).
 SHORT = {"MAXIMUM_ITERATIONS_EXCEEDED": "iter.\\ limit", "INFEASIBLE_PROBLEM_DETECTED": "infeasible",
          "MAXIMUM_WALLTIME_EXCEEDED": "wall limit", "SOLVED_TO_ACCEPTABLE_LEVEL": "acceptable",
          "VIOLATION": "viol.", "MISSING": "not run", "BUILD_FAILED": "no build"}

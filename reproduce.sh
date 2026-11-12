@@ -105,11 +105,12 @@ for r in $RUNS; do
 done
 [ "$WHAT" = all ] && EMITS="$EMITS figure"
 # the SCOPF floats read both SCOPF result sets: a set not rerun here comes from the banked results
-case " $RUNS " in
-    *" scopf "*" scopf_pglib "*) ;;
-    *" scopf "*)       export SCOPF_PGLIB_RES=$RES/scopf_pglib; echo "note: scopf_pglib not rerun; the SCOPF floats read its banked results" ;;
-    *" scopf_pglib "*) export SCOPF_RES=$RES/scopf; echo "note: scopf not rerun; the SCOPF floats read its banked results" ;;
-esac
+has() { case " $RUNS " in *" $1 "*) return 0 ;; esac; return 1; }
+if has scopf && ! has scopf_pglib; then
+    export SCOPF_PGLIB_RES=$RES/scopf_pglib; echo "note: scopf_pglib not rerun; the SCOPF floats read its banked results"
+elif has scopf_pglib && ! has scopf; then
+    export SCOPF_RES=$RES/scopf; echo "note: scopf not rerun; the SCOPF floats read its banked results"
+fi
 RES=$RUNRES
 emit_and_compare $EMITS
 echo "Expected: a CPU rerun reproduces the result CSVs in every column but the timing columns, so its table matches;"

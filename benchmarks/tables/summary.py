@@ -15,7 +15,7 @@ Usage: python3 benchmarks/tables/summary.py <resdir> [--traps=<file>] [--cap=<se
   --cvtol  the guard's tolerance (default: constr_viol_tol from the run's config.txt)
 """
 import os, sys
-from common import (GUARDED, HERE, LOOSE_STATUS, NAMES, cutest_excluded, drop_cutest_excluded, find, gm, ordered, read_cvtol,
+from common import (GUARDED, HERE, LOOSE_STATUS, cutest_excluded, drop_cutest_excluded, find, gm, ordered, read_cvtol,
                     read_rows, solved, solved_loose, success)
 
 

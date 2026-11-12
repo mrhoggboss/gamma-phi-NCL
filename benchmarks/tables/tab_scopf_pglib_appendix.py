@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""tab_scopf_pglib_appendix — the 18 protocol SCOPF instances (see tab_gpu_scopf_pglib), one row each (appendix
-table), for every configuration of the paper roster found in the result directory; the layout of tab_pglib_appendix,
-with per-repetition statuses (common.letter).
+"""tab_scopf_pglib_appendix — the 18 protocol SCOPF instances (see tab_gpu_scopf_pglib), one row each: an appendix table
+of earlier manuscript versions, NOT a float (the manuscript's SCOPF appendix is tab_scopf_all_appendix). Columns:
+buses, variables, and per configuration the median iterations and factorizations and a status letter per repetition
+(common.letter), for every configuration of the paper roster found in the result directory.
 
 Reads <resdir>/scopf_pglib__<config>__<tag>.csv. Rows ordered by bus count, network, order, K; columns: buses and the
 number of variables, then per configuration the interior-point iterations and factorizations and the status of every
@@ -18,10 +19,11 @@ Usage: python3 benchmarks/tables/tab_scopf_pglib_appendix.py <resdir> [--cvtol=<
 import sys
 from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header, find, fmt, gm, letter, majority, majority_status, ordered, read_cvtol,
                     read_rows, short, suite_scores, write)
-from tab_gpu_scopf_pglib import instance_names, parts, tex_name
+from common import pglib_scopf_parts as parts, pglib_scopf_tex as tex_name
+from tab_gpu_scopf_pglib import instance_names
 
-# TODO(caption): a draft (captions are Yifan's); port his wording verbatim once he writes it.
-CAPTION = ("[DRAFT CAPTION] The 18 protocol security-constrained complementarity problems generated from PGLIB (network, "
+# Unreported extra (an earlier manuscript layout); not a float, no caption will be written.
+CAPTION = ("The 18 protocol security-constrained complementarity problems generated from PGLIB (network, "
            "screening order, number of contingencies $K$). For each configuration, the interior-point iterations and "
            "factorizations of the solve (the medians over the repetitions that succeed, when a strict majority of the "
            "three succeeds), and the status of each repetition; a non-solve shows its most frequent termination status.")

@@ -6,13 +6,13 @@ Reads <resdir>/cutest__<config>__ma57.csv (benchmarks/cutest.jl), without the in
 regular (m <= n), m_eq > n, and the other m > n, where m = number of general constraints (two-sided counted
 once) and m_eq = number of equality rows. A solve counts when the solver's own test passes and its wall time
 is within the cap; for the MadNLP baselines, which have no constraint-violation test, also when the returned
-point's raw violation is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses). Cost = geometric mean of factorizations over the configuration's own solved set (Ipopt
-records iterations instead, a lower bound); iterations = geometric mean of interior-point iterations over the
-same set, zero-iteration solves excluded (printed on the console only; the manuscript's table no longer shows them).
+point's raw violation is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses). Cost =
+geometric mean of factorizations over the configuration's own solved set (Ipopt records iterations instead, a lower
+bound).
 
 Usage: python3 benchmarks/tables/tab_cutest.py <resdir> [--cap=3600] [--cvtol=<t>] [--out=<dir>]
 """
-import os, sys
+import sys
 from common import (DEFAULT_OUT, LOOSE_STATUS, NAMES, assert_no_tokens, count_cell, cutest_excluded, drop_cutest_excluded, find, fmt,
                     gm, ordered, read_cvtol, read_rows, solved, solved_loose, success, write)
 
@@ -40,7 +40,6 @@ def main(argv):
     data = {c: drop_cutest_excluded(read_rows(files[c]["ma57"], "name"), excluded) for c in configs}
     print(f"  population rule: {len(excluded)} instances excluded (benchmarks/instances/cutest_excluded_x0.txt)")
     names = sorted(set().union(*[set(d) for d in data.values()])) if data else []
-    ref = data[configs[0]]
     def dims(n):
         r = next(d[n] for d in data.values() if n in d and int(d[n]["nvar"]) >= 0)
         return int(r["nvar"]), int(r["ncon"]), int(r["n_eq"])
@@ -56,10 +55,9 @@ def main(argv):
             ok = [n for n in pop if success(d.get(n), c, cap, cvtol)]
             raw = sum(1 for n in pop if solved(d.get(n), cap))
             loose = sum(1 for n in pop if solved_loose(d.get(n), c, cap))
-            cells[c].append((len(ok), gm([float(d[n]["nfact"]) for n in ok]),
-                             gm([float(d[n]["iter"]) for n in ok if float(d[n]["iter"]) > 0]), raw, loose))
-        print(f"  {c:<10}" + "".join(f"  {s:>5} ({r:>4}{', loose ' + str(l) if l != s else ''}) {g:>7.1f} {i:>7.1f}"
-                                     for s, g, i, r, l in cells[c]))
+            cells[c].append((len(ok), gm([float(d[n]["nfact"]) for n in ok]), raw, loose))
+        print(f"  {c:<10}" + "".join(f"  {s:>5} ({r:>4}{', loose ' + str(l) if l != s else ''}) {g:>7.1f}"
+                                     for s, g, r, l in cells[c]))
 
     def solved_cell(c, s, r, l):
         if c in LOOSE_STATUS and l != s:
@@ -71,12 +69,11 @@ def main(argv):
          "configuration & " + " & ".join(l for l, _ in slices) + " \\\\",
          " & " + " & ".join(f"({len(p)})" for _, p in slices) + " \\\\\\midrule",
          "\\multicolumn{5}{l}{\\emph{instances solved}}\\\\"]
-    T += [f"{NAMES.get(c, c)} & " + " & ".join(solved_cell(c, s, r, l) for s, _, _, r, l in cells[c]) + " \\\\" for c in configs]
+    T += [f"{NAMES.get(c, c)} & " + " & ".join(solved_cell(c, s, r, l) for s, _, r, l in cells[c]) + " \\\\" for c in configs]
     T += ["\\\\[-6pt]", "\\multicolumn{5}{l}{\\emph{cost: geometric mean of factorizations over the solved set}}\\\\"]
     T += [f"{NAMES.get(c, c)} & " + " & ".join(("$\\geq$~" if c == "ipopt" and g == g else "") + fmt(g)
-                                                for _, g, _, _, _ in cells[c]) + " \\\\" for c in configs]
-    # no iterations block: commented out by Yifan at Overleaf 498801f, deleted at 8c9eb60 (the means are still computed
-    # and printed on the console)
+                                                for _, g, _, _ in cells[c]) + " \\\\" for c in configs]
+    # no iterations block (removed at Overleaf 498801f/8c9eb60; iterations are not a metric)
     T += ["\\bottomrule\\end{tabular}"]
     T += ["\\end{table}"]
     assert_no_tokens("\n".join(T))

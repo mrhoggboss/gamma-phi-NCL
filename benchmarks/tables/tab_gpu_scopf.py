@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""tab_gpu_scopf — the SCOPF problems, per instance (manuscript float tab:gpu-scopf).
+"""tab_gpu_scopf — the 23 reference-list instances, per instance: a table of earlier manuscript versions, NOT a float and
+not emitted (an unreported extra, runnable by hand; its tt() is common.scopf_ref_tex, which the reported SCOPF floats
+use); it writes tab:gpu-scopf, never \\input it.
 
 Reads <resdir>/scopf__<config>__<tag>.csv (benchmarks/gpu.jl). With one repetition, each cell is the solve's
 interior-point iteration count and factorization count; with several, a configuration solves an instance
@@ -11,31 +13,16 @@ violation (pr_res) is within the run's constr_viol_tol (post-hoc guard; the ungu
 Usage: python3 benchmarks/tables/tab_gpu_scopf.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
 import sys
-import re
-from common import DEFAULT_OUT, assert_no_tokens, find, fmt, gm, group_header, majority, ordered, read_cvtol, read_rows, write
+from common import (DEFAULT_OUT, assert_no_tokens, find, fmt, gm, group_header, majority, ordered, read_cvtol, read_rows,
+                    scopf_ref_tex, write)
 
-# Caption: the manuscript's (overleaf_upload/tables/tab_gpu_scopf.tex), verbatim (captions are Yifan's).
-# TODO(caption, stale items to revise once the new numbers exist):
-#   - "one pass each": the SCOPF table is planned as a majority of three repetitions.
-#   - "every non-solve in this table is the iteration limit reached at 3000": a fact about the banked runs.
-#   - the banked table had 8 instances; the harness list has 23 pairs (instances/scopf23.csv).
-# TODO(Yifan): which number to print for "MadNCL". This branch reports SOLVE_SUCCEEDED for a solve whose success
-#   test passes at the last allowed outer iteration (20 for MadNCL); the released package relabels it
-#   MAXIMUM_ITERATIONS_EXCEEDED. Under the (P)-KKT test this affects two SCOPF runs (ACTIVSg500@100, ACTIVSg200@100):
-#   7/23 here vs 5/23 for the released package on those runs. A footnote should say which convention the table uses.
+# Unreported extra (an earlier manuscript layout); not a float, no caption will be written.
 CAPTION = ("The security-constrained complementarity problems, per instance, one pass each. For each solve, the entry "
            "is the interior-point iteration count and the factorization count; a dash is a non-solve, and every "
            "non-solve in this table is the iteration limit reached at 3000, so no number is reported for it.")
 
 
-def tt(name):
-    """Short instance name: case118_nK100 -> \\texttt{case118}@100, case_ACTIVSg2000_nK16 -> \\texttt{ACTIVSg2000}@16,
-    case1354pegase_nK8 -> \\texttt{1354pegase}@8."""
-    m = re.fullmatch(r"(.+?)_nK(\d+)", name)
-    if not m:
-        return "\\texttt{" + name.replace("_", "\\_") + "}"
-    net = m[1][5:] if m[1].startswith("case_") else (m[1][4:] if re.fullmatch(r"case\d+pegase", m[1]) else m[1])
-    return "\\texttt{" + net.replace("_", "\\_") + "}@" + m[2]
+tt = scopf_ref_tex   # the short instance name (common.scopf_ref_tex)
 
 
 def main(argv):

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """tab_gpu_scopf_all — the 41 SCOPF instances in one table, per instance: the 23 reference-list instances
-(tab_gpu_scopf.py) and the 18 protocol instances (tab_gpu_scopf_pglib.py), merged. Not a float of the manuscript
-yet (emit.sh scopf_all; reproduce.sh does not compare it). Label tab:gpu-scopf, the label the manuscript text cites for
-the merged table (it replaces tab_gpu_scopf.tex, which carries the same label: never \\input both).
+(tab_gpu_scopf.py) and the 18 protocol instances (tab_gpu_scopf_pglib.py), merged. NOT a float of the manuscript and not
+emitted by emit.sh or compared by reproduce.sh (an unreported extra, runnable by hand); its module also supplies load,
+is_pglib, kval, buses and tex to tab_gpu_scopf_summary.py, tab_scopf_all_appendix.py and summary_scopf_all.py. It
+writes the label tab:gpu-scopf, which the manuscript uses for tab_gpu_scopf_summary.tex: never \\input its output.
 
 Reads <scopf resdir>/scopf__<config>__<tag>.csv and <scopf_pglib resdir>/scopf_pglib__<config>__<tag>.csv; a
 configuration must have the same repetition tags in both. Columns and scoring of tab_gpu_scopf.py: per configuration
@@ -17,12 +18,11 @@ factorizations over the solved set.
 Usage: python3 benchmarks/tables/tab_gpu_scopf_all.py <scopf resdir> <scopf_pglib resdir> [--cvtol=<t>] [--out=<dir>]
 """
 import re, sys
-from common import DEFAULT_OUT, assert_no_tokens, find, fmt, gm, group_header, majority, ordered, read_cvtol, read_rows, write
-from tab_gpu_scopf import tt
-from tab_gpu_scopf_pglib import parts as pglib_parts, tex_name as pglib_tex_name
+from common import (DEFAULT_OUT, assert_no_tokens, find, fmt, gm, group_header, majority, ordered, pglib_scopf_parts as pglib_parts,
+                    pglib_scopf_tex as pglib_tex_name, read_cvtol, read_rows, scopf_ref_tex as tt, write)
 
-# TODO(caption): a draft (captions are Yifan's); port his wording verbatim once he writes it.
-CAPTION = ("[DRAFT CAPTION] The 41 security-constrained complementarity problems, per instance: the reference networks "
+# Unreported extra (an earlier manuscript layout); not a float, no caption will be written.
+CAPTION = ("The 41 security-constrained complementarity problems, per instance: the reference networks "
            "with their published contingency lists, then the PGLIB networks with the protocol lists (network, screening "
            "order, number of contingencies $K$), majority of three repetitions. For each solve, the entry is the median "
            "interior-point iteration count and factorization count over the repetitions that succeed; a dash is a "

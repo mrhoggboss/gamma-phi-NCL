@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""make_fig_example_degenerate -- the manuscript's Figure fig:example-degenerate (the Example of the introduction), TikZ
+"""make_fig_example_degenerate -- the manuscript's Figure fig:example-degenerate (Figure 1, in the Introduction), TikZ
 code written to <out>/fig_example_degenerate.tex (plain Python, standard library only; ~20 s).
 
   python3 benchmarks/figures/make_fig_example_degenerate.py [--out=<dir>]     (default: benchmarks/out/paper/figures)
@@ -13,7 +13,8 @@ The instance: c1(x) = x1^2 - x2^2 - 4 = 0, c2(x) = x1 - 4 = 0, no objective; the
 spurious local minimizer, an open dot for a saddle), the boundary of the spurious minimizer's basin (dashed; the
 steepest-descent flow from a 121 x 80 grid, classified by its end point), and the steepest-descent paths of Theta from
 the starts (-2.6, 2.6) and (0.8, 2.6). The caption is the manuscript's (captions are Yifan's). The defaults are the
-arguments that wrote the manuscript's file (Overleaf commit 9254149):
+arguments of the manuscript's file (first written with them at Overleaf 9254149; this script's output is byte-identical
+to the copy at 4500ec4):
   --a=0 --b=4 --frame=-3,5,-3.8,3.8 --scale=0.6 --starts=-2.6:2.6,0.8:2.6
 (c2(x) = x1 + a x2 - b; the tilt a stays 0 for the manuscript). They can still be overridden on the command line;
 emit.sh passes only --out. The stationary points of each panel are printed on stdout.
@@ -83,7 +84,6 @@ def panel(f,X0,X1,Y0,Y1,levels,zero_sets,stationary,targets,starts,scale,title,N
     # basin separatrix: classify a coarse grid by the flow endpoint
     if separatrix and any(k.startswith('trap') for k in targets):
         BX,BY=121,80; bxs=[X0+(X1-X0)*i/(BX-1) for i in range(BX)]; bys=[Y0+(Y1-Y0)*j/(BY-1) for j in range(BY)]
-        trapkey='trap'
         B=[[1.0 if flow(f,x,y,targets)[0].startswith('trap') else 0.0 for y in bys] for x in bxs]
         for line in contours(B,bxs,bys,0.5):
             if len(line)<3: continue
@@ -103,8 +103,8 @@ def panel(f,X0,X1,Y0,Y1,levels,zero_sets,stationary,targets,starts,scale,title,N
     out.append('\\end{tikzpicture}'); return out
 
 
-# ---------- regular, asymmetric variant: c1 = x1^2 - x2^2 - 4, c2 = x1 + A x2 - B ----------
-A=float(_opt.get("a","0.15")); B=float(_opt.get("b","2.5"))
+# ---------- the instance: c1 = x1^2 - x2^2 - 4, c2 = x1 + A x2 - B (manuscript: A = 0, B = 4) ----------
+A=float(_opt["a"]); B=float(_opt["b"])
 def c1(x1,x2): return x1*x1-x2*x2-4
 def c2(x1,x2): return x1+A*x2-B
 def sp(t,q): return math.copysign(abs(t)**q,t)
@@ -136,7 +136,7 @@ def stationary_points(g1,g2,p,X0,X1,Y0,Y1):
             kind='MIN' if (det>0 and tr>0) else ('MAX' if (det>0 and tr<0) else 'saddle')
             found.append((x,y,kind))
     return found
-X0,X1,Y0,Y1=[float(v) for v in _opt.get("frame","-3,3,-2,2").split(",")]; SCALE=float(_opt.get("scale","0.78"))
+X0,X1,Y0,Y1=[float(v) for v in _opt["frame"].split(",")]; SCALE=float(_opt["scale"])
 qa,qb,qc=A*A-1,-2*A*B,B*B-4; disc=math.sqrt(qb*qb-4*qa*qc)
 feas=[(B-A*y,y) for y in ((-qb+disc)/(2*qa),(-qb-disc)/(2*qa))]
 for (fx,fy) in feas:
@@ -158,7 +158,7 @@ for (g1,g2),p,title in pan:
         if k=='MIN': nt+=1; targets['trap%d'%nt]=(x,y); stat.append(('trap',(x,y))); tref=f(x,y)
         elif k=='saddle': stat.append(('saddle',(x,y)))
     if tref is None: tref=f(-1.7,0)
-    starts=[tuple(float(v) for v in s.split(":")) for s in _opt.get("starts","-2.6:1.6,0.6:1.6").split(",")]
+    starts=[tuple(float(v) for v in s.split(":")) for s in _opt["starts"].split(",")]
     out+=panel(f,X0,X1,Y0,Y1,levels(f,tref),zs,stat,targets,starts,SCALE,title)
 out.append(r"""\caption{Contour plots of the infeasibility merit for the constraints $c_1(x) = x_1^2 - x_2^2 - 4 = 0$ (blue) and $c_2(x) = x_1 - 4 = 0$ (red). The feasible set is the two points $(4, \pm\sqrt{12})$ (stars), where the line crosses the hyperbola and the constraint Jacobian has full rank. White curves are level sets of the infeasibility merit $\Theta(x) = \sum_i \gamma_i |c_i(x)|^p/p$ (see Theorem~\ref{thm:merit} for a rigorous definition); a filled dot is a spurious local minimizer of $\Theta$, at which the two constraint gradients are parallel, and open dots represent saddles of $\Theta$. The dashed curve traces the boundary of the spurious minimizer's basin of attraction, and the two thin paths are steepest-descent paths of $\Theta$ from two starting points. (a) With unit weights and the quadratic kernel à la vanilla ALM, a path started left of the dashed curve ends infeasible; (b) weight $4$ for the second constraint and (c) a polynomial kernel both remove the spurious minimizer, hence every path ends at a feasible point.}""")
 out.append('\\label{fig:example-degenerate}\\end{figure}')

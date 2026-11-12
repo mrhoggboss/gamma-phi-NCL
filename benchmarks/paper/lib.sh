@@ -135,7 +135,7 @@ run_cpu_pool() {
 
 # compile_tables <file.tex>...: compile every fragment in its own document with the manuscript's page geometry and
 # packages (11pt article, letterpaper, margin 1in; booktabs, longtable, tikz with shapes.geometric and arrows.meta,
-# the \claudegreen caption macro),
+# and the \claudegreen macro, which the manuscript defines; no float uses it),
 # two passes (the longtable column widths settle on the second), and FAIL if a fragment does not compile or has an
 # Overfull \hbox wider than 2 pt; a fragment holding a longtable (the appendix tables, set on physical landscape
 # pages) also FAILS unless every page of its PDF is wider than tall (pdfinfo page sizes). Prints one line per fragment.
@@ -152,7 +152,7 @@ compile_tables() {
             echo '\usepackage[letterpaper,margin=1in]{geometry}'
             echo '\usepackage{amsmath,amssymb,booktabs,longtable,multirow,array,graphicx,xcolor}'
             echo '\usepackage{tikz}\usetikzlibrary{shapes.geometric,arrows.meta}'
-            echo '\newcommand{\claudegreen}[1]{{\color{green!45!black}#1}}'   # the manuscript's macro (used in captions)
+            echo '\newcommand{\claudegreen}[1]{{\color{green!45!black}#1}}'   # defined by the manuscript; no float uses it
             echo '\begin{document}'
             echo "\\input{$n}"
             echo '\end{document}'

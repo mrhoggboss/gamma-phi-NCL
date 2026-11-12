@@ -4,4 +4,4 @@ scopf_pglib: 18 instances, constr_viol_tol 0.0001
   $\varphi$-NCL [U6A]          r1:13 r2:17 r3:16                16   2037.5
   MadNCL [S]                   r1:1 r2:1 r3:0                    0      ---
   MadNCL + parameters [SP]     r1:4 r2:6 r3:8                    6   3316.2
-  LiftedKKT $\epsilon=10^{-8}$ [liftedkkt] r1:7 r2:7 r3:11                   8   4479.9
+  LiftedKKT $\varepsilon=10^{-8}$ [liftedkkt] r1:7 r2:7 r3:11                   8   4479.9
