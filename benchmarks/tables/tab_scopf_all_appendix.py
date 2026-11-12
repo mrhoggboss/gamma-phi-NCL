@@ -23,8 +23,8 @@ from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUI
                     fmt, gm, rep_cell, success, suite_scores, write)
 from tab_gpu_scopf_all import buses, load, tex
 
-# Caption: the manuscript's (Yifan, Overleaf 0eae8ef), verbatim (captions are Yifan's).
-CAPTION = ("Detailed results of the solvers on all 41 security-constrained optimal power flow problems formulated as MPCCs. "
+# Caption: the manuscript's (Yifan, Overleaf 0eae8ef; "SCOPF" abbreviated 2026-11-13), verbatim (captions are Yifan's).
+CAPTION = ("Detailed results of the solvers on all 41 SCOPF problems formulated as MPCCs. "
            "For each repetition, we report either the number of factorizations needed for the successful solve, or the "
            "reason for the non-solve.")
 

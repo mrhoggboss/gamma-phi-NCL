@@ -13,10 +13,11 @@ Usage: python3 benchmarks/tables/tab_gpu_opf.py <resdir> [--cvtol=<t>] [--out=<d
 import sys
 from common import DEFAULT_OUT, NAMES, assert_no_tokens, count_cell, find, fmt, ordered, read_cvtol, read_rows, suite_scores, write
 
-# Caption: the manuscript's (Yifan's hand edit of tables/tab_gpu_opf.tex at Overleaf c4923de), verbatim (captions are
+# Caption: the manuscript's (Yifan's hand edit of tables/tab_gpu_opf.tex at Overleaf c4923de; "OPF" abbreviated
+# 2026-11-13), verbatim (captions are
 # Yifan's). "$66$" and "three" are the manuscript's words: the instance count and the number of repetitions of the
 # banked runs (the table itself counts whatever instances and tags are in the result directory).
-CAPTION = ("The performance of the solvers on $66$ PGLIB optimal power flow instances. Each repetition is an independent "
+CAPTION = ("The performance of the solvers on $66$ PGLIB OPF instances. Each repetition is an independent "
            "run on the same device. An instance is \\emph{solved} when the majority of its three repetitions solve, and the "
            "cost is the geometric mean over that set of the median factorization count of the succeeding repetitions.")
 
