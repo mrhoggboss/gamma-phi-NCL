@@ -8,7 +8,7 @@ once) and m_eq = number of equality rows. A solve counts when the solver's own t
 is within the cap; for the MadNLP baselines, which have no constraint-violation test, also when the returned
 point's raw violation is within the run's constr_viol_tol (post-hoc guard; the unguarded count in parentheses). Cost = geometric mean of factorizations over the configuration's own solved set (Ipopt
 records iterations instead, a lower bound); iterations = geometric mean of interior-point iterations over the
-same set, zero-iteration solves excluded.
+same set, zero-iteration solves excluded (printed on the console only; the manuscript's table no longer shows them).
 
 Usage: python3 benchmarks/tables/tab_cutest.py <resdir> [--cap=3600] [--cvtol=<t>] [--out=<dir>]
 """
@@ -16,15 +16,15 @@ import os, sys
 from common import (DEFAULT_OUT, LOOSE_STATUS, NAMES, assert_no_tokens, count_cell, cutest_excluded, drop_cutest_excluded, find, fmt,
                     gm, ordered, read_cvtol, read_rows, solved, solved_loose, success, write)
 
-# Caption: the manuscript's (Overleaf 498801f, Yifan's hand edit of tables/tab_cutest_ma57.tex), verbatim (captions are
-# Yifan's); "@NPOP@" is filled with the population count (the run's instances minus the population rule's exclusions,
-# benchmarks/instances/cutest_excluded_x0.txt). At the same edit Yifan commented out the iterations block (emitted
-# below as "% " lines, so that the file stays byte-identical to the manuscript's) and removed the dagger note after the
-# tabular (its content moved into the caption).
-CAPTION = ("The performance of the solvers on @NPOP@ CUTEst instances. Iterations are the geometric mean of interior-point "
-           "iterations over the same set. \\textbf{Ipopt}'s cost is shown as a lower bound since its factorization counter "
-           "is not exposed. $^{\\dagger}$\\,In parentheses, also counting \\textbf{Ipopt}'s acceptable-level exit "
-           "(tolerance $10^{-6}$).")
+# Caption: the manuscript's (Overleaf 498801f, Yifan's hand edit of tables/tab_cutest_ma57.tex, with the iterations
+# sentence removed on 2026-11-12: "we never measure iterations, so we remove it; the dagger note is moved to the
+# caption"), verbatim (captions are Yifan's); "@NPOP@" is filled with the population count (the run's instances minus
+# the population rule's exclusions, benchmarks/instances/cutest_excluded_x0.txt). At 498801f Yifan also commented out
+# the iterations block (deleted at 8c9eb60, so it is not emitted) and removed the dagger note after the tabular (its
+# content moved into the caption).
+CAPTION = ("The performance of the solvers on @NPOP@ CUTEst instances. \\textbf{Ipopt}'s cost is shown as a lower bound since "
+           "its factorization counter is not exposed. $^{\\dagger}$\\,In parentheses, also counting \\textbf{Ipopt}'s "
+           "acceptable-level exit (tolerance $10^{-6}$).")
 
 
 def main(argv):
@@ -75,9 +75,8 @@ def main(argv):
     T += ["\\\\[-6pt]", "\\multicolumn{5}{l}{\\emph{cost: geometric mean of factorizations over the solved set}}\\\\"]
     T += [f"{NAMES.get(c, c)} & " + " & ".join(("$\\geq$~" if c == "ipopt" and g == g else "") + fmt(g)
                                                 for _, g, _, _, _ in cells[c]) + " \\\\" for c in configs]
-    # the iterations block, commented out in the manuscript (Yifan, Overleaf 498801f)
-    T += ["% \\\\[-6pt]", "% \\multicolumn{5}{l}{\\emph{geometric mean of iterations over the solved set}}\\\\"]
-    T += [f"% {NAMES.get(c, c)} & " + " & ".join(fmt(i) for _, _, i, _, _ in cells[c]) + " \\\\" for c in configs]
+    # no iterations block: commented out by Yifan at Overleaf 498801f, deleted at 8c9eb60 (the means are still computed
+    # and printed on the console)
     T += ["\\bottomrule\\end{tabular}"]
     T += ["\\end{table}"]
     assert_no_tokens("\n".join(T))
