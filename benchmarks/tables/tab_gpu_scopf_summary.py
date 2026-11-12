@@ -13,8 +13,8 @@ import sys
 from common import DEFAULT_OUT, NAMES, assert_no_tokens, count_cell, fmt, suite_scores, write
 from tab_gpu_scopf_all import load   # the merged 23 + 18 result sets, in the row order of the appendix table
 
-# TODO(caption): a draft mirroring the PGLIB caption (tab_gpu_opf.py); captions are Yifan's, port his wording verbatim.
-CAPTION = ("[DRAFT CAPTION] The performance of the solvers on ${n}$ security-constrained optimal power flow instances. Each "
+# Caption: the manuscript's (Yifan, Overleaf 0eae8ef), verbatim (captions are Yifan's); "{n}" is the instance count (41).
+CAPTION = ("The performance of the solvers on ${n}$ security-constrained optimal power flow instances. Each "
            "repetition is an independent run on the same device. An instance is \\emph{{solved}} when the majority of its "
            "three repetitions solve, and the cost is the geometric mean over that set of the median factorization count of "
            "the succeeding repetitions.")

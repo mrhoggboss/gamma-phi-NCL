@@ -257,25 +257,24 @@ def letter(r, c, cvtol):
 
 
 # Per-repetition cells of the two per-instance appendix tables (tab_pglib_appendix, tab_scopf_all_appendix; Yifan
-# 2026-11-12): the factorization count of a repetition that solves, else one failure code. The codes reuse the LETTER
-# set, plus R and D; FAIL_LEGEND is the caption text that defines them.
-FAIL_CODE = {"INFEASIBLE_PROBLEM_DETECTED": "I", "MAXIMUM_ITERATIONS_EXCEEDED": "M", "MAXIMUM_WALLTIME_EXCEEDED": "W",
-             "RESTORATION_FAILED": "R", "SEARCH_DIRECTION_BECOMES_TOO_SMALL": "D"}
-FAIL_LEGEND = ("I, local infeasibility declared; M, iteration limit; W, wall-time limit; R, restoration failed; D, step "
-               "too small; E, evaluation or other error")
+# 2026-11-12): the factorization count of a repetition that solves, else the reason for the non-solve as one short italic
+# word, one vocabulary for both tables (Yifan's captions at Overleaf 0eae8ef define no codes).
+FAIL_WORD = {"INFEASIBLE_PROBLEM_DETECTED": "infeasible", "MAXIMUM_ITERATIONS_EXCEEDED": "iter.\\ limit",
+             "MAXIMUM_WALLTIME_EXCEEDED": "wall", "RESTORATION_FAILED": "restoration",
+             "SEARCH_DIRECTION_BECOMES_TOO_SMALL": "small step"}
 
 
 def rep_cell(r, c, cvtol):
     """The cell of one repetition: its factorization count if it solves (the scoring of the tables: success, with the
-    post-hoc guard for the GUARDED solvers), else its failure code (E for any status outside FAIL_CODE). A missing row or
-    a solve removed by the guard has no code in FAIL_LEGEND: it raises, so that the caption is revised first."""
+    post-hoc guard for the GUARDED solvers), else \\textit{<reason>} (FAIL_WORD; "error" for any other status). A missing
+    row or a solve removed by the guard has no word: it raises, so that the vocabulary is extended first."""
     if r is None:
         raise SystemExit(f"rep_cell: no row for {c}; the failure codes of the caption have none for a missing run")
     if success(r, c, None, cvtol):
         return f"{float(r['nfact']):.0f}"
     if r["status"] in SUCCESS:
         raise SystemExit(f"rep_cell: a {c} solve removed by the post-hoc guard; the caption's codes have none for it")
-    return FAIL_CODE.get(r["status"], "E")
+    return "\\textit{" + FAIL_WORD.get(r["status"], "error") + "}"
 
 
 def suite_scores(rows_by_tag, names, config, cvtol):
