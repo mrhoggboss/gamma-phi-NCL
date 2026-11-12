@@ -1,17 +1,18 @@
 post-hoc violation guard on ['liftedkkt', 'madnlp']: viol <= 0.0001; Ipopt solved = first_order only (n+ = also counting its acceptable-level exit, as earlier campaigns did)
+population rule: 10 instances excluded, every configuration (benchmarks/instances/cutest_excluded_x0.txt): DITTERT LHAIFAM LIN NET2 NET3 NET4 S365 S365MOD STEENBRD STEENBRE
 configuration                solver  rows  solved raw  non-trap  traps  gm fact  gm iter
-W                              ma57  1070         804   795/936      9     35.4     26.8
-U6A                            ma57  1070         817   804/936     13     60.5     48.5
-S                              ma57  1070         768   761/936      7     33.0     15.2
-SP                             ma57  1070         783   776/936      7     34.9     16.3
-liftedkkt                      ma57  1070   774 (775)   764/936     10     35.6     26.2
-ipopt                          ma57  1070  785 (791+)   774/936     11     20.8     20.8
-madnlp                         ma57  1070   763 (765)   753/936     10     28.9     20.7
+W                              ma57  1060         803   794/926      9     35.4     26.8
+U6A                            ma57  1060         816   803/926     13     60.6     48.5
+S                              ma57  1060         767   760/926      7     33.0     15.3
+SP                             ma57  1060         782   775/926      7     35.0     16.3
+liftedkkt                      ma57  1060   768 (769)   758/926     10     35.3     26.0
+ipopt                          ma57  1060  781 (787+)   770/926     11     20.7     20.7
+madnlp                         ma57  1060   758 (760)   748/926     10     28.8     20.6
 
 co-solved with W [ma57] (gm factorizations on the shared set, W / other):
-  U6A          shared   783      33.9 /     57.4  only W   21  only U6A   34
-  S            shared   747      31.2 /     31.7  only W   57  only S   21
-  SP           shared   754      32.5 /     32.6  only W   50  only SP   29
-  liftedkkt    shared   727      31.9 /     32.3  only W   77  only liftedkkt   47
-  ipopt        shared   739      34.6 /     19.5  only W   65  only ipopt   46
-  madnlp       shared   720      33.4 /     26.4  only W   84  only madnlp   43
+  U6A          shared   782      34.0 /     57.5  only W   21  only U6A   34
+  S            shared   746      31.2 /     31.8  only W   57  only S   21
+  SP           shared   753      32.5 /     32.7  only W   50  only SP   29
+  liftedkkt    shared   726      32.0 /     32.4  only W   77  only liftedkkt   42
+  ipopt        shared   738      34.7 /     19.5  only W   65  only ipopt   43
+  madnlp       shared   719      33.4 /     26.4  only W   84  only madnlp   39

@@ -17,10 +17,11 @@ one line per float, `IDENTICAL`, or `DIFFERS` followed by the first lines of the
 eight are identical. It takes about a minute, runs from any directory, and writes only under `benchmarks/out/paper/`
 (gitignored; `PAPER_OUT=<dir>` moves it). Requirements: bash, Python 3 (standard library only), and `pdflatex` (with
 booktabs, longtable, geometry, tikz) and `pdfinfo` for the compile check; on a machine without TeX,
-`REPRO_NOCOMPILE=1 ./reproduce.sh` skips the compile check and still compares. Output (2026-11-11):
+`REPRO_NOCOMPILE=1 ./reproduce.sh` skips the compile check and still compares. Output (2026-11-12):
 
 ```
-IDENTICAL  tab_cutest_ma57
+DIFFERS    tab_cutest_ma57
+    [diff lines elided: the population counts, and the counts and means under the CUTEst population rule below]
 IDENTICAL  tab_gpu_opf
 IDENTICAL  tab_pglib_appendix
 IDENTICAL  tab_gpu_scopf
@@ -28,8 +29,12 @@ IDENTICAL  tab_scopf_config
 IDENTICAL  tab_gpu_scopf_pglib
 IDENTICAL  tab_scopf_pglib_appendix
 IDENTICAL  fig_example_degenerate
-reproduce.sh: all 8 floats IDENTICAL to manuscript/
+reproduce.sh: 1 of 8 floats differ from manuscript/ (emit rc 0)
 ```
+
+`tab_cutest_ma57` differs by design since 2026-11-12: the CUTEst emitters now apply the population rule of the CUTEst
+section below (10 instances excluded, 1060 scored), and `manuscript/` still holds the manuscript's 1070-instance table
+(Overleaf `f5b534b`) until the manuscript takes the new one. Before the rule all eight were identical (2026-11-11).
 
 ```bash
 ./reproduce.sh rerun all --device 0
@@ -72,9 +77,11 @@ benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes
 ```
 
 That command writes exactly the eight files above, every one of them compiles at the manuscript's page geometry
-(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all eight are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `f5b534b`; `./reproduce.sh` makes that comparison), and the console
-summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-11).
+(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), seven of the eight are
+byte-identical to the manuscript's files (`manuscript/`, Overleaf commit `f5b534b`; `./reproduce.sh` makes that
+comparison) and the eighth, `tab_cutest_ma57`, differs by the CUTEst population rule only (see "One command"), and the
+console summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst
+summary was rewritten that day under the population rule).
 
 Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column but the timing columns (the CPU solvers
 are deterministic; a solve that ends at its wall-time cap can stop at a different iteration) and **to within GPU
@@ -106,7 +113,20 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
 ## Table `tab:cutest` — CUTEst on the CPU
 
 - Data: the 1070 constrained CUTEst problems of `benchmarks/instances/cutest_pop1070.txt`, fetched and decoded by
-  CUTEst.jl (the driver decodes missing ones before the run).
+  CUTEst.jl (the driver decodes missing ones before the run). Every configuration is run on all 1070.
+- Population rule (2026-11-12): an instance is excluded when its objective gradient, its constraint values or its
+  constraint Jacobian is not finite at the starting point CUTEst provides (x0 as given, not projected into the
+  bounds), which makes the comparison between the interior-point baselines and the augmented-Lagrangian
+  configurations fair (Yifan, 2026-11-12): the four augmented-Lagrangian configurations stop on 9 of these instances
+  with `InvalidNumberException` (:grad, :cons or :jac) before any iteration, whereas LiftedKKT solves 5 of those 9,
+  MadNLP-augmented 4 and Ipopt 3; all seven configurations solve the tenth, LIN. The census
+  `benchmarks/instances/cutest_x0_census.csv` (f, grad f, c, J and the bound check at x0 for all 1070, written by
+  `julia --project=benchmarks/envs/cpu benchmarks/cutest_x0_census.jl`) defines the 10 excluded
+  instances of `benchmarks/instances/cutest_excluded_x0.txt`: DITTERT, LHAIFAM, LIN, NET2, NET3, NET4, S365, S365MOD,
+  STEENBRD, STEENBRE (6 in the regular tier, 4 in the other m > n class; none has m_eq > n). The emitters
+  (`benchmarks/tables/common.py`, `cutest_excluded`) drop every configuration's rows of those instances, baselines
+  included, before scoring, so the table and the summary score **1060** instances (709 regular, 179 with
+  m_eq > n, 172 other m > n); the result CSVs keep all 1070 rows.
 - Run (all seven configurations: S, SP, W, U6A, liftedkkt, ipopt, madnlp; MA57, 30 workers, 3600 s per solve):
 
   ```bash
@@ -287,7 +307,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
 | `benchmarks/models/` | the AC-OPF model (ExaModels) and the SCOPF-as-MPCC model (JuMP + PowerModels; from the MadNCL paper's harness and github.com/frapac/pscc-scopf) |
-| `benchmarks/instances/` | instance lists (CUTEst 1070 and its certified traps, used by the CUTEst summary; PGLIB 66; SCOPF 23 and 18), contingency lists, data fetch scripts and sha256 manifests |
+| `benchmarks/instances/` | instance lists (CUTEst 1070, its certified traps, used by the CUTEst summary, and its x0 census and the population rule's 10 exclusions; PGLIB 66; SCOPF 23 and 18), contingency lists, data fetch scripts and sha256 manifests |
 | `benchmarks/scopf_protocol/` | the generation protocol of the 18 protocol SCOPF instances: scripts, records, list builder |
 | `benchmarks/tables/`, `benchmarks/figures/` | the emitters (Python, standard library only) |
 | `benchmarks/paper/` | `chain_cpu.sh`, `chain_gpu.sh`, `emit.sh`, their shared `lib.sh`, `watch.sh` (stall watchdog), `gpu_device.sh` (device gate) |

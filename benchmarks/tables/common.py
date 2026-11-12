@@ -87,6 +87,24 @@ def read_rows(path, key):
         return {r[key]: r for r in csv.DictReader(f)}
 
 
+# The CUTEst population rule (Yifan 2026-11-12): an instance is excluded when its objective gradient, its constraint
+# values or its constraint Jacobian is not finite at the starting point CUTEst provides. The names, with the rule and the
+# census that defines them (benchmarks/instances/cutest_x0_census.csv, benchmarks/cutest_x0_census.jl) as provenance, are
+# in benchmarks/instances/cutest_excluded_x0.txt. Every configuration's rows of those instances, baselines included, are
+# dropped before scoring; the result CSVs keep them.
+CUTEST_EXCLUDED = os.path.join(os.path.dirname(HERE), "instances", "cutest_excluded_x0.txt")
+
+
+def cutest_excluded(path=CUTEST_EXCLUDED):
+    """The excluded CUTEst names (one per line; '#' starts a comment)."""
+    return {s for s in (l.split("#", 1)[0].strip() for l in open(path)) if s}
+
+
+def drop_cutest_excluded(rows, excluded):
+    """`rows` ({name: row}) without the excluded instances."""
+    return {n: r for n, r in rows.items() if n not in excluded}
+
+
 def find(resdir, pattern):
     """Files matching `pattern` (a regex with one group for the configuration and optionally one for the
     tag) under `resdir`, as {config: {tag: path}}."""

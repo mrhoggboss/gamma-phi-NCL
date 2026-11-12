@@ -1,0 +1,17 @@
+# CUTEst instances excluded from the population (Yifan 2026-11-12): an instance is excluded when its objective gradient,
+# its constraint values or its constraint Jacobian is not finite at the starting point CUTEst provides (x0 as given, not
+# projected into the bounds). Defined by data: benchmarks/instances/cutest_x0_census.csv, written by
+# benchmarks/cutest_x0_census.jl (f, grad f, c and J evaluated at x0 for every instance of cutest_pop1070.txt; columns
+# finite_grad, finite_c, finite_jac). The emitters (benchmarks/tables/common.py, cutest_excluded) drop every
+# configuration's rows of these instances, baselines included, before scoring; the result CSVs keep the rows.
+# name        first non-finite value at x0 (census)   x0 within its bounds
+DITTERT     # grad[1] = NaN                            no (20 components, by 1e-6 at most)
+LHAIFAM     # c[3] = NaN                               yes
+LIN         # f = NaN, grad NaN                        no (2 components, by 1e-12 at most)
+NET2        # f = NaN, grad, c and J NaN               no (18 components, up to 499)
+NET3        # f = NaN, grad, c and J NaN               no (41 components, up to 500)
+NET4        # f = NaN, grad, c and J NaN               no (5904 components, up to 500)
+S365        # J[7] = NaN                               no (1 component, by 1)
+S365MOD     # J[7] = NaN                               no (1 component, by 1)
+STEENBRD    # f = NaN, grad NaN                        no (2 components, up to 1999.9)
+STEENBRE    # f = NaN, grad NaN                        no (2 components, up to 1999.9)

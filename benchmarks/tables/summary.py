@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Console summary of a CUTEst run (benchmarks/cutest.jl): solved counts, raw and without the
 certified traps, the geometric mean of factorizations over each configuration's own solved set, and
-co-solved pairs against a reference configuration.
+co-solved pairs against a reference configuration, without the instances of the population rule
+(benchmarks/instances/cutest_excluded_x0.txt: grad f, c or J not finite at CUTEst's x0; every configuration).
 
 The MadNLP baselines (LiftedKKT, augmented) have no constraint-violation test: their successes count only
 if the returned point's raw violation is within the run's constr_viol_tol (post-hoc guard); the unguarded
@@ -14,7 +15,8 @@ Usage: python3 benchmarks/tables/summary.py <resdir> [--traps=<file>] [--cap=<se
   --cvtol  the guard's tolerance (default: constr_viol_tol from the run's config.txt)
 """
 import os, sys
-from common import GUARDED, HERE, LOOSE_STATUS, NAMES, find, gm, ordered, read_cvtol, read_rows, solved, solved_loose, success
+from common import (GUARDED, HERE, LOOSE_STATUS, NAMES, cutest_excluded, drop_cutest_excluded, find, gm, ordered, read_cvtol,
+                    read_rows, solved, solved_loose, success)
 
 
 def main(argv):
@@ -30,10 +32,13 @@ def main(argv):
     print(f"post-hoc violation guard on {sorted(GUARDED)}: viol <= {cvtol:g}; Ipopt solved = first_order only "
           f"(n+ = also counting its acceptable-level exit, as earlier campaigns did)")
     files = find(resdir, r"cutest__(.+?)__(ma57|ldl)\.csv")
+    excluded = cutest_excluded()
+    print(f"population rule: {len(excluded)} instances excluded, every configuration "
+          f"(benchmarks/instances/cutest_excluded_x0.txt): {' '.join(sorted(excluded))}")
     data = {}
     for cfg, by in files.items():
         for solver, p in by.items():
-            data[(cfg, solver)] = read_rows(p, "name")
+            data[(cfg, solver)] = drop_cutest_excluded(read_rows(p, "name"), excluded)
     print(f"{'configuration':<28}{'solver':>7}{'rows':>6}{'solved raw':>12}{'non-trap':>10}{'traps':>7}{'gm fact':>9}{'gm iter':>9}")
     for cfg in ordered({c for c, _ in data}):
         for solver in ("ma57", "ldl"):
