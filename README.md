@@ -58,8 +58,8 @@ informational there and the exit status is that of the emit.
 | SCOPF protocol appendix | `tab:scopf-pglib-appendix` | `tables/tab_scopf_pglib_appendix.tex` | `benchmarks/tables/tab_scopf_pglib_appendix.py` |
 | example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all seven tables and the figure (checked 2026-11-11 against its Overleaf commit `9254149`:
-line 72 of the manuscript's source for the figure, lines 846, 856, 867, 869, 870, 889 and 890 for the tables);
+The manuscript `\input`s all seven tables and the figure (checked 2026-11-11 against its Overleaf commit `8258bba`:
+line 72 of the manuscript's source for the figure, lines 841, 851, 862, 864, 865, 884 and 885 for the tables);
 `manuscript/` holds those eight files.
 
 ## What "reproduced" means here
@@ -73,7 +73,7 @@ benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes
 
 That command writes exactly the eight files above, every one of them compiles at the manuscript's page geometry
 (`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all eight are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `9254149`; `./reproduce.sh` makes that comparison), and the console
+manuscript's files (`manuscript/`, Overleaf commit `8258bba`; `./reproduce.sh` makes that comparison), and the console
 summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-11).
 
 Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column but the timing columns (the CPU solvers
@@ -195,7 +195,7 @@ python3 benchmarks/figures/make_fig_example_degenerate.py --out=<dir>     # ~20 
 ```
 
 Plain Python (standard library). Writes `<dir>/fig_example_degenerate.tex` (TikZ; needs `\usetikzlibrary{shapes.geometric,
-arrows.meta}`), byte-identical to the manuscript's `figures/fig_example_degenerate.tex` (sha256 `3d75f2ef…02465`). The
+arrows.meta}`), byte-identical to the manuscript's `figures/fig_example_degenerate.tex` (sha256 `edf7788c…87ce2`). The
 instance is c1(x) = x1² − x2² − 4 = 0, c2(x) = x1 − 4 = 0 with no objective; the three panels draw the level sets of the
 selected merit for (γ, p) = ((1, 1), 2), ((1, 4), 2) and ((1, 1), 6), its stationary points, the basin boundary of the
 spurious minimizer and two steepest-descent paths (the generator's docstring has the details).
@@ -282,7 +282,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `9254149`), the reference of `reproduce.sh` |
+| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `8258bba`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
@@ -326,5 +326,6 @@ every option value is identical (checked on the CUTEst smoke run, and between th
   commit `e55ef05` were byte-identical to its files, and the two protocol-set tables, not yet `\input` there, were
   byte-identical to the `gamma-phi-ncl` emissions; at Overleaf commit `6d581d7` all eight were byte-identical
   (2026-11-11). At Overleaf commit `9254149` the example moved to the introduction as a regular instance and the figure
-  was regenerated (its generator replaced this repository's); the seven tables are unchanged, and all eight are
-  byte-identical (`manuscript/`, 2026-11-11).
+  was regenerated (its generator replaced this repository's); at Overleaf commit `8258bba` the figure's caption and
+  panel labels are Yifan's final wording (carried into the generator); the seven tables are unchanged since `6d581d7`,
+  and all eight are byte-identical (`manuscript/`, 2026-11-11).

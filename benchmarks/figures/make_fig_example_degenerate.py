@@ -147,7 +147,7 @@ zs=[('blue!70!black, line width=0.9pt',hyp(1)),('blue!70!black, line width=0.9pt
 def levels(f,tref,n=8):
     vals=[f(x,y) for x in (X0,X1) for y in (Y0,Y1)]; tmax=max(vals)
     base=max(tref*0.2,1e-3); return [base*(tmax/base)**((k+0.5)/n) for k in range(n)]
-pan=[((1,1),2,'(a) $\\gamma=(1,1)$, $p=2$'),((1,4),2,'(b) $\\gamma=(1,4)$, $p=2$'),((1,1),6,'(c) $\\gamma=(1,1)$, $p=6$')]
+pan=[((1,1),2,'(a) $\\gamma=(1,1)$, $\\varphi(t)=\\frac{1}{2}t^2$'),((1,4),2,'(b) $\\gamma=(1,4)$, $\\varphi(t)=\\frac{1}{2}t^2$'),((1,1),6,'(c) $\\gamma=(1,1)$, $\\varphi(t)=\\frac{1}{2}t^2 + \\frac{1}{50} t^6$')]
 out=['%% GENERATED: regular instance x1^2-x2^2-4=0, x1-%g=0 (no objective); level sets of the selected merit, stationary points, basin separatrix, steepest-descent paths.'%B,'\\begin{figure}[t]\\centering']
 for (g1,g2),p,title in pan:
     f=theta(g1,g2,p); pts=stationary_points(g1,g2,p,X0,X1,Y0,Y1)
@@ -160,8 +160,8 @@ for (g1,g2),p,title in pan:
     if tref is None: tref=f(-1.7,0)
     starts=[tuple(float(v) for v in s.split(":")) for s in _opt.get("starts","-2.6:1.6,0.6:1.6").split(",")]
     out+=panel(f,X0,X1,Y0,Y1,levels(f,tref),zs,stat,targets,starts,SCALE,title)
-out.append(r"""\caption{A regular instance: $c_1(x) = x_1^2 - x_2^2 - 4 = 0$ (blue) and $c_2(x) = x_1 - 4 = 0$ (red), with no objective. The feasible set is the two points $(4, \pm\sqrt{12})$ (stars), where the line crosses the hyperbola and the constraint Jacobian has full rank. White curves are level sets of the selected merit $\Theta(x) = \sum_i \gamma_i |c_i(x)|^p/p$; a filled dot is a spurious local minimizer of $\Theta$, an open dot a saddle, the dashed curve the boundary of the spurious minimizer's basin, and the two thin paths are steepest-descent paths of $\Theta$ from two starting points. With unit weights and the quadratic kernel (a), a path started left of the dashed curve ends infeasible; weight $4$ on the line (b) and the power kernel with $p = 6$ (c) both remove the spurious minimizer, and every path ends at a feasible point.}""")
+out.append(r"""\caption{Contour plots of the infeasibility merit for the constraints $c_1(x) = x_1^2 - x_2^2 - 4 = 0$ (blue) and $c_2(x) = x_1 - 4 = 0$ (red). The feasible set is the two points $(4, \pm\sqrt{12})$ (stars), where the line crosses the hyperbola and the constraint Jacobian has full rank. White curves are level sets of the infeasibility merit $\Theta(x) = \sum_i \gamma_i |c_i(x)|^p/p$ (see Theorem~\ref{thm:merit} for a rigorous definition); a filled dot is a spurious local minimizer of $\Theta$, at which the two constraint gradients are parallel, and open dots represent saddles of $\Theta$. The dashed curve traces the boundary of the spurious minimizer's basin of attraction, and the two thin paths are steepest-descent paths of $\Theta$ from two starting points. (a) With unit weights and the quadratic kernel à la vanilla ALM, a path started left of the dashed curve ends infeasible; (b) weight $4$ for the second constraint and (c) a polynomial kernel both remove the spurious minimizer, hence every path ends at a feasible point.}""")
 out.append('\\label{fig:example-degenerate}\\end{figure}')
 os.makedirs(OUTDIR, exist_ok=True)
-open(os.path.join(OUTDIR, 'fig_example_degenerate.tex'),'w').write('\n'.join(out)+'\n')
+open(os.path.join(OUTDIR, 'fig_example_degenerate.tex'),'w',encoding='utf-8').write('\n'.join(out)+'\n')
 print('wrote', os.path.join(OUTDIR, 'fig_example_degenerate.tex'))
