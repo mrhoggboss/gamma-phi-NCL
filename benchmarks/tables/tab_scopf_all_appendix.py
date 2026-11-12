@@ -1,49 +1,30 @@
 #!/usr/bin/env python3
-"""tab_scopf_all_appendix — the 41 SCOPF instances (see tab_gpu_scopf_all), one row each (appendix table): the
-layout of tab_scopf_pglib_appendix over the 23 reference-list instances and the 18 protocol instances. Not a float of
-the manuscript yet (emit.sh scopf_all; reproduce.sh does not compare it). Label tab:scopf-appendix, the label the
-manuscript text cites for the merged appendix.
+"""tab_scopf_all_appendix — the 41 SCOPF instances, one row each (manuscript float tab:scopf-appendix, the appendix
+table; the summary over the 41 is tab_gpu_scopf_summary): the 23 reference-list instances and the 18 protocol
+instances.
 
-Reads <scopf resdir>/scopf__<config>__<tag>.csv and <scopf_pglib resdir>/scopf_pglib__<config>__<tag>.csv. Rows in
-the order of tab_gpu_scopf_all (one thin rule between the reference and the protocol networks); columns: buses and the
-number of variables, then per configuration the interior-point iterations and factorizations, the wall time as an
-informational column, and the status of every repetition (S solved, M iteration limit, I infeasible, W wall-time
-limit, A acceptable level, D search direction too small, R restoration failed, V solve removed by the post-hoc guard,
-E error, - not run; D and R, absent from the protocol set, are added here, with the short names "small step" and
-"restoration failed" for a non-solve). With several repetitions an
-instance is solved when a strict majority of them succeeds, and the cells are the medians over the succeeding
-repetitions; a non-solve shows the most frequent status. LiftedKKT (MadNLP) has no constraint-violation test: its
-solves count only if the returned point's raw violation (pr_res) is within the run's constr_viol_tol (post-hoc guard).
-The footer is computed with the scoring of the other GPU tables (benchmarks/tables/common.suite_scores) and is asserted
-to equal the column sums of the rows above it.
+Reads <scopf resdir>/scopf__<config>__<tag>.csv and <scopf_pglib resdir>/scopf_pglib__<config>__<tag>.csv. Rows: the
+reference networks, one thin rule, then the protocol networks, K increasing (the order of tab_gpu_scopf_all.load);
+columns: buses and the number of variables, then per configuration one column per repetition (Yifan 2026-11-12: "list
+the factorizations (when successful) or failure reason of all three reps"): the factorization count of a repetition
+that solves, else its failure code (common.rep_cell, common.FAIL_LEGEND; no iteration, wall-time or median columns).
+LiftedKKT (MadNLP) has no constraint-violation test: its solves count only if the returned point's raw violation
+(pr_res) is within the run's constr_viol_tol (post-hoc guard). The footer gives the solved count of every repetition,
+computed with the scoring of the other GPU tables (benchmarks/tables/common.suite_scores) and asserted to equal the count
+of numeric cells above it.
 
 Usage: python3 benchmarks/tables/tab_scopf_all_appendix.py <scopf resdir> <scopf_pglib resdir> [--cvtol=<t>] [--out=<dir>]
 """
-import statistics, sys
-from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header, fmt, gm, letter,
-                    majority, majority_status, short, success, suite_scores, write)
+import sys
+from common import (DEFAULT_OUT, FAIL_LEGEND, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header,
+                    rep_cell, suite_scores, write)
 from tab_gpu_scopf_all import buses, is_pglib, load, tex
-
-# Two MadNLP statuses that occur on the reference instances (LiftedKKT) and not on the protocol set, so that the shared
-# common.LETTER/SHORT have no entry for them; mapped here only (the other emitters are unchanged).
-EXTRA_LETTER = {"SEARCH_DIRECTION_BECOMES_TOO_SMALL": "D", "RESTORATION_FAILED": "R"}
-EXTRA_SHORT = {"SEARCH_DIRECTION_BECOMES_TOO_SMALL": "small step", "RESTORATION_FAILED": "restoration failed"}
-
-
-def letter_all(r, c, cvtol):
-    return EXTRA_LETTER[r["status"]] if r is not None and r["status"] in EXTRA_LETTER else letter(r, c, cvtol)
-
-
-def short_all(st):
-    return EXTRA_SHORT.get(st) or short(st)
 
 # TODO(caption): a draft (captions are Yifan's); port his wording verbatim once he writes it.
 CAPTION = ("[DRAFT CAPTION] The 41 security-constrained complementarity problems: the reference networks with their "
            "published contingency lists, then the PGLIB networks with the protocol lists (network, screening order, number "
-           "of contingencies $K$). For each configuration, the interior-point iterations and factorizations of the solve "
-           "(the medians over the repetitions that succeed, when a strict majority of the three succeeds), the wall time in "
-           "seconds, for information, and the status of each repetition; a non-solve shows its most frequent termination "
-           "status.")
+           "of contingencies $K$). For each configuration, the factorization count of each of the three repetitions that "
+           "solves, or the code of its failure: " + FAIL_LEGEND + ".")
 
 
 def main(argv):
@@ -52,50 +33,40 @@ def main(argv):
     if len(pos) != 2:
         print(__doc__); return 2
     configs, data, names, cvtol, ref = load(pos[0], pos[1], opt)
+    tags = sorted({t for c in configs for t in data[c]})
+    assert all(sorted(data[c]) == tags for c in configs), {c: sorted(data[c]) for c in configs}
     nvar = {}
     for c in configs:
         for rows in data[c].values():
             for n, r in rows.items():
                 assert nvar.setdefault(n, r["nvar"]) == r["nvar"], (n, c, nvar[n], r["nvar"])
 
-    k = len(configs)
+    k, m = len(configs), len(tags)
     T = ["% GENERATED by benchmarks/tables/tab_scopf_all_appendix.py -- do not hand-edit.", *LANDSCAPE_REQUIRES, *LANDSCAPE_BEGIN,
-         "{\\scriptsize\\setlength{\\tabcolsep}{2.5pt}",   # 3pt in tab_scopf_pglib_appendix; at 3pt the 41 rows are 18.4pt too wide
-         "\\begin{longtable}{lrr" + "rrrc" * k + "}",
+         "{\\scriptsize",
+         "\\begin{longtable}{lrr" + "r" * (m * k) + "}",
          "\\caption{" + CAPTION + "}\\label{tab:scopf-appendix}\\\\"]
-    head = ["\\toprule"] + group_header(configs, 4, 3) + [
-            "instance & buses & $n_{\\mathrm{var}}$ & " + " & ".join("iter. & fact. & wall & reps" for _ in configs) + " \\\\\\midrule"]
+    head = ["\\toprule"] + group_header(configs, m, 3) + [
+            "instance & buses & $n_{\\mathrm{var}}$ & " + " & ".join(" & ".join(str(i + 1) for i in range(m)) for _ in configs)
+            + " \\\\\\midrule"]
     T += head + ["\\endfirsthead"] + head + ["\\endhead", "\\bottomrule", "\\endfoot"]
-    colsum = {c: {"n": 0, "fact": []} for c in configs}
+    nsol = {(c, t): 0 for c in configs for t in tags}
     for i, n in enumerate(names):
         if i and is_pglib(n) and not is_pglib(names[i - 1]):
             T.append("\\midrule")
         cells = []
         for c in configs:
-            reps = "".join(letter_all(data[c][t].get(n), c, cvtol) for t in sorted(data[c]))
-            assert "?" not in reps, (n, c, [data[c][t].get(n, {}).get("status") for t in sorted(data[c])])
-            ok, nf, it = majority(data[c], n, c, cvtol)
-            if ok:
-                walls = [float(rows[n]["wall"]) for rows in data[c].values() if n in rows and success(rows[n], c, None, cvtol)]
-                cells += [f"{it:.0f}", f"{nf:.0f}", f"{statistics.median(walls):.1f}", reps]
-                colsum[c]["n"] += 1; colsum[c]["fact"].append(nf)
-            else:
-                cells += [f"\\multicolumn{{3}}{{c}}{{\\textit{{{short_all(majority_status(data[c], n, c, cvtol))}}}}}", reps]
+            for t in tags:
+                x = rep_cell(data[c][t].get(n), c, cvtol)
+                nsol[(c, t)] += x.isdigit()
+                cells.append(x)
         T.append(f"{tex(n)} & {buses(n)} & {nvar[n]} & " + " & ".join(cells) + " \\\\")
-    foot = {}
     for c in configs:
         a = suite_scores(data[c], names, c, cvtol)
-        assert len(a["solved"]) == colsum[c]["n"], (c, len(a["solved"]), colsum[c]["n"])
-        assert fmt(a["cost"]) == fmt(gm(colsum[c]["fact"]))
-        foot[c] = a
-        print(f"  {c:<10} solved {len(a['solved'])}/{len(names)} (unguarded {a['n_raw']}), gm fact {a['cost']:.1f}, "
-              f"per repetition {sorted(a['per_rep'].items())}")
-
-    def cnt(s):
-        return f"{len(s['solved'])}" + (f" ({s['n_raw']})" if s["n_raw"] != len(s["solved"]) else "")
+        assert all(a["per_rep"][t][0] == nsol[(c, t)] for t in tags), (c, a["per_rep"], nsol)
+        print(f"  {c:<10} solved per repetition {[nsol[(c, t)] for t in tags]} of {len(names)}")
     T.append("\\midrule")
-    T.append(f"solved (all {len(names)}) & & & " + " & ".join(f"\\multicolumn{{4}}{{c}}{{{cnt(foot[c])}}}" for c in configs) + " \\\\")
-    T.append("factorizations (geom.\\ mean) & & & " + " & ".join(f"\\multicolumn{{4}}{{c}}{{{fmt(foot[c]['cost'])}}}" for c in configs) + " \\\\")
+    T.append(f"solved (of {len(names)}) & & & " + " & ".join(str(nsol[(c, t)]) for c in configs for t in tags) + " \\\\")
     T.append("\\end{longtable}}")
     T += LANDSCAPE_END
     assert_no_tokens("\n".join(T))

@@ -256,6 +256,28 @@ def letter(r, c, cvtol):
     return LETTER.get(r["status"], "?")
 
 
+# Per-repetition cells of the two per-instance appendix tables (tab_pglib_appendix, tab_scopf_all_appendix; Yifan
+# 2026-11-12): the factorization count of a repetition that solves, else one failure code. The codes reuse the LETTER
+# set, plus R and D; FAIL_LEGEND is the caption text that defines them.
+FAIL_CODE = {"INFEASIBLE_PROBLEM_DETECTED": "I", "MAXIMUM_ITERATIONS_EXCEEDED": "M", "MAXIMUM_WALLTIME_EXCEEDED": "W",
+             "RESTORATION_FAILED": "R", "SEARCH_DIRECTION_BECOMES_TOO_SMALL": "D"}
+FAIL_LEGEND = ("I, local infeasibility declared; M, iteration limit; W, wall-time limit; R, restoration failed; D, step "
+               "too small; E, evaluation or other error")
+
+
+def rep_cell(r, c, cvtol):
+    """The cell of one repetition: its factorization count if it solves (the scoring of the tables: success, with the
+    post-hoc guard for the GUARDED solvers), else its failure code (E for any status outside FAIL_CODE). A missing row or
+    a solve removed by the guard has no code in FAIL_LEGEND: it raises, so that the caption is revised first."""
+    if r is None:
+        raise SystemExit(f"rep_cell: no row for {c}; the failure codes of the caption have none for a missing run")
+    if success(r, c, None, cvtol):
+        return f"{float(r['nfact']):.0f}"
+    if r["status"] in SUCCESS:
+        raise SystemExit(f"rep_cell: a {c} solve removed by the post-hoc guard; the caption's codes have none for it")
+    return FAIL_CODE.get(r["status"], "E")
+
+
 def suite_scores(rows_by_tag, names, config, cvtol):
     """Scores of one configuration over `names`: per-repetition solved counts (guarded, raw), the majority-solved
     set (guarded) with the median factorizations, the raw majority count, and the geometric-mean cost."""
