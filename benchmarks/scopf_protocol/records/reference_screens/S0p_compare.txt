@@ -1,0 +1,11 @@
+case118: screened 186 (status counts {1: 185, 6: 1}), bridges 9 (admitted 0), admitted 156 (by status {1: 156})
+  first 156 admitted == EPSR list: True
+case300: screened 411 (status counts {1: 386, 6: 25}), bridges 89 (admitted 0), admitted 231 (by status {1: 231})
+  first 231 admitted == EPSR list: True
+case_ACTIVSg200: screened 245 (status counts {1: 216, 6: 26, 3: 3}), bridges 72 (admitted 11), admitted 179 (by status {6: 21, 1: 156, 3: 2})
+  first 145 admitted == EPSR list: True
+case_ACTIVSg500: screened 597 (status counts {1: 536, 6: 59, 3: 2}), bridges 254 (admitted 33), admitted 353 (by status {1: 309, 6: 43, 3: 1})
+  vs the EPSR 100-list: first differing index 5; overlaps of the first 10/16/32/64/100: 6/12/26/56/91
+  ours[:20] [2, 3, 5, 6, 10, 13, 14, 15, 16, 18, 19, 21, 22, 23, 24, 29, 30, 31, 32, 33]
+  list[:20] [2, 3, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 21, 22, 23, 24, 26]
+S0' (case118, case300, case_ACTIVSg200): PASS

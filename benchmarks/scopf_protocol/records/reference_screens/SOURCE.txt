@@ -1,0 +1,21 @@
+Full screens of the four reference networks (WO-69 gate S0'), copied verbatim from branch scopf-pool (worktree
+/home/yifan_xu/MadNCL-public-pool), files committed at b99a54b ("WO-69 Addendum 4: rho=1e8 pilot screens ..., S0' outputs"),
+source directory benchmarks/pilot/screen/out/s0p/, on 2026-11-12. Produced by julia/screen_run2.jl in order 'full' (every
+in-service branch in increasing PowerModels key, no stop rule) at penalty 1e8 on the MATPOWER 7.0 case files
+(fetch_scopf_data.sh data_mp70/; sha256 in each meta file). S0p_compare.txt is the original comparison output (scopf-pool
+benchmarks/pilot/screen/s0p_compare.py); ../../reference_check.py screens recomputes it and --check compares.
+
+file (here) <- source (scopf-pool benchmarks/pilot/screen/out/) sha256
+case118_full_rho1e8.csv <- s0p/case118_full_rho1e8.csv c390c5790c62f99a75cdf525c49b37f630de27de99485952cff11621f28262dd
+case118_full_rho1e8.meta.txt <- s0p/case118_full_rho1e8.meta.txt 72e4ea43e2d46f7cc7d96df9bcdbf61478f64f3f9fe7932be3ed2b9c9d47ec3c
+case118_full_rho1e8.raw.csv <- s0p/case118_full_rho1e8.raw.csv 2e7da1ec876f9c456f6c653abe3b6df4bc6d6069f68347f6d21239df5114d89f
+case300_full_rho1e8.csv <- s0p/case300_full_rho1e8.csv b9658ffbaaf901986fff033f396f138f25802759d04c174f2f54a4a2e67b35b4
+case300_full_rho1e8.meta.txt <- s0p/case300_full_rho1e8.meta.txt 876aac712a744e47860a3978fe7a8f51c6246edfd8a38d4feea303db832ee4e4
+case300_full_rho1e8.raw.csv <- s0p/case300_full_rho1e8.raw.csv 00c7bffd5e05ded4cd4e996cd698ab54ab5f85430e6c135ca77008f2bdd1b6c8
+case_ACTIVSg200_full_rho1e8.csv <- s0p/case_ACTIVSg200_full_rho1e8.csv a82f55c6775c3854c55689b655f704153e325f4cdcb17c2b3e1808eb05c7dc37
+case_ACTIVSg200_full_rho1e8.meta.txt <- s0p/case_ACTIVSg200_full_rho1e8.meta.txt 23cf05a04ad0cb972a29e268856baf7bc9b9d616ca096de3abc480bc0928e628
+case_ACTIVSg200_full_rho1e8.raw.csv <- s0p/case_ACTIVSg200_full_rho1e8.raw.csv b1dbc5d50a026115fd7663c1026ef8573e82239f49755e54dba0507d51a530af
+case_ACTIVSg500_full_rho1e8.csv <- s0p/case_ACTIVSg500_full_rho1e8.csv b1f4a5cdeff0192d4f5d0d835d6d86311ed68984f1a6d8528cb45fce6ce35e8b
+case_ACTIVSg500_full_rho1e8.meta.txt <- s0p/case_ACTIVSg500_full_rho1e8.meta.txt be8bfafd3b276ddc5da59a5a49a140715a29c14727d21d66b0bc17f9098e3ab0
+case_ACTIVSg500_full_rho1e8.raw.csv <- s0p/case_ACTIVSg500_full_rho1e8.raw.csv ceccdaea60733cb85bd6aac3a2f942ec7f4abe115e273833e610d8a20eb91dfa
+S0p_compare.txt <- s0p/S0p_compare.txt c1a63577aab1ef7d9c09c753d3f01d3595b81e1fda6f8d20d728ff9c292f29ce

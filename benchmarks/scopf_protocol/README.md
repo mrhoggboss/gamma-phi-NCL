@@ -47,6 +47,61 @@ verification failed (`Maximum_Iterations_Exceeded`) on 14 of its first 64 admitt
 `benchmarks/pilot/screen/out/c3_k1/`), and the pilot at K = 64 is why the ladder stops at K = 16 (scopf-pool
 `benchmarks/results/pilot/`).
 
+## The reference lists under the protocol
+
+The first SCOPF instance set (Tables `tab:gpu-scopf` and `tab:scopf-config`, 23 instances) uses the contingency lists
+published with the reference benchmark (`benchmarks/instances/scopf_contingencies.jl`) as published. Two checks connect
+them to the protocol above; their records are in `records/reference_screens/` and `records/k1/reference/`, and
+`python3 benchmarks/scopf_protocol/reference_check.py all --check` recomputes both tables from the records (seconds).
+
+**Screens.** Every in-service branch of `case118`, `case300`, `case_ACTIVSg200` and `case_ACTIVSg500` was screened in
+increasing branch key at penalty 1e8 with the protocol's admission rule (`julia/screen_run2.jl` in order `full`, on the
+MATPOWER 7.0 files; WO-69 gate S0′). For the first three networks the admitted outages, in screening order, begin with
+the published list:
+
+| network | branches screened | bridges (admitted) | admitted | published list | first len(list) admitted = list |
+|---|---|---|---|---|---|
+| `case118` | 186 | 9 (0) | 156 | 156 | yes |
+| `case300` | 411 | 89 (0) | 231 | 231 | yes |
+| `case_ACTIVSg200` | 245 | 72 (11) | 179 | 145 | yes |
+| `case_ACTIVSg500` | 597 | 254 (33) | 353 | 100 | no: first difference at entry 5; overlaps of the first 10/16/32/64/100: 6/12/26/56/91 |
+
+The protocol therefore reproduces the published lists of `case118`, `case300` and `case_ACTIVSg200`, and does **not**
+recover the list of `case_ACTIVSg500`. The networks `case1354pegase`, `case2869pegase` and `case_ACTIVSg2000` were
+**not screened**. The island rule and drop-and-backfill were not applied to any published list: the 23-instance set uses
+the lists exactly as published, and this section only checks them.
+
+**Single-contingency verification.** The listed outages that the 23 instances use were solved one at a time as the
+K = 1 SCOPF problem of the protocol's step 5 (harness model, Ipopt + MA57, tol 1e-8; `julia/k1_verify.jl`,
+`records/k1/reference/summary.txt`):
+
+| list | entries verified | budget | Solve_Succeeded | other | max iterations | max solve time (s) |
+|---|---|---|---|---|---|---|
+| `case118` | 1–100 | 3000 iterations, 600 s (WO-69 C3) | 100 | 0 | 210 | 4.9 |
+| `case300` (MATPOWER 7.0) | 1–100 | 10000 iterations, 3600 s | 100 | 0 | 2686 | 132.92 |
+| `case300` (MATPOWER 8.1) | 1–100 | 10000 iterations, 3600 s | 100 | 0 | 2686 | 125.79 |
+| `case_ACTIVSg200` | 1–100 | 10000 iterations, 3600 s | 100 | 0 | 380 | 9.45 |
+| `case_ACTIVSg500` | 1–64 | 3000 iterations, 600 s (WO-69 C3) | 64 | 0 | 806 | 110.85 |
+| `case_ACTIVSg500` | 65–100 | 10000 iterations, 3600 s | 36 | 0 | 674 | 65.61 |
+
+Every one of the 500 solves ended `Solve_Succeeded`. The entries verified are the largest prefix any instance uses (K up
+to 100). The two checks at 3000 iterations and 600 s pass the protocol budget a fortiori. `case300` was verified on both
+case-file vintages because its K = 100 instance reads the MATPOWER 8.1 file and its K = 10 and K = 50 instances the 7.0
+file; the 100 pairs of rows agree in every column but the time columns, so the two files build the same model.
+`case1354pegase` (entries 1–32), `case2869pegase` (1–16) and `case_ACTIVSg2000` (1–16) are verified at the protocol
+budget in a second run, reported in `records/k1/reference/summary.txt` when it completes; their outcomes are reported
+only and change no list.
+
+To rerun the protocol-budget checks (CPU; phase 1 took 4 minutes on 30 workers):
+
+```bash
+D=benchmarks/out/scopf_data; benchmarks/instances/fetch_scopf_data.sh $D
+R=benchmarks/out/scopf_protocol/k1_reference; mkdir -p $R
+python3 benchmarks/scopf_protocol/reference_check.py jobs $D > $R/jobs.txt
+C3_WALL=3600 C3_MAXITER=10000 C3_FIRSTPR=1 julia --project=benchmarks/envs/screen \
+    benchmarks/scopf_protocol/julia/k1_verify.jl $R/jobs.txt $R       # start as many workers as you like on one jobs file
+```
+
 ## Files
 
 | path | contents |
@@ -57,11 +112,14 @@ verification failed (`Maximum_Iterations_Exceeded`) on 14 of its first 64 admitt
 | `julia/screen_run3.jl`, `julia/null_probe_families.jl` | the screen of the order-B lists of `case588_sdet` and `case793_goc`: 300 candidates (run as four slices of 75 with `C2_SLICE=a:b`), also recording the raw residuals |
 | `julia/islands.jl` | the island table (`records/islands.csv`) |
 | `julia/k1_verify.jl` | the K = 1 verification (one row per outage; jobs from `build_lists.py jobs`) |
+| `reference_check.py` | the reference lists under the protocol: `screens` (the S0′ comparison), `k1` (the K = 1 summary), `jobs` (the K = 1 jobs as run) |
 | `build_lists.py` | `census` (screening census), `lists` (island rule, verification, drop and backfill; `--write`/`--check` the Julia list file), `jobs` (the K = 1 jobs still missing) |
 | `records/screens/` | the six screens (`<network>_<order>.csv` + meta files: base status, ρ, candidates, case-file sha256) |
 | `records/islands.csv` | the islands of every bridge of the three networks |
 | `records/k1/<budget>/` | the 97 K = 1 rows (the 96 entries and the replaced outage 657) |
 | `records/census.md`, `records/lists.md` | `build_lists.py census` and `build_lists.py lists` on the records |
+| `records/reference_screens/` | the full screens of the four reference networks, the original comparison `S0p_compare.txt`, `SOURCE.txt` |
+| `records/k1/reference/` | the K = 1 rows of the published lists (`k1_10000it_3600s/`, `c3_3000it_600s/`), `summary.txt`, `SOURCE.txt` |
 | `records/SOURCE.txt` | provenance: every record's source path on scopf-pool and its sha256 |
 
 All scripts run on the CPU in `benchmarks/envs/screen` (Julia 1.10.11; MadNCL from this checkout, MadNLP 0.10.1,

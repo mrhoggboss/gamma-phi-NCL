@@ -1,0 +1,16 @@
+Single-contingency (K = 1) verification of the published lists: harness scopf_model with the gpu.jl SCOPF
+settings, Ipopt + MA57, tol 1e-8; budget = <max_iter>it_<wall>s of the directory. viol = Ipopt's unscaled
+constraint violation at exit; worst = the largest violation over every row of the JuMP model at exit.
+
+| list | data | budget | entries verified | SOLVED | LOCALLY_INFEASIBLE | MAXITER | WALL | other | max iter | max wall (s) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| case118 | EPSR | c3_3000it_600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 210 | 4.9 |
+| case300 | EPSR | k1_10000it_3600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 2686 | 132.92 |
+| case300 | EPSRmp81 | k1_10000it_3600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 2686 | 125.79 |
+| case_ACTIVSg200 | EPSR | k1_10000it_3600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 380 | 9.45 |
+| case_ACTIVSg500 | EPSR | c3_3000it_600s | 1-64 | 64 | 0 | 0 | 0 | 0 | 806 | 110.85 |
+| case_ACTIVSg500 | EPSR | k1_10000it_3600s | 65-100 | 36 | 0 | 0 | 0 | 0 | 674 | 65.61 |
+
+Data: EPSR = MATPOWER 7.0 file (fetch_scopf_data.sh data_mp70/, or data/ where identical); EPSRmp81 = MATPOWER 8.1 file (fetch_scopf_data.sh data/case300.m).
+
+Every verified outage ended Solve_Succeeded.

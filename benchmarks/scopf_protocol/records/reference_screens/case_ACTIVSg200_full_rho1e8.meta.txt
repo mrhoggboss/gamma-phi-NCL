@@ -1,0 +1,2 @@
+base_status=LOCALLY_SOLVED rho=1.0e8 order=full kadmit=Inf max_screened=Inf candidates=245 in_service=245 bridges=72 buses=200 gens=38 screened=245 admitted=179 screen_s=158.9
+case=/home/yifan_xu/MadNCL.jl/bench/paper_scopf/data_mp70/case_ACTIVSg200.m sha256=579a07884b01e71a90a6ebf4cb28ef7c4a4f3f93032a9910de0f74903a54dd38
