@@ -4,92 +4,91 @@
 \clearpage
 \pdfpagewidth=\paperheight \pdfpageheight=\paperwidth
 \newgeometry{layoutwidth=\paperheight,layoutheight=\paperwidth,margin=1in}
-{\footnotesize\setlength{\tabcolsep}{3pt}
+{\footnotesize\setlength{\tabcolsep}{2.5pt}
 \begin{longtable}{lrrrrrrrrrrrrrrrr}
-\caption{[DRAFT CAPTION] All 66 PGLIB v23.07 instances, ordered by bus count. For each configuration, the interior-point iterations and factorizations of the solve (with several repetitions: the medians over the repetitions that succeed, when a strict majority succeeds) and the wall time in seconds, for information; a non-solve shows its termination status.}\label{tab:pglib-appendix}\\
+\caption{Detailed results of the solvers on all 66 PGLIB instances, ordered by bus count. For each repetition, we report either the number of factorizations needed for the successful solve, or the reason for the non-solve.}\label{tab:pglib-appendix}\\
 \toprule
  &  & \multicolumn{3}{c}{$\gamma$-NCL} & \multicolumn{3}{c}{$\varphi$-NCL} & \multicolumn{3}{c}{MadNCL} & \multicolumn{3}{c}{MadNCL} & \multicolumn{3}{c}{LiftedKKT} \\
  &  & \multicolumn{3}{c}{} & \multicolumn{3}{c}{} & \multicolumn{3}{c}{} & \multicolumn{3}{c}{+ parameters} & \multicolumn{3}{c}{$\epsilon=10^{-8}$} \\
 \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11} \cmidrule(lr){12-14} \cmidrule(lr){15-17}
-case & buses & iter. & fact. & wall & iter. & fact. & wall & iter. & fact. & wall & iter. & fact. & wall & iter. & fact. & wall \\\midrule
+case & buses & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\\midrule
 \endfirsthead
 \toprule
  &  & \multicolumn{3}{c}{$\gamma$-NCL} & \multicolumn{3}{c}{$\varphi$-NCL} & \multicolumn{3}{c}{MadNCL} & \multicolumn{3}{c}{MadNCL} & \multicolumn{3}{c}{LiftedKKT} \\
  &  & \multicolumn{3}{c}{} & \multicolumn{3}{c}{} & \multicolumn{3}{c}{} & \multicolumn{3}{c}{+ parameters} & \multicolumn{3}{c}{$\epsilon=10^{-8}$} \\
 \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11} \cmidrule(lr){12-14} \cmidrule(lr){15-17}
-case & buses & iter. & fact. & wall & iter. & fact. & wall & iter. & fact. & wall & iter. & fact. & wall & iter. & fact. & wall \\\midrule
+case & buses & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 & 1 & 2 & 3 \\\midrule
 \endhead
 \bottomrule
 \endfoot
-\texttt{case3\_lmbd} & 3 & 25 & 26 & 0.2 & 91 & 92 & 0.6 & \multicolumn{3}{c}{\textit{infeasible}} & \multicolumn{3}{c}{\textit{infeasible}} & 21 & 21 & 0.1 \\
-\texttt{case5\_pjm} & 5 & 34 & 35 & 0.2 & 115 & 116 & 0.7 & 25 & 35 & 0.4 & 25 & 35 & 0.2 & 28 & 40 & 0.2 \\
-\texttt{case14\_ieee} & 14 & 17 & 18 & 0.4 & 46 & 47 & 0.5 & 10 & 19 & 0.5 & 10 & 19 & 0.4 & 16 & 16 & 0.1 \\
-\texttt{case24\_ieee\_rts} & 24 & 24 & 25 & 0.2 & 48 & 49 & 0.4 & 16 & 25 & 0.3 & 16 & 25 & 0.2 & 22 & 29 & 0.2 \\
-\texttt{case30\_as} & 30 & 19 & 20 & 0.2 & 76 & 77 & 0.5 & 14 & 24 & 0.3 & 14 & 24 & 0.2 & 13 & 13 & 0.1 \\
-\texttt{case30\_ieee} & 30 & 32 & 33 & 0.3 & 112 & 113 & 0.8 & 25 & 36 & 0.4 & 25 & 36 & 0.3 & 20 & 20 & 0.2 \\
-\texttt{case39\_epri} & 39 & 48 & 49 & 0.3 & 74 & 75 & 0.5 & 43 & 52 & 0.5 & 43 & 52 & 0.3 & 42 & 70 & 0.4 \\
-\texttt{case57\_ieee} & 57 & 23 & 24 & 0.2 & 63 & 64 & 0.5 & 18 & 26 & 0.3 & 18 & 26 & 0.2 & 19 & 19 & 0.2 \\
-\texttt{case60\_c} & 60 & 36 & 37 & 0.3 & 57 & 58 & 0.5 & 29 & 39 & 0.5 & 30 & 40 & 0.3 & 29 & 58 & 0.3 \\
-\texttt{case73\_ieee\_rts} & 73 & 27 & 28 & 0.3 & 53 & 54 & 0.6 & 20 & 30 & 0.5 & 20 & 30 & 0.3 & 27 & 42 & 0.3 \\
-\texttt{case89\_pegase} & 89 & 61 & 66 & 0.6 & 168 & 172 & 2.1 & 52 & 72 & 1.0 & 52 & 72 & 0.6 & 28 & 48 & 0.3 \\
-\texttt{case118\_ieee} & 118 & 37 & 38 & 0.3 & 86 & 87 & 0.7 & 32 & 43 & 0.5 & 33 & 43 & 0.4 & 28 & 43 & 0.2 \\
-\texttt{case162\_ieee\_dtc} & 162 & 61 & 62 & 0.4 & 140 & 141 & 0.9 & 53 & 63 & 0.7 & 53 & 63 & 0.5 & 40 & 68 & 0.3 \\
-\texttt{case179\_goc} & 179 & 45 & 46 & 0.4 & 70 & 72 & 0.5 & 39 & 50 & 0.6 & 39 & 50 & 0.4 & 36 & 80 & 0.3 \\
-\texttt{case197\_snem} & 197 & 28 & 29 & 0.3 & 71 & 72 & 0.5 & 16 & 26 & 0.3 & 16 & 26 & 0.2 & 27 & 57 & 0.3 \\
-\texttt{case200\_activ} & 200 & 26 & 27 & 0.3 & 79 & 80 & 0.6 & 18 & 28 & 0.4 & 19 & 28 & 0.3 & 19 & 28 & 0.2 \\
-\texttt{case240\_pserc} & 240 & 201 & 206 & 1.3 & 269 & 270 & 2.0 & 185 & 201 & 2.1 & 185 & 201 & 1.4 & 136 & 289 & 1.6 \\
-\texttt{case300\_ieee} & 300 & 88 & 89 & 0.7 & 217 & 270 & 2.3 & \multicolumn{3}{c}{\textit{infeasible}} & \multicolumn{3}{c}{\textit{infeasible}} & 49 & 89 & 0.5 \\
-\texttt{case500\_goc} & 500 & 73 & 74 & 0.7 & 217 & 218 & 2.1 & \multicolumn{3}{c}{\textit{iter.\ limit}} & \multicolumn{3}{c}{\textit{iter.\ limit}} & 40 & 71 & 0.4 \\
-\texttt{case588\_sdet} & 588 & 76 & 79 & 0.7 & 193 & 263 & 1.9 & 75 & 89 & 1.1 & 75 & 89 & 0.7 & 35 & 69 & 0.3 \\
-\texttt{case793\_goc} & 793 & 82 & 83 & 0.8 & 209 & 211 & 3.6 & 57 & 70 & 1.3 & 57 & 69 & 0.7 & 39 & 73 & 0.4 \\
-\texttt{case1354\_pegase} & 1354 & 160 & 169 & 1.4 & 341 & 527 & 3.1 & 142 & 156 & 1.9 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 55 & 101 & 0.6 \\
-\texttt{case1803\_snem} & 1803 & 178 & 292 & 2.5 & 265 & 454 & 2.8 & 113 & 185 & 2.3 & \multicolumn{3}{c}{\textit{infeasible}} & 65 & 124 & 0.7 \\
-\texttt{case1888\_rte} & 1888 & 345 & 620 & 3.8 & 586 & 970 & 5.8 & 321 & 638 & 4.5 & 292 & 583 & 3.3 & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case1951\_rte} & 1951 & 178 & 192 & 1.8 & 378 & 407 & 3.5 & 157 & 169 & 2.6 & 157 & 169 & 1.8 & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case2000\_goc} & 2000 & 85 & 86 & 1.3 & 238 & 243 & 2.9 & 73 & 86 & 1.6 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 42 & 76 & 0.5 \\
-\texttt{case2312\_goc} & 2312 & 110 & 120 & 1.3 & 189 & 212 & 2.2 & 72 & 93 & 1.5 & 72 & 93 & 1.2 & 45 & 104 & 0.7 \\
-\texttt{case2383wp\_k} & 2383 & 257 & 284 & 2.7 & 289 & 294 & 2.9 & 193 & 207 & 3.2 & 193 & 207 & 2.4 & 58 & 114 & 0.6 \\
-\texttt{case2736sp\_k} & 2736 & 93 & 94 & 1.2 & 182 & 198 & 2.3 & 63 & 75 & 1.5 & 63 & 75 & 1.0 & 44 & 86 & 0.5 \\
-\texttt{case2737sop\_k} & 2737 & 72 & 75 & 1.0 & 178 & 189 & 2.3 & 62 & 80 & 1.5 & 62 & 80 & 1.0 & 34 & 66 & 0.4 \\
-\texttt{case2742\_goc} & 2742 & 80 & 81 & 1.3 & 206 & 215 & 3.0 & 75 & 87 & 1.9 & 75 & 87 & 1.4 & 235 & 552 & 3.2 \\
-\texttt{case2746wop\_k} & 2746 & 66 & 67 & 1.0 & 166 & 174 & 2.1 & 58 & 72 & 1.5 & 58 & 73 & 1.0 & 37 & 88 & 0.6 \\
-\texttt{case2746wp\_k} & 2746 & 117 & 129 & 1.4 & 200 & 224 & 2.7 & 110 & 122 & 2.1 & 110 & 122 & 1.4 & 42 & 80 & 0.5 \\
-\texttt{case2848\_rte} & 2848 & 120 & 125 & 1.5 & 284 & 325 & 3.8 & 115 & 131 & 2.3 & 115 & 132 & 1.6 & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case2853\_sdet} & 2853 & 279 & 395 & 3.7 & 347 & 560 & 4.5 & 177 & 219 & 3.0 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 56 & 128 & 0.8 \\
-\texttt{case2868\_rte} & 2868 & 147 & 152 & 1.8 & 327 & 355 & 4.2 & 140 & 152 & 2.5 & 140 & 153 & 1.9 & 752 & 1840 & 7.8 \\
-\texttt{case2869\_pegase} & 2869 & 196 & 223 & 2.4 & 661 & 1393 & 9.8 & 188 & 223 & 3.3 & 187 & 219 & 2.4 & 61 & 120 & 0.8 \\
-\texttt{case3012wp\_k} & 3012 & 134 & 138 & 1.7 & 240 & 281 & 3.7 & 139 & 155 & 2.8 & 139 & 155 & 1.9 & 62 & 141 & 0.8 \\
-\texttt{case3022\_goc} & 3022 & 102 & 114 & 1.4 & 154 & 183 & 2.5 & 57 & 73 & 1.4 & 57 & 73 & 1.0 & 51 & 119 & 0.9 \\
-\texttt{case3120sp\_k} & 3120 & 130 & 142 & 1.8 & 218 & 236 & 3.3 & 97 & 194 & 2.2 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 54 & 125 & 0.8 \\
-\texttt{case3375wp\_k} & 3375 & 187 & 195 & 2.6 & 262 & 380 & 4.3 & 125 & 144 & 2.6 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 63 & 142 & 0.9 \\
-\texttt{case3970\_goc} & 3970 & 122 & 141 & 2.2 & 288 & 379 & 5.5 & 120 & 155 & 3.0 & 124 & 160 & 2.3 & 50 & 115 & 1.1 \\
-\texttt{case4020\_goc} & 4020 & 169 & 173 & 3.1 & 320 & 336 & 6.5 & 243 & 256 & 5.5 & 244 & 258 & 4.0 & 62 & 139 & 1.4 \\
-\texttt{case4601\_goc} & 4601 & 129 & 133 & 2.4 & 346 & 366 & 6.1 & 121 & 133 & 3.0 & 121 & 133 & 2.3 & 69 & 154 & 1.5 \\
-\texttt{case4619\_goc} & 4619 & 108 & 112 & 2.4 & 304 & 310 & 6.1 & 100 & 118 & 3.2 & 101 & 118 & 2.3 & 53 & 101 & 1.1 \\
-\texttt{case4661\_sdet} & 4661 & 198 & 216 & 3.4 & 477 & 814 & 10.5 & 176 & 210 & 4.1 & 177 & 212 & 3.1 & 65 & 129 & 1.2 \\
-\texttt{case4837\_goc} & 4837 & 121 & 140 & 2.5 & 244 & 372 & 5.1 & 116 & 148 & 3.2 & 116 & 148 & 2.3 & 56 & 129 & 1.2 \\
-\texttt{case4917\_goc} & 4917 & 81 & 89 & 1.6 & 167 & 233 & 3.2 & 75 & 102 & 2.3 & 75 & 102 & 1.7 & 57 & 125 & 1.2 \\
-\texttt{case5658\_epigrids} & 5658 & 103 & 104 & 2.4 & 241 & 243 & 4.9 & 95 & 106 & 3.1 & 95 & 106 & 2.2 & 50 & 115 & 1.1 \\
-\texttt{case6468\_rte} & 6468 & 190 & 207 & 3.8 & 518 & 1026 & 11.4 & 176 & 200 & 4.6 & 177 & 200 & 3.3 & 590 & 1450 & 8.9 \\
-\texttt{case6470\_rte} & 6470 & 211 & 226 & 4.5 & 822 & 1686 & 19.2 & 187 & 202 & 4.6 & 186 & 201 & 3.3 & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case6495\_rte} & 6495 & 614 & 806 & 14.3 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 464 & 516 & 10.6 & 465 & 516 & 8.0 & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case6515\_rte} & 6515 & 388 & 438 & 7.5 & 924 & 1806 & 25.0 & 304 & 321 & 7.4 & 304 & 320 & 5.3 & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case7336\_epigrids} & 7336 & 109 & 110 & 3.0 & 263 & 265 & 7.1 & 104 & 116 & 4.2 & 104 & 116 & 3.0 & 55 & 125 & 1.7 \\
-\texttt{case8387\_pegase} & 8387 & \multicolumn{3}{c}{\textit{iter.\ limit}} & \multicolumn{3}{c}{\textit{iter.\ limit}} & \multicolumn{3}{c}{\textit{iter.\ limit}} & \multicolumn{3}{c}{\textit{iter.\ limit}} & 565 & 1416 & 17.5 \\
-\texttt{case9241\_pegase} & 9241 & 328 & 431 & 10.5 & 757 & 895 & 29.2 & \multicolumn{3}{c}{\textit{infeasible}} & \multicolumn{3}{c}{\textit{iter.\ limit}} & \multicolumn{3}{c}{\textit{iter.\ limit}} \\
-\texttt{case9591\_goc} & 9591 & 128 & 135 & 4.4 & 332 & 379 & 14.5 & 124 & 142 & 6.2 & 124 & 142 & 4.7 & 68 & 151 & 2.4 \\
-\texttt{case10000\_goc} & 10000 & 101 & 123 & 14.2 & 221 & 355 & 17.1 & \multicolumn{3}{c}{\textit{iter.\ limit}} & \multicolumn{3}{c}{\textit{infeasible}} & 65 & 123 & 1.9 \\
-\texttt{case10192\_epigrids} & 10192 & 100 & 117 & 4.0 & 201 & 221 & 5.8 & 78 & 92 & 4.6 & 78 & 92 & 3.5 & 58 & 131 & 2.2 \\
-\texttt{case10480\_goc} & 10480 & 172 & 179 & 5.9 & 445 & 535 & 12.4 & 149 & 162 & 6.5 & 149 & 165 & 5.4 & 68 & 151 & 2.5 \\
-\texttt{case13659\_pegase} & 13659 & 232 & 279 & 7.3 & 564 & 684 & 14.4 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 272 & 410 & 10.9 & 73 & 180 & 2.5 \\
-\texttt{case19402\_goc} & 19402 & 192 & 203 & 11.3 & 539 & 832 & 28.0 & 181 & 241 & 13.5 & \multicolumn{3}{c}{\textit{infeasible}} & 72 & 159 & 4.3 \\
-\texttt{case20758\_epigrids} & 20758 & 158 & 254 & 10.1 & 277 & 435 & 14.4 & 122 & 192 & 11.3 & 122 & 191 & 9.2 & 151 & 372 & 8.3 \\
-\texttt{case24464\_goc} & 24464 & 382 & 533 & 19.2 & 922 & 1872 & 52.1 & 302 & 335 & 18.5 & \multicolumn{3}{c}{\textit{iter.\ limit}} & 69 & 157 & 4.4 \\
-\texttt{case30000\_goc} & 30000 & 651 & 1108 & 32.8 & 867 & 1898 & 62.4 & 283 & 474 & 20.0 & 304 & 521 & 18.5 & 155 & 368 & 6.9 \\
-\texttt{case78484\_epigrids} & 78484 & 424 & 797 & 80.3 & 988 & 1603 & 188.9 & 572 & 1199 & 132.1 & 570 & 1186 & 109.4 & 107 & 242 & 19.2 \\
+\texttt{case3\_lmbd} & 3 & 26 & 26 & 26 & 92 & 92 & 92 & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & 21 & 21 & 21 \\
+\texttt{case5\_pjm} & 5 & 35 & 35 & 35 & 120 & 116 & 116 & 35 & 35 & 35 & 35 & 35 & 35 & 40 & 40 & 39 \\
+\texttt{case14\_ieee} & 14 & 18 & 18 & 18 & 47 & 47 & 47 & 19 & 19 & 19 & 19 & 19 & 19 & 16 & 16 & 16 \\
+\texttt{case24\_ieee\_rts} & 24 & 25 & 25 & 25 & 49 & 49 & 49 & 25 & 25 & 25 & 25 & 25 & 25 & 30 & 29 & 29 \\
+\texttt{case30\_as} & 30 & 20 & 20 & 20 & 77 & 77 & 77 & 24 & 24 & 24 & 24 & 24 & 24 & 13 & 13 & 13 \\
+\texttt{case30\_ieee} & 30 & 33 & 33 & 33 & 113 & 113 & 113 & 36 & 36 & 36 & 36 & 36 & 36 & 20 & 20 & 20 \\
+\texttt{case39\_epri} & 39 & 49 & 49 & 49 & 75 & 75 & 75 & 52 & 52 & 52 & 52 & 52 & 52 & 70 & 70 & 72 \\
+\texttt{case57\_ieee} & 57 & 24 & 24 & 24 & 64 & 64 & 64 & 26 & 26 & 26 & 26 & 26 & 26 & 19 & 19 & 19 \\
+\texttt{case60\_c} & 60 & 38 & 37 & 37 & 58 & 58 & 58 & 39 & 39 & 39 & 40 & 40 & 40 & 47 & 61 & 58 \\
+\texttt{case73\_ieee\_rts} & 73 & 28 & 28 & 28 & 54 & 54 & 54 & 30 & 30 & 30 & 30 & 30 & 30 & 42 & 42 & 42 \\
+\texttt{case89\_pegase} & 89 & 66 & 66 & 66 & 172 & 176 & 171 & 72 & 72 & 73 & 72 & 74 & 72 & 48 & 50 & 47 \\
+\texttt{case118\_ieee} & 118 & 38 & 38 & 38 & 87 & 87 & 87 & 43 & 43 & 43 & 43 & 43 & 43 & 43 & 43 & 43 \\
+\texttt{case162\_ieee\_dtc} & 162 & 62 & 62 & 62 & 141 & 141 & 141 & 63 & 63 & 63 & 63 & 63 & 63 & 68 & 68 & 67 \\
+\texttt{case179\_goc} & 179 & 46 & 46 & 46 & 72 & 72 & 72 & 50 & 50 & 50 & 50 & 51 & 50 & 79 & 80 & 80 \\
+\texttt{case197\_snem} & 197 & 29 & 29 & 29 & 72 & 72 & 72 & 26 & 27 & 26 & 27 & 26 & 26 & 46 & 57 & 57 \\
+\texttt{case200\_activ} & 200 & 27 & 27 & 27 & 80 & 80 & 80 & 28 & 28 & 28 & 28 & 28 & 28 & 28 & 25 & 29 \\
+\texttt{case240\_pserc} & 240 & 206 & 206 & 206 & 269 & 271 & 270 & 201 & 201 & 201 & 201 & 201 & 201 & 289 & 289 & 288 \\
+\texttt{case300\_ieee} & 300 & 89 & 89 & 89 & 270 & 270 & 270 & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & 90 & 88 & 89 \\
+\texttt{case500\_goc} & 500 & 74 & 74 & 74 & 229 & 213 & 218 & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & 74 & 71 & 71 \\
+\texttt{case588\_sdet} & 588 & 79 & 79 & 79 & 263 & 262 & 264 & 89 & 89 & 87 & 87 & 89 & 89 & 68 & 69 & 69 \\
+\texttt{case793\_goc} & 793 & 83 & 83 & 83 & 211 & 211 & 214 & 70 & 69 & 70 & 69 & 69 & 69 & 73 & 74 & 73 \\
+\texttt{case1354\_pegase} & 1354 & 169 & 165 & 169 & 511 & 530 & 527 & 154 & 156 & 156 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 100 & 101 & 104 \\
+\texttt{case1803\_snem} & 1803 & 298 & 266 & 292 & 455 & 453 & 454 & 185 & 185 & 189 & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & 127 & 123 & 124 \\
+\texttt{case1888\_rte} & 1888 & 612 & 715 & 620 & 1056 & 970 & 905 & 450 & 638 & 742 & 733 & 356 & 583 & \textit{max it.} & \textit{max it.} & \textit{max it.} \\
+\texttt{case1951\_rte} & 1951 & 192 & 176 & 205 & 405 & 407 & 417 & 169 & 185 & 169 & 169 & 169 & 169 & \textit{max it.} & \textit{max it.} & \textit{max it.} \\
+\texttt{case2000\_goc} & 2000 & 86 & 86 & 86 & 241 & 244 & 243 & 86 & 86 & 86 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 77 & 76 & 76 \\
+\texttt{case2312\_goc} & 2312 & 118 & 120 & 121 & 209 & 222 & 212 & 93 & 94 & 91 & 99 & 93 & 89 & 105 & 104 & 104 \\
+\texttt{case2383wp\_k} & 2383 & 286 & 284 & 281 & 294 & 297 & 294 & 207 & 207 & 207 & 207 & 207 & 207 & 114 & 114 & 114 \\
+\texttt{case2736sp\_k} & 2736 & 94 & 94 & 94 & 200 & 196 & 198 & 75 & 75 & 75 & 75 & 75 & 75 & 87 & 86 & 85 \\
+\texttt{case2737sop\_k} & 2737 & 75 & 75 & 75 & 189 & 187 & 190 & 78 & 80 & 80 & 80 & 80 & 81 & 64 & 66 & 66 \\
+\texttt{case2742\_goc} & 2742 & 81 & 81 & 82 & 215 & 215 & 212 & 87 & 87 & 87 & 87 & 87 & 87 & 551 & 561 & 552 \\
+\texttt{case2746wop\_k} & 2746 & 67 & 67 & 67 & 174 & 175 & 173 & 72 & 72 & 72 & 73 & 72 & 73 & 89 & 88 & 87 \\
+\texttt{case2746wp\_k} & 2746 & 129 & 131 & 129 & 224 & 222 & 229 & 122 & 122 & 122 & 122 & 122 & 122 & 80 & 82 & 80 \\
+\texttt{case2848\_rte} & 2848 & 124 & 125 & 125 & 319 & 325 & 331 & 133 & 130 & 131 & 135 & 131 & 132 & \textit{max it.} & \textit{max it.} & 1823 \\
+\texttt{case2853\_sdet} & 2853 & 395 & 370 & 426 & 558 & 560 & 563 & 219 & 219 & 219 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 128 & 129 & 128 \\
+\texttt{case2868\_rte} & 2868 & 151 & 152 & 154 & 382 & 355 & 354 & 152 & 152 & 153 & 152 & 153 & 153 & 1373 & 2308 & \textit{max it.} \\
+\texttt{case2869\_pegase} & 2869 & 224 & 223 & 219 & 1407 & 1393 & 1376 & 226 & 217 & 223 & 219 & 223 & 219 & 120 & 120 & 121 \\
+\texttt{case3012wp\_k} & 3012 & 138 & 138 & 138 & 282 & 279 & 281 & 155 & 155 & 156 & 157 & 155 & 155 & 141 & 141 & 140 \\
+\texttt{case3022\_goc} & 3022 & 114 & 114 & 114 & 183 & 198 & 183 & 72 & 74 & 73 & 73 & 73 & 73 & 119 & 117 & 120 \\
+\texttt{case3120sp\_k} & 3120 & 144 & 142 & 142 & 236 & 236 & 235 & 194 & 194 & 194 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 125 & 125 & 125 \\
+\texttt{case3375wp\_k} & 3375 & 195 & 193 & 195 & 373 & 380 & 397 & 145 & 144 & 144 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 142 & 142 & 143 \\
+\texttt{case3970\_goc} & 3970 & 141 & 141 & 141 & 379 & 381 & 379 & 155 & 151 & 155 & 157 & 160 & 160 & 115 & 115 & 113 \\
+\texttt{case4020\_goc} & 4020 & 173 & 172 & 174 & 332 & 339 & 336 & 256 & 256 & 258 & 256 & 258 & 259 & 139 & 139 & 139 \\
+\texttt{case4601\_goc} & 4601 & 133 & 133 & 134 & 366 & 364 & 369 & 133 & 133 & 133 & 133 & 132 & 133 & 154 & 154 & 152 \\
+\texttt{case4619\_goc} & 4619 & 112 & 112 & 112 & 310 & 316 & 309 & 118 & 118 & 118 & 118 & 119 & 118 & 101 & 98 & 114 \\
+\texttt{case4661\_sdet} & 4661 & 216 & 218 & 216 & 785 & 878 & 814 & 210 & 210 & 214 & 216 & 212 & 210 & 129 & 129 & 129 \\
+\texttt{case4837\_goc} & 4837 & 140 & 140 & 140 & 354 & 372 & 379 & 148 & 148 & 148 & 148 & 148 & 148 & 129 & 129 & 129 \\
+\texttt{case4917\_goc} & 4917 & 87 & 89 & 89 & 236 & 226 & 233 & 102 & 102 & 102 & 102 & 102 & 102 & 126 & 124 & 125 \\
+\texttt{case5658\_epigrids} & 5658 & 104 & 104 & 104 & 243 & 243 & 243 & 106 & 106 & 106 & 106 & 106 & 106 & 114 & 116 & 115 \\
+\texttt{case6468\_rte} & 6468 & 210 & 207 & 204 & 1026 & 881 & 1047 & 201 & 200 & 191 & 200 & 200 & 191 & \textit{max it.} & 1264 & 1635 \\
+\texttt{case6470\_rte} & 6470 & 222 & 249 & 226 & 1628 & 1686 & 1760 & 203 & 202 & 200 & 202 & 201 & 201 & \textit{max it.} & \textit{max it.} & \textit{max it.} \\
+\texttt{case6495\_rte} & 6495 & 806 & 996 & 764 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 517 & 516 & 513 & 515 & 526 & 516 & \textit{max it.} & \textit{max it.} & \textit{max it.} \\
+\texttt{case6515\_rte} & 6515 & 438 & 468 & 411 & 1574 & \textit{max it.} & 2037 & 321 & 321 & 321 & 320 & 320 & 320 & \textit{max it.} & \textit{max it.} & \textit{max it.} \\
+\texttt{case7336\_epigrids} & 7336 & 110 & 110 & 110 & 265 & 265 & 267 & 119 & 116 & 116 & 116 & 116 & 116 & 125 & 125 & 127 \\
+\texttt{case8387\_pegase} & 8387 & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & 2196 & \textit{max it.} & \textit{max it.} & \textit{step} & 1316 & 1515 \\
+\texttt{case9241\_pegase} & 9241 & 554 & 398 & 431 & 895 & 891 & 936 & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{max it.} \\
+\texttt{case9591\_goc} & 9591 & 135 & 135 & 136 & 379 & 390 & 376 & 142 & 142 & 142 & 142 & 142 & 142 & 151 & 148 & 151 \\
+\texttt{case10000\_goc} & 10000 & 123 & 124 & 122 & 351 & 365 & 355 & \textit{max it.} & \textit{max it.} & \textit{max it.} & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & 122 & 123 & 124 \\
+\texttt{case10192\_epigrids} & 10192 & 120 & 117 & 117 & 220 & 221 & 227 & 92 & 91 & 92 & 92 & 92 & 92 & 131 & 131 & 131 \\
+\texttt{case10480\_goc} & 10480 & 180 & 179 & 175 & 535 & 535 & 530 & 162 & 165 & 162 & 165 & 162 & 165 & 151 & 151 & 151 \\
+\texttt{case13659\_pegase} & 13659 & 279 & 281 & 279 & 670 & 684 & 714 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 410 & 420 & 362 & 1119 & 175 & 180 \\
+\texttt{case19402\_goc} & 19402 & 203 & 206 & 203 & 832 & 821 & 835 & 240 & 241 & 241 & \textit{infeas.} & \textit{infeas.} & \textit{infeas.} & 158 & 159 & 159 \\
+\texttt{case20758\_epigrids} & 20758 & 256 & 253 & 254 & 435 & 431 & 438 & 183 & 192 & 200 & 191 & 191 & 191 & 460 & 271 & 372 \\
+\texttt{case24464\_goc} & 24464 & 534 & 533 & 533 & \textit{max it.} & 1817 & 1928 & 335 & 331 & 335 & \textit{max it.} & \textit{max it.} & \textit{max it.} & 157 & 167 & 147 \\
+\texttt{case30000\_goc} & 30000 & 1324 & 1058 & 1108 & 1898 & 1938 & 1753 & 476 & 474 & 474 & 707 & 489 & 521 & 372 & 368 & 367 \\
+\texttt{case78484\_epigrids} & 78484 & 856 & 795 & 797 & 1577 & 1614 & 1603 & 1199 & 1176 & 1398 & 1186 & 1194 & 1181 & 324 & 237 & 242 \\
 \midrule
-solved (all 66) & & \multicolumn{3}{c}{65} & \multicolumn{3}{c}{64} & \multicolumn{3}{c}{59} & \multicolumn{3}{c}{52} & \multicolumn{3}{c}{59} \\
-factorizations (geom.\ mean) & & \multicolumn{3}{c}{116.4} & \multicolumn{3}{c}{276.6} & \multicolumn{3}{c}{110.9} & \multicolumn{3}{c}{105.5} & \multicolumn{3}{c}{103.9} \\
+solved (of 66) & & 65 & 65 & 65 & 63 & 63 & 64 & 59 & 59 & 59 & 53 & 52 & 52 & 57 & 59 & 59 \\
 \end{longtable}}
 \clearpage
 \pdfpagewidth=\paperwidth \pdfpageheight=\paperheight

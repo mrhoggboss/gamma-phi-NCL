@@ -55,8 +55,8 @@ informational there and the exit status is that of the emit.
 | SCOPF appendix, the 41 instances | `tab:scopf-appendix` | `tables/tab_scopf_all_appendix.tex` | `benchmarks/tables/tab_scopf_all_appendix.py` |
 | example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all five tables and the figure (checked 2026-11-12 against its Overleaf commit `dd0dd0d`: line
-72 of the manuscript's source for the figure, lines 824, 835, 843, 861 and 862 for the tables); `manuscript/` holds those six files. The
+The manuscript `\input`s all five tables and the figure (checked 2026-11-12 against its Overleaf commit `7e9363f`: line
+72 of the manuscript's source for the figure, lines 824, 835, 846, 859 and 860 for the tables); `manuscript/` holds those six files. The
 41 SCOPF instances are the 23 reference-list instances and the 18 protocol instances. Not emitted by `emit.sh`, because
 they are no longer floats of the manuscript: the 41-row SCOPF table (`tab_gpu_scopf_all.py`; its module also supplies
 the loader of the appendix and summary emitters) and the separate tables of the two sets (`tab_gpu_scopf.py`,
@@ -75,7 +75,7 @@ benchmarks/paper/emit.sh        # all five tables and the figure, ~45 s; writes 
 
 That command writes exactly the six files above, every one of them compiles at the manuscript's page geometry
 (`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all six are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `dd0dd0d`; `./reproduce.sh` makes that comparison), and the console
+manuscript's files (`manuscript/`, Overleaf commit `7e9363f`; `./reproduce.sh` makes that comparison), and the console
 summaries `cutest.txt`, `opf.txt`, `scopf.txt` and `scopf_pglib.txt` equal the banked
 `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was rewritten that day under
 the population rule); `scopf_all.txt` summarizes the 41 SCOPF instances (solved counts, nesting of the solved sets,
@@ -162,7 +162,11 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   ```
 
   Campaign elapsed per cell 720–1441 s, 4.0 h for the 15 (`WALLTIME_gpu1.csv`, last attempt of each cell).
-- Emit: `benchmarks/paper/emit.sh opf` (`tab_gpu_opf.py`, `tab_pglib_appendix.py`; seconds).
+- Emit: `benchmarks/paper/emit.sh opf` (`tab_gpu_opf.py`, `tab_pglib_appendix.py`; seconds). The appendix table lists,
+  per configuration and repetition, the factorization count of a solve or the reason for the non-solve (an italic word:
+  infeas. = local infeasibility declared, max it. = iteration limit, wall = wall-time limit, restor. = restoration
+  failed, step = step too small, error = evaluation or other error); no iteration or wall-time columns; landscape pages,
+  `\footnotesize` with `\tabcolsep` 2.5pt (the largest size at which both appendix tables fit the text width).
 
 ## SCOPF runs: the 23 reference-list instances
 
@@ -217,10 +221,11 @@ the 18 protocol instances), from both result sets with the scoring of the other 
 over the succeeding repetitions, LiftedKKT within constr_viol_tol): `tab_gpu_scopf_summary.tex`
 (`tab_gpu_scopf_summary.py`, label `tab:gpu-scopf`; the layout of the PGLIB table: per configuration the solved count of
 each repetition, the majority count and the geometric mean of factorizations) and `tab_scopf_all_appendix.tex`
-(`tab_scopf_all_appendix.py`, label `tab:scopf-appendix`, landscape; one row per instance: the reference networks, a thin
-rule, then the protocol networks, K increasing). It also writes the summaries `scopf.txt`, `scopf_pglib.txt` (each set
-alone) and `scopf_all.txt` (the 41, `summary_scopf_all.py`). Both SCOPF floats still carry draft captions
-(`[DRAFT CAPTION]`), as the manuscript does. The result directories are `benchmarks/results/paper/scopf/` and `benchmarks/results/paper/scopf_pglib/`
+(`tab_scopf_all_appendix.py`, label `tab:scopf-appendix`, landscape; one row per instance, the reference networks and
+then the protocol networks, K increasing, with no rule between them; per configuration and repetition the
+factorization count of a solve or the reason for the non-solve, with the words, type size and column separation of the
+PGLIB appendix). It also writes the summaries `scopf.txt`, `scopf_pglib.txt` (each
+set alone) and `scopf_all.txt` (the 41, `summary_scopf_all.py`). The result directories are `benchmarks/results/paper/scopf/` and `benchmarks/results/paper/scopf_pglib/`
 (`SCOPF_RES=<dir>` and `SCOPF_PGLIB_RES=<dir>` override either).
 
 ## Figure `fig:example-degenerate`
@@ -318,7 +323,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the five tables and the figure as the manuscript `\input`s them (Overleaf commit `dd0dd0d`), the reference of `reproduce.sh` |
+| `manuscript/` | the five tables and the figure as the manuscript `\input`s them (Overleaf commit `7e9363f`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
@@ -378,5 +383,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
   dagger note is moved to the caption"), all carried into `tab_cutest.py`; at `da30c73` the SCOPF configuration table
   `tab_scopf_config` also left the manuscript (its emitter was removed); at `c4923de` the PGLIB caption is Yifan's new
   wording (carried into `tab_gpu_opf.py`); at `dd0dd0d` the summary table `tab_gpu_scopf_summary` (the layout of the PGLIB
-  table) replaces the 41-row `tab_gpu_scopf_all` as `tab:gpu-scopf`; all six floats are byte-identical (`manuscript/`,
-  Overleaf `dd0dd0d`, 2026-11-12).
+  table) replaces the 41-row `tab_gpu_scopf_all` as `tab:gpu-scopf`; at `0eae8ef` the two appendix tables and the SCOPF
+  summary get Yifan's final captions, and at `7e9363f` the appendix tables list per repetition the factorization count or
+  the reason for the non-solve, with no iteration, wall-time or median columns (Yifan: "we do not use walltime anymore");
+  all six floats are byte-identical (`manuscript/`, Overleaf `7e9363f`, 2026-11-12).
