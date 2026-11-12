@@ -58,7 +58,7 @@ informational there and the exit status is that of the emit.
 | SCOPF protocol appendix | `tab:scopf-pglib-appendix` | `tables/tab_scopf_pglib_appendix.tex` | `benchmarks/tables/tab_scopf_pglib_appendix.py` |
 | example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all seven tables and the figure (checked 2026-11-12 against its Overleaf commit `1bec9fa`:
+The manuscript `\input`s all seven tables and the figure (checked 2026-11-12 against its Overleaf commit `cc4c9bd`:
 line 72 of the manuscript's source for the figure, lines 824, 834, 844, 846, 847, 865 and 866 for the tables);
 `manuscript/` holds those eight files.
 
@@ -73,7 +73,7 @@ benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes
 
 That command writes exactly the eight files above, every one of them compiles at the manuscript's page geometry
 (`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all eight are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `1bec9fa`; `./reproduce.sh` makes that comparison), and the console
+manuscript's files (`manuscript/`, Overleaf commit `cc4c9bd`; `./reproduce.sh` makes that comparison), and the console
 summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was
 rewritten that day under the population rule).
 
@@ -296,7 +296,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `1bec9fa`), the reference of `reproduce.sh` |
+| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `cc4c9bd`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
@@ -345,5 +345,6 @@ every option value is identical (checked on the CUTEst smoke run, and between th
   φ(t) = t²/2 + t⁶/6 (drawing unchanged); at `eb4b53d` the CUTEst table is the 1060-instance table of the population
   rule; at `70d2cd6` the three panel titles gained a second line ("Classical ALM", "Ours, custom weights", "Ours, custom
   kernel"), set in bold at `b70e85d` ("Ours" of panel (c)) and `1bec9fa` ("Classical ALM", "Ours" of panel (b)), as
-  carried into the generator (drawing unchanged); the other six tables are unchanged since `6d581d7`, and all eight are byte-identical (`manuscript/`,
-  Overleaf `1bec9fa`, 2026-11-12).
+  carried into the generator (drawing unchanged); at `cc4c9bd` the steepest-descent paths are thicker (line width 1.1 pt,
+  arrow tips 4.5 pt, start dots 1.4 pt; Yifan: "thicken the trajectory"); the other six tables are unchanged since
+  `6d581d7`, and all eight are byte-identical (`manuscript/`, Overleaf `cc4c9bd`, 2026-11-12).

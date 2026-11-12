@@ -91,8 +91,8 @@ def panel(f,X0,X1,Y0,Y1,levels,zero_sets,stationary,targets,starts,scale,title,N
     for style,pts in zero_sets:
         out.append('\\draw[%s] '%style+' -- '.join('(%.3f,%.3f)'%p for p in pts)+';')
     for (x,y) in starts:
-        pts=path(f,x,y,targets); out.append('\\draw[black!70, line width=0.5pt, -{Stealth[length=3pt]}] '+' -- '.join('(%.3f,%.3f)'%p for p in pts[::25]+[pts[-1]])+';')
-        out.append('\\fill[black!70] (%.3f,%.3f) circle (0.9pt);'%(x,y))
+        pts=path(f,x,y,targets); out.append('\\draw[black!70, line width=1.1pt, -{Stealth[length=4.5pt]}] '+' -- '.join('(%.3f,%.3f)'%p for p in pts[::25]+[pts[-1]])+';')
+        out.append('\\fill[black!70] (%.3f,%.3f) circle (1.4pt);'%(x,y))
     out.append('\\end{scope}')
     out.append('\\draw[black, line width=0.4pt] (%g,%g) rectangle (%g,%g);'%(X0,Y0,X1,Y1))
     for kind,(x,y) in stationary:
