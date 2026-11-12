@@ -6,7 +6,9 @@ produced for the three networks, and `build_lists.py`, which rebuilds the contin
 output of the protocol is `benchmarks/instances/scopf_pglib_contingencies.jl` (one list of 16 outages per network and
 order) and `benchmarks/instances/scopf_pglib18.csv` (the 18 instances: 3 networks x 2 orders x K in {4, 8, 16}).
 
-## The protocol (as stated in the manuscript, Section 5, paragraph "Instances")
+## The protocol (as stated in the manuscript, Algorithm 4 (`alg:screen`) and the "Instances" paragraph of Section 5)
+
+The manuscript leaves the screening order to this code; the orders A and B are defined in step 3 below.
 
 1. **Base case.** The base AC optimal power flow of the network (`julia/opf.jl`; Ipopt with MA27, at most 500
    iterations; every base solve of the three networks ended `LOCALLY_SOLVED`, `records/screens/*.meta.txt`).
