@@ -15,6 +15,8 @@ k1_10000it_3600s/  the protocol budget (C3_MAXITER=10000 C3_WALL=3600 C3_FIRSTPR
                    17303504 bytes), JuMP 1.32.1, PowerModels 0.21.6, MathOptInterface 1.54.0.
                    phase 1 (2026-11-12T00:01-00:05): case300 entries 1-100 (EPSR and EPSRmp81), case_ACTIVSg200 1-100,
                    case_ACTIVSg500 65-100 (336 rows).
+                   phase 2 (2026-11-12T00:05-01:06, the same setup): case1354pegase entries 1-32, case2869pegase
+                   1-16, case_ACTIVSg2000 1-16 (64 rows; data/ for the two pegase files, data_mp70/ for case_ACTIVSg2000).
 c3_3000it_600s/    the WO-69 Addendum C3 checks at 3000 iterations and 600 s (case118 entries 1-100, case_ACTIVSg500
                    1-64; 164 rows), copied verbatim from branch scopf-pool (benchmarks/pilot/screen/out/c3_k1/rows/,
                    committed at e1f1328) on 2026-11-12; same script (scopf-pool benchmarks/pilot/c3/c3_k1.jl; this

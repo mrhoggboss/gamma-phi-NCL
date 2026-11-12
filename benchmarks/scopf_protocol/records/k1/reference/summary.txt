@@ -5,12 +5,21 @@ constraint violation at exit; worst = the largest violation over every row of th
 | list | data | budget | entries verified | SOLVED | LOCALLY_INFEASIBLE | MAXITER | WALL | other | max iter | max wall (s) |
 |---|---|---|---|---|---|---|---|---|---|---|
 | case118 | EPSR | c3_3000it_600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 210 | 4.9 |
+| case1354pegase | EPSR | k1_10000it_3600s | 1-32 | 29 | 0 | 0 | 0 | 3 | 1883 | 673.31 |
+| case2869pegase | EPSR | k1_10000it_3600s | 1-16 | 15 | 0 | 0 | 0 | 1 | 2522 | 2666.59 |
 | case300 | EPSR | k1_10000it_3600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 2686 | 132.92 |
 | case300 | EPSRmp81 | k1_10000it_3600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 2686 | 125.79 |
 | case_ACTIVSg200 | EPSR | k1_10000it_3600s | 1-100 | 100 | 0 | 0 | 0 | 0 | 380 | 9.45 |
+| case_ACTIVSg2000 | EPSR | k1_10000it_3600s | 1-16 | 14 | 0 | 0 | 2 | 0 | 1659 | 3611.0 |
 | case_ACTIVSg500 | EPSR | c3_3000it_600s | 1-64 | 64 | 0 | 0 | 0 | 0 | 806 | 110.85 |
 | case_ACTIVSg500 | EPSR | k1_10000it_3600s | 65-100 | 36 | 0 | 0 | 0 | 0 | 674 | 65.61 |
 
 Data: EPSR = MATPOWER 7.0 file (fetch_scopf_data.sh data_mp70/, or data/ where identical); EPSRmp81 = MATPOWER 8.1 file (fetch_scopf_data.sh data/case300.m).
 
-Every verified outage ended Solve_Succeeded.
+Outages that did not end Solve_Succeeded:
+- case1354pegase EPSR k1_10000it_3600s branch 27: Restoration_Failed after 1340 iterations, 379.27 s; viol 1.4551915228366852e-11, worst 5.045849720877699e-9 (PV/PQ CC, outage gen 90)
+- case1354pegase EPSR k1_10000it_3600s branch 46: Restoration_Failed after 1044 iterations, 338.96 s; viol 2.8990976286280556e-12, worst 9.729633241898542e-9 (PV/PQ CC, outage gen 26)
+- case1354pegase EPSR k1_10000it_3600s branch 92: Restoration_Failed after 1191 iterations, 365.14 s; viol 1.4551915228366852e-11, worst 9.219777477826047e-9 (PV/PQ CC, outage gen 238)
+- case2869pegase EPSR k1_10000it_3600s branch 15: Restoration_Failed after 1754 iterations, 1396.57 s; viol 1.4551915228366852e-11, worst 8.626847190923519e-9 (PV/PQ CC, outage gen 62)
+- case_ACTIVSg2000 EPSR k1_10000it_3600s branch 15: Maximum_WallTime_Exceeded after 821 iterations, 3607.68 s; viol 1.1005838462274653e-04, worst 0.00011005838459432482 (branch flow definition, outage arc (1918; 6149; 6141))
+- case_ACTIVSg2000 EPSR k1_10000it_3600s branch 32: Maximum_WallTime_Exceeded after 957 iterations, 3611.0 s; viol 6.9485331799512551e-07, worst 6.948533179951255e-7 (branch flow definition, base arc (1921; 6239; 6141))

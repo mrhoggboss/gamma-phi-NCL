@@ -71,9 +71,9 @@ recover the list of `case_ACTIVSg500`. The networks `case1354pegase`, `case2869p
 **not screened**. The island rule and drop-and-backfill were not applied to any published list: the 23-instance set uses
 the lists exactly as published, and this section only checks them.
 
-**Single-contingency verification.** The listed outages that the 23 instances use were solved one at a time as the
-K = 1 SCOPF problem of the protocol's step 5 (harness model, Ipopt + MA57, tol 1e-8; `julia/k1_verify.jl`,
-`records/k1/reference/summary.txt`):
+**Single-contingency verification.** Every listed outage that the 23 instances use was solved alone as the K = 1
+SCOPF problem of the protocol's step 5 (harness model, Ipopt + MA57, tol 1e-8; `julia/k1_verify.jl`,
+`records/k1/reference/summary.txt`). The lists of the four screened networks:
 
 | list | entries verified | budget | Solve_Succeeded | other | max iterations | max solve time (s) |
 |---|---|---|---|---|---|---|
@@ -88,11 +88,23 @@ Every one of the 500 solves ended `Solve_Succeeded`. The entries verified are th
 to 100). The two checks at 3000 iterations and 600 s pass the protocol budget a fortiori. `case300` was verified on both
 case-file vintages because its K = 100 instance reads the MATPOWER 8.1 file and its K = 10 and K = 50 instances the 7.0
 file; the 100 pairs of rows agree in every column but the time columns, so the two files build the same model.
-`case1354pegase` (entries 1–32), `case2869pegase` (1–16) and `case_ACTIVSg2000` (1–16) are verified at the protocol
-budget in a second run, reported in `records/k1/reference/summary.txt` when it completes; their outcomes are reported
-only and change no list.
 
-To rerun the protocol-budget checks (CPU; phase 1 took 4 minutes on 30 workers):
+The three published lists that were not screened were verified at the protocol budget as well (second run,
+2026-11-12, 30 workers, 61 minutes); their outcomes are reported only and change no list:
+
+| list | entries verified | Solve_Succeeded | other outcomes | max iterations | max solve time (s) |
+|---|---|---|---|---|---|
+| `case1354pegase` | 1–32 | 29 | 3 `Restoration_Failed` (entries 2, 10, 19: branches 27, 46, 92) | 1883 | 673.31 |
+| `case2869pegase` | 1–16 | 15 | 1 `Restoration_Failed` (entry 15: branch 15) | 2522 | 2666.59 |
+| `case_ACTIVSg2000` | 1–16 | 14 | 2 `Maximum_WallTime_Exceeded` at 3600 s (entries 4 and 11: branches 15 and 32) | 1659 | 3611.0 |
+
+Every one of these six ended with a small unscaled constraint violation: about 1e-11 at the four `Restoration_Failed`
+exits, and 1.1e-4 (branch 15) and 6.9e-7 (branch 32) at the two `case_ACTIVSg2000` wall-time exits. Under the protocol's
+step 5 (remove an outage only on `Infeasible_Problem_Detected`, or on an exhausted budget with a violation above 1e-3)
+none of the 64 would be removed, but six did not end `Solve_Succeeded`.
+
+To rerun the protocol-budget checks (CPU, 30 workers: 4 minutes for the four screened networks, 61 minutes for the
+other three lists):
 
 ```bash
 D=benchmarks/out/scopf_data; benchmarks/instances/fetch_scopf_data.sh $D
