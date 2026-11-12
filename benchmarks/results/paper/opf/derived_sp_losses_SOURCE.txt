@@ -10,8 +10,16 @@ residual column, so dual_feas comes from the banked CSVs.
 
 Summary: the six MAXIMUM_ITERATIONS_EXCEEDED cases (case1354_pegase, case2000_goc, case24464_goc, case2853_sdet,
 case3120sp_k, case3375wp_k) end at n_outer = 40 with rho = 1e14 (rho_max) in every repetition, dual_feas 3.0e3 to 2.3e5;
-the two INFEASIBLE_PROBLEM_DETECTED cases end at rho = 1.1e13 (case1803_snem, n_outer 16) and 1.21e13 (case19402_goc,
-n_outer 17), below rho_max. Every row's last branch is rho_bump.
+the two INFEASIBLE_PROBLEM_DETECTED cases (case1803_snem, n_outer 16; case19402_goc, n_outer 17) record a last-used rho of
+1.1e13 and 1.21e13. Every row's last branch is rho_bump.
+
+On the two infeasibility declarations: final_rho is the penalty of the last subproblem solved (the trace logs rho_used).
+The declaration fires on the bump that reaches rho_max: after that subproblem the rho_bump branch sets
+rho = min(10 * rho, rho_max) = 1e14 (src/solver.jl:747), and the check that follows declares infeasibility because
+rho >= rho_max while the residual is still above opt_tol (src/solver.jl:771); no subproblem is solved at 1e14. So the
+penalty of these two runs does reach rho_max, and the manuscript's "all eight losses reach rho_max" agrees with the
+declaration rule as the paper states it (declare when rho^{k+1} = rho_max and the residual is still above the
+tolerance); it is not a text error.
 
 source trace sha256
 /home/yifan_xu/MadNCL-public/benchmarks/out/paper/opf/SP_r1/trace__opf__SP__r1.csv 68f7389e438ef18a54f42b883a67437870e01f9cab666ac70ae065ab5fca0554
