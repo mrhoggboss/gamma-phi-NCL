@@ -20,8 +20,7 @@ booktabs, longtable, geometry, tikz) and `pdfinfo` for the compile check; on a m
 `REPRO_NOCOMPILE=1 ./reproduce.sh` skips the compile check and still compares. Output (2026-11-12):
 
 ```
-DIFFERS    tab_cutest_ma57
-    [diff lines elided: the population counts, and the counts and means under the CUTEst population rule below]
+IDENTICAL  tab_cutest_ma57
 IDENTICAL  tab_gpu_opf
 IDENTICAL  tab_pglib_appendix
 IDENTICAL  tab_gpu_scopf
@@ -29,12 +28,8 @@ IDENTICAL  tab_scopf_config
 IDENTICAL  tab_gpu_scopf_pglib
 IDENTICAL  tab_scopf_pglib_appendix
 IDENTICAL  fig_example_degenerate
-reproduce.sh: 1 of 8 floats differ from manuscript/ (emit rc 0)
+reproduce.sh: all 8 floats IDENTICAL to manuscript/
 ```
-
-`tab_cutest_ma57` differs by design since 2026-11-12: the CUTEst emitters now apply the population rule of the CUTEst
-section below (10 instances excluded, 1060 scored), and `manuscript/` still holds the manuscript's 1070-instance table
-(Overleaf `f5b534b`) until the manuscript takes the new one. Before the rule all eight were identical (2026-11-11).
 
 ```bash
 ./reproduce.sh rerun all --device 0
@@ -63,8 +58,8 @@ informational there and the exit status is that of the emit.
 | SCOPF protocol appendix | `tab:scopf-pglib-appendix` | `tables/tab_scopf_pglib_appendix.tex` | `benchmarks/tables/tab_scopf_pglib_appendix.py` |
 | example of the introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all seven tables and the figure (checked 2026-11-12 against its Overleaf commit `f5b534b`:
-line 72 of the manuscript's source for the figure, lines 841, 851, 862, 864, 865, 884 and 885 for the tables);
+The manuscript `\input`s all seven tables and the figure (checked 2026-11-12 against its Overleaf commit `fd5df24`:
+line 72 of the manuscript's source for the figure, lines 824, 834, 844, 846, 847, 865 and 866 for the tables);
 `manuscript/` holds those eight files.
 
 ## What "reproduced" means here
@@ -77,11 +72,10 @@ benchmarks/paper/emit.sh        # all seven tables and the figure, ~45 s; writes
 ```
 
 That command writes exactly the eight files above, every one of them compiles at the manuscript's page geometry
-(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), seven of the eight are
-byte-identical to the manuscript's files (`manuscript/`, Overleaf commit `f5b534b`; `./reproduce.sh` makes that
-comparison) and the eighth, `tab_cutest_ma57`, differs by the CUTEst population rule only (see "One command"), and the
-console summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst
-summary was rewritten that day under the population rule).
+(`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all eight are byte-identical to the
+manuscript's files (`manuscript/`, Overleaf commit `fd5df24`; `./reproduce.sh` makes that comparison), and the console
+summaries equal the banked `benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was
+rewritten that day under the population rule).
 
 Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column but the timing columns (the CPU solvers
 are deterministic; a solve that ends at its wall-time cap can stop at a different iteration) and **to within GPU
@@ -302,7 +296,7 @@ every option value is identical (checked on the CUTEst smoke run, and between th
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `f5b534b`), the reference of `reproduce.sh` |
+| `manuscript/` | the seven tables and the figure as the manuscript `\input`s them (Overleaf commit `fd5df24`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
