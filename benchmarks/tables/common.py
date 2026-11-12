@@ -258,10 +258,11 @@ def letter(r, c, cvtol):
 
 # Per-repetition cells of the two per-instance appendix tables (tab_pglib_appendix, tab_scopf_all_appendix; Yifan
 # 2026-11-12): the factorization count of a repetition that solves, else the reason for the non-solve as one short italic
-# word, one vocabulary for both tables (Yifan's captions at Overleaf 0eae8ef define no codes).
-FAIL_WORD = {"INFEASIBLE_PROBLEM_DETECTED": "infeasible", "MAXIMUM_ITERATIONS_EXCEEDED": "iter.\\ limit",
-             "MAXIMUM_WALLTIME_EXCEEDED": "wall", "RESTORATION_FAILED": "restoration",
-             "SEARCH_DIRECTION_BECOMES_TOO_SMALL": "small step"}
+# word, one fixed abbreviated vocabulary for both tables (Yifan's captions at Overleaf 0eae8ef define no codes; the
+# abbreviations keep the tables at a readable type size).
+FAIL_WORD = {"INFEASIBLE_PROBLEM_DETECTED": "infeas.", "MAXIMUM_ITERATIONS_EXCEEDED": "max it.",
+             "MAXIMUM_WALLTIME_EXCEEDED": "wall", "RESTORATION_FAILED": "restor.",
+             "SEARCH_DIRECTION_BECOMES_TOO_SMALL": "step"}
 
 
 def rep_cell(r, c, cvtol):
