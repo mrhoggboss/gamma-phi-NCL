@@ -111,7 +111,7 @@
 \node[star, star points=5, star point ratio=2.2, fill=black, inner sep=1.4pt] at (4.000,-3.464) {};
 \node[star, star points=5, star point ratio=2.2, fill=black, inner sep=1.4pt] at (4.000,3.464) {};
 \draw[black, fill=white, line width=0.6pt] (2.293,0.000) circle (1.6pt);
-\node[anchor=north, font=\scriptsize, align=center] at (1,-3.88) {(c) $\gamma=(1,1)$, $\varphi(t)=\frac{1}{2}t^2 + \frac{1}{50} t^6$};
+\node[anchor=north, font=\scriptsize, align=center] at (1,-3.88) {(c) $\gamma=(1,1)$, $\varphi(t)=\frac{1}{2}t^2 + \frac{1}{6} t^6$};
 \end{tikzpicture}
 \caption{Contour plots of the infeasibility merit for the constraints $c_1(x) = x_1^2 - x_2^2 - 4 = 0$ (blue) and $c_2(x) = x_1 - 4 = 0$ (red). The feasible set is the two points $(4, \pm\sqrt{12})$ (stars), where the line crosses the hyperbola and the constraint Jacobian has full rank. White curves are level sets of the infeasibility merit $\Theta(x) = \sum_i \gamma_i |c_i(x)|^p/p$ (see Theorem~\ref{thm:merit} for a rigorous definition); a filled dot is a spurious local minimizer of $\Theta$, at which the two constraint gradients are parallel, and open dots represent saddles of $\Theta$. The dashed curve traces the boundary of the spurious minimizer's basin of attraction, and the two thin paths are steepest-descent paths of $\Theta$ from two starting points. (a) With unit weights and the quadratic kernel à la vanilla ALM, a path started left of the dashed curve ends infeasible; (b) weight $4$ for the second constraint and (c) a polynomial kernel both remove the spurious minimizer, hence every path ends at a feasible point.}
 \label{fig:example-degenerate}\end{figure}

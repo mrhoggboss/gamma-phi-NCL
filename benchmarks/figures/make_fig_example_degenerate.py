@@ -147,7 +147,7 @@ zs=[('blue!70!black, line width=0.9pt',hyp(1)),('blue!70!black, line width=0.9pt
 def levels(f,tref,n=8):
     vals=[f(x,y) for x in (X0,X1) for y in (Y0,Y1)]; tmax=max(vals)
     base=max(tref*0.2,1e-3); return [base*(tmax/base)**((k+0.5)/n) for k in range(n)]
-pan=[((1,1),2,'(a) $\\gamma=(1,1)$, $\\varphi(t)=\\frac{1}{2}t^2$'),((1,4),2,'(b) $\\gamma=(1,4)$, $\\varphi(t)=\\frac{1}{2}t^2$'),((1,1),6,'(c) $\\gamma=(1,1)$, $\\varphi(t)=\\frac{1}{2}t^2 + \\frac{1}{50} t^6$')]
+pan=[((1,1),2,'(a) $\\gamma=(1,1)$, $\\varphi(t)=\\frac{1}{2}t^2$'),((1,4),2,'(b) $\\gamma=(1,4)$, $\\varphi(t)=\\frac{1}{2}t^2$'),((1,1),6,'(c) $\\gamma=(1,1)$, $\\varphi(t)=\\frac{1}{2}t^2 + \\frac{1}{6} t^6$')]
 out=['%% GENERATED: regular instance x1^2-x2^2-4=0, x1-%g=0 (no objective); level sets of the selected merit, stationary points, basin separatrix, steepest-descent paths.'%B,'\\begin{figure}[t]\\centering']
 for (g1,g2),p,title in pan:
     f=theta(g1,g2,p); pts=stationary_points(g1,g2,p,X0,X1,Y0,Y1)
