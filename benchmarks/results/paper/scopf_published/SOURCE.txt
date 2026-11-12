@@ -1,0 +1,45 @@
+The SCOPF runs of case_ACTIVSg500, case1354pegase and case_ACTIVSg2000 on the contingency lists as published by the reference
+benchmark (benchmarks/instances/scopf_contingencies_published.jl), for the 12 instances whose published list differs from
+the protocol list that replaced it on 2026-11-13 (Yifan: "rerun them now"): ACTIVSg500 K = 8, 10, 16, 32, 50, 64, 100,
+1354pegase K = 8, 16, 32, ACTIVSg2000 K = 8, 16 (benchmarks/instances/scopf_published12.csv). case_ACTIVSg500_nK4 is not
+here: its first 4 outages are the same under both lists, so its row in ../scopf/ serves both
+(tab_scopf_published_appendix.py --from=../scopf --plus=case_ACTIVSg500_nK4 adds it).
+
+These are the campaign's rows, kept as a reported dataset ("for reference", Yifan 2026-11-13): every row line is a byte
+copy of its line in ../scopf/scopf__<config>__r<k>.csv as banked at paper-repro 92ccb7e (before the protocol-list rerun
+replaced those rows there), the header line included, in the same order; config_scopf_published__<config>__r<k>.txt
+are byte copies of ../scopf/config_scopf__<config>__r<k>.txt (the campaign's echoes of those runs). summary.txt =
+benchmarks/tables/summary_gpu.py on this directory. Re-emit: benchmarks/paper/emit.sh scopf_published (the unreported
+table tab_scopf_published_appendix); rerun: ./reproduce.sh rerun scopf_published.
+
+file (here) <- source (../scopf, at 92ccb7e) sha256 of the source file
+scopf_published__S__r1.csv scopf__S__r1.csv fe3ad607572772c094f9aec87bee4cebf65d73cc50d9d518406fe6532c35e5dc
+config_scopf_published__S__r1.txt config_scopf__S__r1.txt 9e73d00594ff5c961c98b88ff7298c08d39be5b57eb0f1d5065e8b32908b9d41
+scopf_published__S__r2.csv scopf__S__r2.csv a82069ecc196a073ec867cab4af5f5467da944660c7c59a9e3f1fb7770dc39ba
+config_scopf_published__S__r2.txt config_scopf__S__r2.txt 868751eeb407273bfc0be93f0158dbd6e9baee060a1b3b664661e1596bc8f775
+scopf_published__S__r3.csv scopf__S__r3.csv a6713e16cd4dd25cf4991c6a919be67694b60cc9428f190a08b9de6dd6b040f4
+config_scopf_published__S__r3.txt config_scopf__S__r3.txt 22f2e805fd6ae5cd04705cad18f0f6de3fd1e6284f3e8460de0371cf47653254
+scopf_published__SP__r1.csv scopf__SP__r1.csv 6d25abdcd2ca11e3c46a29401651036f7fe562eeaf18eb13a79288897d3e0c0e
+config_scopf_published__SP__r1.txt config_scopf__SP__r1.txt 002f7f4f1d3ed98bd9d0ce9bfa64f1a8d881ed3df3753521937d96963706f220
+scopf_published__SP__r2.csv scopf__SP__r2.csv d64786ecc748a951e768adc615c63b7df9a08c663c2e9840023366c113a64332
+config_scopf_published__SP__r2.txt config_scopf__SP__r2.txt ddda7ad63ec9d6c04b8cff0084b4cc7e3b41d272319380ce67fac0cce055a094
+scopf_published__SP__r3.csv scopf__SP__r3.csv 36b546c8cf70d1421dfc1ddcabbdd201eaa92d6cab1031601ba363c22ba03fbb
+config_scopf_published__SP__r3.txt config_scopf__SP__r3.txt 3854384fdaf9df5aa763322728a6129d52086191c0233653689ce5a61cacb387
+scopf_published__W__r1.csv scopf__W__r1.csv cb46002c7563fe6dc2f8b7af29012a965fad602e8e5b9383fb874740aead44f1
+config_scopf_published__W__r1.txt config_scopf__W__r1.txt be57910da83b1319ceadf9af0eddb5ded3a6ac3cf0d4621a4ef369bb0e507f0e
+scopf_published__W__r2.csv scopf__W__r2.csv 0c3b03cd0d1a5b2e8697389a946230aed4d2312794b35ecc806443cedf301134
+config_scopf_published__W__r2.txt config_scopf__W__r2.txt d727e96b73eaa641dbe1eceb74c3198f539758dca4e6dee011cd16e60da8fd24
+scopf_published__W__r3.csv scopf__W__r3.csv 933c27bd721195d388eb738a9e509aba9e66bddd7913edfc542d8d189872b5d4
+config_scopf_published__W__r3.txt config_scopf__W__r3.txt f6954990f99da2c47d5843ab169797d33a6398fd63171bcae197f8d11b1ee64e
+scopf_published__U6A__r1.csv scopf__U6A__r1.csv 1fe8852c099f9b6269522bf42aee006764df25c3c96b20a8f244b4233ace5e80
+config_scopf_published__U6A__r1.txt config_scopf__U6A__r1.txt 635da87d3d6aef2a48a4c2ccacad0503e155f3fff405d947fb40041d97e7fa4a
+scopf_published__U6A__r2.csv scopf__U6A__r2.csv 64073c899c25829f25ab91a75f8f9350f8a0bf8b9caccbdbaf79c43ce6c089d2
+config_scopf_published__U6A__r2.txt config_scopf__U6A__r2.txt 969b8d58640c8570677807973e403013003f892ecd9f557710a3a84aac0ef6e0
+scopf_published__U6A__r3.csv scopf__U6A__r3.csv 4b8dc14b45f8d74b9dbb36a1afb1af1cdfe773168fa748af22e2bc90a9ea293c
+config_scopf_published__U6A__r3.txt config_scopf__U6A__r3.txt 2d3a0ee952e21daf4f61ab999b022577efb15d658fed62a3d31a40d43a6f7287
+scopf_published__liftedkkt__r1.csv scopf__liftedkkt__r1.csv 9047b9f0b50539e09e26e9e971677bed2b5b6bf8aa2e6aa8f7c2160b084e874c
+config_scopf_published__liftedkkt__r1.txt config_scopf__liftedkkt__r1.txt 14c2e65592eca640434b3d4dd2827d1b69749edafd81c70ebaaa88fe777ad3ba
+scopf_published__liftedkkt__r2.csv scopf__liftedkkt__r2.csv 345092a02afd1944a2be51305b5c822996c89368bcac280ef57769f7671a36fe
+config_scopf_published__liftedkkt__r2.txt config_scopf__liftedkkt__r2.txt 6bb10ea371d72e7578715767ceafd3db8793e2c564c25889236eff12241ae6a0
+scopf_published__liftedkkt__r3.csv scopf__liftedkkt__r3.csv 619b90a29269ff02394467983375571660490b6374b8826bad16d56f6e4c62a2
+config_scopf_published__liftedkkt__r3.txt config_scopf__liftedkkt__r3.txt 952c3b9edc6762b4bc9d5ac813465cdda91af41e44d23c47732d0e6a01149a63

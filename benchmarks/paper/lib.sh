@@ -12,7 +12,8 @@
 #     compile/                          the compile check's scaffolding (_cc_<name>.{tex,log,pdf,...}), kept out of tables/
 #     summaries/<suite>.txt             console summaries (the banked benchmarks/results/paper/<suite>/summary.txt)
 #     logs/                             driver logs, WALLTIME_<chain>.csv (one line per cell), progress.txt (markers)
-# Suites: cutest (CPU), opf, scopf, scopf_pglib (GPU); `figure` is the theory figure (no data).
+# Suites: cutest (CPU), opf, scopf, scopf_pglib (GPU); `figure` is the theory figure (no data); scopf_published (GPU) is the
+# reference-for-the-record run set of the three networks on their published contingency lists (not a manuscript float).
 # Every GPU cell runs under gpu_device.sh (refuses a device that carries any other process unless GPU_DEVICE_NOGATE=1; a
 # wall cap; the compute processes of others on the device are sampled every 60 s and logged as INTRUDER lines, so that
 # their cells' wall times can be flagged) and watch.sh (stall watchdog, resume).
@@ -49,6 +50,9 @@ device_busy() {   # device_busy <dev>: prints the compute processes on that devi
 #   scopf        gpu.jl scopf ... --data=$SCOPF_DATA                    (the 23 reference-list instances, max_iter 3000)
 #   scopf_pglib  gpu.jl scopf ... --instances=scopf_pglib18.csv --data=$SCOPF_PGLIB_DATA
 #                --contingencies=scopf_pglib_contingencies.jl           (the 18 protocol instances, max_iter 3000)
+#   scopf_published  gpu.jl scopf ... --instances=scopf_published12.csv --data=$SCOPF_DATA
+#                --contingencies=scopf_contingencies_published.jl       (the 12 instances of case_ACTIVSg500,
+#                case1354pegase and case_ACTIVSg2000 whose published contingency list differs from the protocol list)
 # The campaign ran scopf_pglib one instance per process (--cases=<instance>, otherwise the same options); here the 18
 # run in one process, as the 23 of scopf. A cell already DONE is skipped; a cell killed part-way resumes from its result
 # file (the driver keeps its finished rows).
@@ -61,6 +65,8 @@ run_gpu_cell() {
         scopf) extra=(--data="$SCOPF_DATA") ;;
         scopf_pglib) drv=scopf; extra=(--instances="$INST/scopf_pglib18.csv" --data="$SCOPF_PGLIB_DATA"
                                        --contingencies="$INST/scopf_pglib_contingencies.jl") ;;
+        scopf_published) drv=scopf; extra=(--instances="$INST/scopf_published12.csv" --data="$SCOPF_DATA"
+                                           --contingencies="$INST/scopf_contingencies_published.jl") ;;
         *) echo "run_gpu_cell: unknown suite $suite" >&2; return 2 ;;
     esac
     mkdir -p "$dir"
@@ -192,6 +198,10 @@ FLOATS_opf="tab_gpu_opf tab_pglib_appendix"
 FLOATS_scopf="tab_gpu_scopf_summary tab_scopf_all_appendix"
 FLOATS_figure="fig_example_degenerate"
 SUITES="cutest opf scopf figure"
+# scopf_published: the 12 instances of case_ACTIVSg500, case1354pegase and case_ACTIVSg2000 on their published contingency
+# lists (benchmarks/results/paper/scopf_published/), in the per-repetition appendix layout; NOT a float of the manuscript
+# (not in SUITES: emitted only when named, `emit.sh scopf_published`, and not compared by reproduce.sh).
+FLOATS_scopf_published="tab_scopf_published_appendix"
 
 # emit <suite>: write the suite's floats from the results in $RES/<suite> into $TABLES (the figure into $FIGURES) and
 # check that they compile (REPRO_NOCOMPILE=1 skips the check, for a machine without pdflatex/pdfinfo); nothing else is
@@ -206,8 +216,9 @@ emit() {
                      python3 "$py/tab_pglib_appendix.py" "$RES/opf" --out="$TABLES" || r=1 ;;
         scopf)       python3 "$py/tab_gpu_scopf_summary.py" "$rs" "$rp" --out="$TABLES" || r=1
                      python3 "$py/tab_scopf_all_appendix.py" "$rs" "$rp" --out="$TABLES" || r=1 ;;
+        scopf_published) python3 "$py/tab_scopf_published_appendix.py" "$RES/scopf_published" --out="$TABLES" || r=1 ;;
         figure)      python3 "$PUB/benchmarks/figures/make_fig_example_degenerate.py" --out="$FIGURES" || r=1 ;;
-        *) echo "emit: unknown suite $suite (expected one of $SUITES)" >&2; return 2 ;;
+        *) echo "emit: unknown suite $suite (expected one of $SUITES scopf_published)" >&2; return 2 ;;
     esac
     v="FLOATS_$suite"
     for f in ${!v}; do
@@ -235,6 +246,7 @@ summarize() {
         scopf) python3 "$py/summary_gpu.py" "$rs" scopf > "$SUMMARIES/scopf.txt" 2>&1 \
                    && python3 "$py/summary_gpu.py" "$rp" scopf_pglib > "$SUMMARIES/scopf_pglib.txt" 2>&1 \
                    && python3 "$py/summary_scopf_all.py" "$rs" "$rp" > "$SUMMARIES/scopf_all.txt" 2>&1 ;;
+        scopf_published) python3 "$py/summary_gpu.py" "$RES/scopf_published" scopf_published > "$SUMMARIES/scopf_published.txt" 2>&1 ;;
         figure) return 0 ;;
         *) echo "summarize: unknown suite $suite" >&2; return 2 ;;
     esac

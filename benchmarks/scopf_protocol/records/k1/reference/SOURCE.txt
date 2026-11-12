@@ -1,4 +1,4 @@
-Single-contingency (K = 1) verification of the published reference lists (benchmarks/instances/scopf_contingencies.jl).
+Single-contingency (K = 1) verification of the published reference lists (benchmarks/instances/scopf_contingencies_published.jl).
 One row per outage, written by julia/k1_verify.jl: net, list label, branch key, Ipopt status, termination, iterations,
 unscaled constraint violation, unscaled dual infeasibility, scaled violation, scaled dual infeasibility, complementarity,
 objective, solve time (s), build time (s), worst row family / scope / element / violation at exit, nvar[, first

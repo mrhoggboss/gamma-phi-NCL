@@ -7,9 +7,11 @@
 #       manuscript/figures/). One line per float; exit 0 only if all six are IDENTICAL. About a minute.
 #       Needs bash, python3, pdflatex and pdfinfo (REPRO_NOCOMPILE=1 skips the compile check).
 #
-#   ./reproduce.sh rerun <cpu|opf|scopf|scopf_pglib|all> [--device N]
+#   ./reproduce.sh rerun <cpu|opf|scopf|scopf_pglib|scopf_published|all> [--device N]
 #       Rerun the solves (cpu = CUTEst, benchmarks/paper/chain_cpu.sh; opf, scopf, scopf_pglib = the GPU suites,
-#       benchmarks/paper/chain_gpu.sh on device N, default 0; all = cpu, then opf, scopf and scopf_pglib), fetching the
+#       benchmarks/paper/chain_gpu.sh on device N, default 0; all = cpu, then opf, scopf and scopf_pglib;
+#       scopf_published = the 12 instances of three reference networks on their published contingency lists, a dataset
+#       kept for reference and not part of `all`, whose table is not a float of manuscript/), fetching the
 #       SCOPF case files first when their sha256 check does not already pass; then emit those floats from the rerun
 #       (benchmarks/out/paper/results) and compare them with manuscript/ in the same way. The SCOPF floats need both
 #       SCOPF result sets (scopf: the 23 reference-list instances, scopf_pglib: the 18 protocol instances); a set that was
@@ -33,6 +35,9 @@ compare() {
         for f in ${!v}; do
             if [ "$s" = figure ]; then emitted=$FIGURES/$f.tex; ref=$ROOT/manuscript/figures/$f.tex
             else emitted=$TABLES/$f.tex; ref=$ROOT/manuscript/tables/$f.tex; fi
+            if [ ! -f "$ref" ]; then
+                echo "NEW        $f (not a float of manuscript/, nothing to compare)"; continue
+            fi
             if cmp -s "$emitted" "$ref"; then
                 echo "IDENTICAL  $f"
             else
@@ -83,7 +88,7 @@ while [ $# -gt 0 ]; do
     case $1 in --device) [ $# -ge 2 ] || usage; DEV=$2; shift 2 ;; *) usage ;; esac
 done
 case $WHAT in
-    cpu|opf|scopf|scopf_pglib) RUNS=$WHAT ;;
+    cpu|opf|scopf|scopf_pglib|scopf_published) RUNS=$WHAT ;;
     all) RUNS="cpu opf scopf scopf_pglib" ;;
     *) usage ;;
 esac
@@ -101,6 +106,8 @@ for r in $RUNS; do
         scopf_pglib) fetch_if_needed "$SCOPF_PGLIB_DATA" "$INST/scopf_pglib_data.sha256" "$INST/fetch_pglib_scopf_data.sh"
                      SCOPF_PGLIB_DATA=$SCOPF_PGLIB_DATA "$PAPER/chain_gpu.sh" "$DEV" scopf_pglib
                      case " $EMITS " in *" scopf "*) ;; *) EMITS="$EMITS scopf" ;; esac ;;
+        scopf_published) fetch_if_needed "$SCOPF_DATA" "$INST/scopf_data.sha256" "$INST/fetch_scopf_data.sh"
+                     SCOPF_DATA=$SCOPF_DATA "$PAPER/chain_gpu.sh" "$DEV" scopf_published; EMITS="$EMITS scopf_published" ;;
     esac
 done
 [ "$WHAT" = all ] && EMITS="$EMITS figure"

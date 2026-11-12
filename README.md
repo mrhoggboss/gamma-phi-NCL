@@ -235,6 +235,20 @@ footer rows of the PGLIB appendix). It also writes the summaries `scopf.txt`, `s
 set alone) and `scopf_all.txt` (the 41, `summary_scopf_all.py`). The result directories are `benchmarks/results/paper/scopf/` and `benchmarks/results/paper/scopf_pglib/`
 (`SCOPF_RES=<dir>` and `SCOPF_PGLIB_RES=<dir>` override either).
 
+## The published-list runs (kept for reference; not a manuscript float)
+
+On 2026-11-13 the contingency lists of `case_ACTIVSg500`, `case1354pegase` and `case_ACTIVSg2000`, which the protocol's
+screen does not reproduce, were replaced by their protocol lists (`benchmarks/scopf_protocol/reference_regen.py lists`;
+the published file is kept as `benchmarks/instances/scopf_contingencies_published.jl`). The campaign's runs of the 12
+instances whose list changed (ACTIVSg500 K = 8 … 100, 1354pegase K = 8, 16, 32, ACTIVSg2000 K = 8, 16;
+`benchmarks/instances/scopf_published12.csv`) are kept as a dataset, `benchmarks/results/paper/scopf_published/` (their
+rows byte-copied from the banked `scopf/` CSVs, with their configuration echoes; `SOURCE.txt`). `emit.sh scopf_published`
+writes their per-repetition table `tab_scopf_published_appendix.tex` (the layout of the SCOPF appendix; draft caption;
+`--from=benchmarks/results/paper/scopf --plus=case_ACTIVSg500_nK4` adds the K = 4 instance, whose list is the same
+under both) and the summary `scopf_published.txt`; `./reproduce.sh rerun scopf_published` reruns them (the campaign
+settings, `--contingencies=benchmarks/instances/scopf_contingencies_published.jl`). The table is not in `manuscript/`
+and `./reproduce.sh` does not compare it.
+
 ## Figure `fig:example-degenerate`
 
 ```bash
@@ -341,11 +355,11 @@ identical to their r2 echoes (only the tag and the warm-up time differ).
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
 | `benchmarks/models/` | the AC-OPF model (ExaModels) and the SCOPF-as-MPCC model (JuMP + PowerModels; from the MadNCL paper's harness and github.com/frapac/pscc-scopf) |
-| `benchmarks/instances/` | instance lists (CUTEst 1070, its certified traps, used by the CUTEst summary, and its x0 census and the population rule's 10 exclusions; PGLIB 66; SCOPF 23 and 18), contingency lists, data fetch scripts and sha256 manifests |
+| `benchmarks/instances/` | instance lists (CUTEst 1070, its certified traps, used by the CUTEst summary, and its x0 census and the population rule's 10 exclusions; PGLIB 66; SCOPF 23 and 18, and the 12 instances of the published-list runs), contingency lists (the lists in use, and the reference benchmark's lists as published), data fetch scripts and sha256 manifests |
 | `benchmarks/scopf_protocol/` | the generation protocol of the 18 protocol SCOPF instances: scripts, records, list builder |
 | `benchmarks/tables/`, `benchmarks/figures/` | the emitters (Python, standard library only) |
 | `benchmarks/paper/` | `chain_cpu.sh`, `chain_gpu.sh`, `emit.sh`, their shared `lib.sh`, `watch.sh` (stall watchdog), `gpu_device.sh` (device gate) |
-| `benchmarks/results/paper/` | the campaign's result CSVs, configuration echoes and summaries (`cutest`, `opf`, `scopf`, `scopf_pglib`) |
+| `benchmarks/results/paper/` | the campaign's result CSVs, configuration echoes and summaries (`cutest`, `opf`, `scopf`, `scopf_pglib`; `scopf_published`, the published-list runs kept for reference) |
 | `benchmarks/envs/{cpu,gpu,screen}` | the pinned environments |
 | `test/` | the package's unit tests (`julia --project=. -e 'using Pkg; Pkg.test()'`) |
 

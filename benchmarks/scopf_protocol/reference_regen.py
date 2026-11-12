@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """reference_regen -- the protocol applied to four networks of the reference SCOPF set, compared with the published lists
-(records/published_contingencies.jl), and the protocol lists of the three networks whose published list the screen does
+(benchmarks/instances/scopf_contingencies_published.jl), and the protocol lists of the three networks whose published list the screen does
 not reproduce (Python standard library only; seconds).
 
   python3 benchmarks/scopf_protocol/reference_regen.py compare [--check]
@@ -45,7 +45,7 @@ NETS = [("case_ACTIVSg500", 100, (4, 8, 10, 16, 32, 50, 64, 100), 100),
 ST = {"1": "SUCC", "2": "ACCEPTABLE", "3": "SMALL_STEP", "4": "DIVERGING", "5": "INFEASIBLE", "6": "MAXITER"}
 
 
-PUBLISHED = os.path.join(REC, "published_contingencies.jl")          # the reference benchmark's lists as published
+PUBLISHED = os.path.join(os.path.dirname(HERE), "instances", "scopf_contingencies_published.jl")   # the lists as published
 LISTS = os.path.join(os.path.dirname(HERE), "instances", "scopf_contingencies.jl")   # the lists the benchmark runs
 REGEN = ("case_ACTIVSg500", "case1354pegase", "case_ACTIVSg2000")   # the published lists the screen does not reproduce
 
@@ -228,7 +228,7 @@ def lists_file():
             "# protocol's screen reproduces. case_ACTIVSg500, case1354pegase and case_ACTIVSg2000: the protocol lists\n"
             "# (Yifan 2026-11-13; order A, island rule, K = 1 verification: benchmarks/scopf_protocol/reference_regen.py\n"
             "# lists, records/reference_regen/); their published lists are kept in\n"
-            "# benchmarks/scopf_protocol/records/published_contingencies.jl.\n")
+            "# benchmarks/instances/scopf_contingencies_published.jl.\n")
     body = src[src.index("CONTINGENCIES = Dict("):]
     for net, L in new.items():
         m = re.search(r'    "%s" => \[[^\]]*\],\n' % net, body)

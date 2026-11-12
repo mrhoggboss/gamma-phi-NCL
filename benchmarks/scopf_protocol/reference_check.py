@@ -7,8 +7,8 @@
 
 screens  The full screens of records/reference_screens/ (every in-service branch of case118, case300, case_ACTIVSg200 and
          case_ACTIVSg500, in increasing branch key, at penalty 1e8 with the protocol's admission rule: scaled residual
-         ||r||_inf < 1e-4, any status, bridges kept) against the published lists (records/published_contingencies.jl,
-         the reference benchmark's lists as published): for case118, case300 and case_ACTIVSg200, whether the first
+         ||r||_inf < 1e-4, any status, bridges kept) against the published lists
+         (benchmarks/instances/scopf_contingencies_published.jl, the reference benchmark's lists as published): for case118, case300 and case_ACTIVSg200, whether the first
          len(list) admitted outages equal the list; for case_ACTIVSg500, the first differing entry and the overlaps of the
          first 10/16/32/64/100. The output has the format of the original comparison, records/reference_screens/
          S0p_compare.txt; with --check it must equal that file line for line.
@@ -24,9 +24,10 @@ import collections, csv, glob, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REC = os.path.join(HERE, "records")
-# the reference benchmark's lists as published (a byte copy of benchmarks/instances/scopf_contingencies.jl before three of
-# its lists were replaced by the protocol lists, reference_regen.py lists)
-LISTS_FILE = os.path.join(REC, "published_contingencies.jl")
+# the reference benchmark's lists as published (benchmarks/instances/scopf_contingencies_published.jl: a byte copy of
+# benchmarks/instances/scopf_contingencies.jl before three of its lists were replaced by the protocol lists,
+# reference_regen.py lists)
+LISTS_FILE = os.path.join(os.path.dirname(HERE), "instances", "scopf_contingencies_published.jl")
 
 
 def published_lists():
