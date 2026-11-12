@@ -8,13 +8,15 @@ reason of all three reps"): the factorization count of a repetition that solves,
 as a short italic word (common.rep_cell, common.FAIL_WORD; no iteration, wall-time or median columns). LiftedKKT (MadNLP) has no
 constraint-violation test: its solves count only if the returned point's raw violation (pr_res) is within the run's
 constr_viol_tol (post-hoc guard). The footer gives the solved count of every repetition, computed with the scoring of
-tab_gpu_opf (benchmarks/tables/common.suite_scores) and asserted to equal the count of numeric cells above it.
+tab_gpu_opf (benchmarks/tables/common.suite_scores) and asserted to equal the count of numeric cells above it, and,
+as the last row (Yifan 2026-11-12), the cost of tab_gpu_opf: the geometric mean over the majority-solved cases of the
+median factorization count of the succeeding repetitions.
 
 Usage: python3 benchmarks/tables/tab_pglib_appendix.py <resdir> [--cvtol=<t>] [--out=<dir>]
 """
-import re, sys
+import re, statistics, sys
 from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header,
-                    find, ordered, read_cvtol, read_rows, rep_cell, suite_scores, write)
+                    find, fmt, gm, ordered, read_cvtol, read_rows, rep_cell, success, suite_scores, write)
 
 # Caption: the manuscript's (Yifan, Overleaf 0eae8ef), verbatim (captions are Yifan's).
 CAPTION = ("Detailed results of the solvers on all 66 PGLIB instances, ordered by bus count. For each repetition, we report "
@@ -64,12 +66,23 @@ def main(argv):
                 nsol[(c, t)] += x.isdigit()
                 cells.append(x)
         T.append(f"{tex_name(n)} & {nbus(n)} & " + " & ".join(cells) + " \\\\")
+    cost = {}
     for c in configs:
         a = suite_scores(data[c], names, c, cvtol)
         assert all(a["per_rep"][t][0] == nsol[(c, t)] for t in tags), (c, a["per_rep"], nsol)
-        print(f"  {c:<10} solved per repetition {[nsol[(c, t)] for t in tags]} of {len(names)}")
+        # the cost of tab_gpu_opf: geometric mean over the majority-solved cases of the median factorization count of
+        # the succeeding repetitions (recomputed here from the rows, asserted equal to suite_scores)
+        med = [statistics.median(float(data[c][t][n]["nfact"]) for t in tags if success(data[c][t].get(n), c, None, cvtol))
+               for n in names if a["majority"][n][0]]
+        assert fmt(gm(med)) == fmt(a["cost"]), (c, gm(med), a["cost"])
+        cost[c] = a["cost"]
+        print(f"  {c:<10} solved per repetition {[nsol[(c, t)] for t in tags]} of {len(names)}, "
+              f"majority {len(a['solved'])}, gm fact {a['cost']:.1f}")
     T.append("\\midrule")
-    T.append(f"solved (of {len(names)}) & & " + " & ".join(str(nsol[(c, t)]) for c in configs for t in tags) + " \\\\")
+    # the footer labels span the 2 identifier columns (a label in the first column alone would widen it)
+    T.append(f"\\multicolumn{{2}}{{l}}{{solved (of {len(names)})}} & " + " & ".join(str(nsol[(c, t)]) for c in configs for t in tags) + " \\\\")
+    T.append("\\multicolumn{2}{l}{factorizations (geom.\\ mean)} & " + " & ".join(f"\\multicolumn{{{len(tags)}}}{{c}}{{{fmt(cost[c])}}}"
+                                                                for c in configs) + " \\\\")
     T.append("\\end{longtable}}")
     T += LANDSCAPE_END
     assert_no_tokens("\n".join(T))

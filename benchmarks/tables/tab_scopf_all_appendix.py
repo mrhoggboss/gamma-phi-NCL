@@ -13,13 +13,14 @@ iteration, wall-time or median columns).
 LiftedKKT (MadNLP) has no constraint-violation test: its solves count only if the returned point's raw violation
 (pr_res) is within the run's constr_viol_tol (post-hoc guard). The footer gives the solved count of every repetition,
 computed with the scoring of the other GPU tables (benchmarks/tables/common.suite_scores) and asserted to equal the count
-of numeric cells above it.
+of numeric cells above it, and, as the last row (Yifan 2026-11-12), the cost of tab_gpu_scopf_summary: the geometric mean
+over the majority-solved instances of the median factorization count of the succeeding repetitions.
 
 Usage: python3 benchmarks/tables/tab_scopf_all_appendix.py <scopf resdir> <scopf_pglib resdir> [--cvtol=<t>] [--out=<dir>]
 """
-import sys
+import statistics, sys
 from common import (DEFAULT_OUT, LANDSCAPE_BEGIN, LANDSCAPE_END, LANDSCAPE_REQUIRES, assert_no_tokens, group_header,
-                    rep_cell, suite_scores, write)
+                    fmt, gm, rep_cell, success, suite_scores, write)
 from tab_gpu_scopf_all import buses, load, tex
 
 # Caption: the manuscript's (Yifan, Overleaf 0eae8ef), verbatim (captions are Yifan's).
@@ -62,12 +63,23 @@ def main(argv):
                 nsol[(c, t)] += x.isdigit()
                 cells.append(x)
         T.append(f"{tex(n)} & {buses(n)} & {nvar[n]} & " + " & ".join(cells) + " \\\\")
+    cost = {}
     for c in configs:
         a = suite_scores(data[c], names, c, cvtol)
         assert all(a["per_rep"][t][0] == nsol[(c, t)] for t in tags), (c, a["per_rep"], nsol)
-        print(f"  {c:<10} solved per repetition {[nsol[(c, t)] for t in tags]} of {len(names)}")
+        # the cost of tab_gpu_scopf_summary: geometric mean over the majority-solved instances of the median factorization
+        # count of the succeeding repetitions (recomputed here from the rows, asserted equal to suite_scores)
+        med = [statistics.median(float(data[c][t][n]["nfact"]) for t in tags if success(data[c][t].get(n), c, None, cvtol))
+               for n in names if a["majority"][n][0]]
+        assert fmt(gm(med)) == fmt(a["cost"]), (c, gm(med), a["cost"])
+        cost[c] = a["cost"]
+        print(f"  {c:<10} solved per repetition {[nsol[(c, t)] for t in tags]} of {len(names)}, "
+              f"majority {len(a['solved'])}, gm fact {a['cost']:.1f}")
     T.append("\\midrule")
-    T.append(f"solved (of {len(names)}) & & & " + " & ".join(str(nsol[(c, t)]) for c in configs for t in tags) + " \\\\")
+    # the footer labels span the 3 identifier columns (a label in the first column alone would widen it)
+    T.append(f"\\multicolumn{{3}}{{l}}{{solved (of {len(names)})}} & " + " & ".join(str(nsol[(c, t)]) for c in configs for t in tags) + " \\\\")
+    T.append("\\multicolumn{3}{l}{factorizations (geom.\\ mean)} & " + " & ".join(f"\\multicolumn{{{len(tags)}}}{{c}}{{{fmt(cost[c])}}}"
+                                                                  for c in configs) + " \\\\")
     T.append("\\end{longtable}}")
     T += LANDSCAPE_END
     assert_no_tokens("\n".join(T))
