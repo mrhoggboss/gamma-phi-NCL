@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tab_scopf_pglib_appendix — the 18 protocol SCOPF instances (see tab_gpu_scopf_pglib), one row each: an appendix table
+"""tab_scopf_pglib_appendix — the 18 PGLIB-network SCOPF instances (see tab_gpu_scopf_pglib), one row each: an appendix table
 of earlier manuscript versions, NOT a float (the manuscript's SCOPF appendix is tab_scopf_all_appendix). Columns:
 buses, variables, and per configuration the median iterations and factorizations and a status letter per repetition
 (common.letter), for every configuration of the paper roster found in the result directory.

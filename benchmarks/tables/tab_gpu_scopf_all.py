@@ -11,7 +11,7 @@ the median interior-point iterations and factorizations over the succeeding repe
 repetitions succeeds, a dash otherwise; LiftedKKT (MadNLP) has no constraint-violation test, so its solves count only
 if the returned point's raw violation (pr_res) is within the runs' constr_viol_tol (post-hoc guard; the unguarded
 count in parentheses when it differs). Rows: the reference networks case118, case300, ACTIVSg200, ACTIVSg500,
-ACTIVSg2000, 1354pegase, 2869pegase, then the protocol networks 500_goc A/B, 588_sdet A/B, 793_goc A/B, each with K
+ACTIVSg2000, 1354pegase, 2869pegase, then the PGLIB networks 500_goc A/B, 588_sdet A/B, 793_goc A/B, each with K
 increasing, one thin rule between the two groups. Footer over all 41: solved count and the geometric mean of
 factorizations over the solved set.
 
@@ -35,7 +35,7 @@ def is_pglib(name):
 
 
 def key(name):
-    """Row order: reference networks in REF_NETS order, then the protocol networks by bus count, network, order; K
+    """Row order: reference networks in REF_NETS order, then the PGLIB networks by bus count, network, order; K
     increasing within each."""
     if is_pglib(name):
         b, net, order, k = pglib_parts(name)
@@ -83,7 +83,7 @@ def load(ref_dir, pglib_dir, opt):
     names = sorted({n for c in configs for rows in data[c].values() for n in rows}, key=key)
     ref = [n for n in names if not is_pglib(n)]
     if (len(ref), len(names) - len(ref)) != (23, 18):
-        print(f"  NOTE: {len(ref)} reference and {len(names) - len(ref)} protocol instances in the results (expected 23 and 18)")
+        print(f"  NOTE: {len(ref)} reference-network and {len(names) - len(ref)} PGLIB-network instances in the results (expected 23 and 18)")
     return configs, data, names, cv.pop(), ref
 
 

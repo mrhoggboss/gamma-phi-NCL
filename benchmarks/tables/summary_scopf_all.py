@@ -27,13 +27,13 @@ def main(argv):
     S = {c: set(sc[c]["solved"]) for c in configs}
     nf = {c: {n: sc[c]["majority"][n][1] for n in S[c]} for c in configs}
     prot = [n for n in names if is_pglib(n)]
-    groups = [("all 41", names), ("reference 23", ref), ("protocol 18", prot),
+    groups = [("all 41", names), ("reference 23", ref), ("PGLIB 18", prot),
               ("K <= 16", [n for n in names if kval(n) <= 16]), ("K >= 32", [n for n in names if kval(n) >= 32])]
     print(f"SCOPF, 41 instances ({len(ref)} reference-network + {len(prot)} PGLIB-network), majority of the repetitions, "
           f"constr_viol_tol {cvtol:g}; K <= 16: {len(groups[3][1])} instances, K >= 32: {len(groups[4][1])}")
     print()
     print("solved counts (majority; per repetition guarded(raw) over all 41; gm factorizations over the own solved set)")
-    print(f"  {'configuration':12s} {'all 41':>7s} {'ref 23':>7s} {'prot 18':>8s} {'K<=16':>6s} {'K>=32':>6s} {'gm fact':>8s}  per repetition")
+    print(f"  {'configuration':12s} {'all 41':>7s} {'ref 23':>7s} {'PGLIB 18':>8s} {'K<=16':>6s} {'K>=32':>6s} {'gm fact':>8s}  per repetition")
     for c in configs:
         reps = " ".join(f"{t}:{g}" + (f"({r})" if r != g else "") for t, (g, r) in sorted(sc[c]["per_rep"].items()))
         cnt = [len(S[c] & set(g)) for _, g in groups]

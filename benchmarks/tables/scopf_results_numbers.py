@@ -2,18 +2,15 @@
 """scopf_results_numbers -- every number the SCOPF Results paragraph quotes, from the result CSVs, with the tables'
 scoring (common.suite_scores through tab_gpu_scopf_all.load; Python standard library only; seconds). Not a float.
 
-  python3 benchmarks/tables/scopf_results_numbers.py <scopf resdir> <scopf_pglib resdir> [--provisional=<file>]
+  python3 benchmarks/tables/scopf_results_numbers.py <scopf resdir> <scopf_pglib resdir>
 
 Prints: the summary table's per-repetition counts (and how many instances each repetition covers), majority counts and
 geometric means; the LiftedKKT violation-guard count; the nesting of the majority-solved sets; the majority solves
 outside phi-NCL's set, the instances solved by exactly one configuration and by none; the co-solved factorization ratios
 phi/LK, phi/gamma, phi/SP, gamma/LK with their shared counts (all 41, reference networks, PGLIB networks, K <= 16,
-K >= 32); the ACTIVSg500 ladder per configuration; the per-K counts on the PGLIB networks. --provisional=<file>: the
-provisional scoring of tab_gpu_scopf_summary.py (common.PROVISIONAL; the instances listed are scored by the repetitions
-they have).
+K >= 32); the ACTIVSg500 ladder per configuration; the per-K counts on the PGLIB networks.
 """
 import sys
-import common
 from common import fmt, gm, solved, success, suite_scores
 from tab_gpu_scopf_all import is_pglib, kval, load
 
@@ -25,8 +22,6 @@ def main(argv):
     opt = dict(a[2:].split("=", 1) for a in argv if a.startswith("--") and "=" in a)
     if len(pos) != 2:
         print(__doc__); return 2
-    if "provisional" in opt:
-        common.PROVISIONAL = True
     configs, data, names, cvtol, ref = load(pos[0], pos[1], opt)
     prot = [n for n in names if is_pglib(n)]
     tags = sorted({t for c in configs for t in data[c]})
@@ -34,8 +29,7 @@ def main(argv):
     S = {c: set(sc[c]["solved"]) for c in configs}
     nf = {c: {n: sc[c]["majority"][n][1] for n in S[c]} for c in configs}
     p = print
-    p(f"SCOPF, {len(names)} instances ({len(ref)} reference networks + {len(prot)} PGLIB networks), constr_viol_tol {cvtol:g}"
-      + ("; PROVISIONAL scoring (" + opt["provisional"] + ")" if "provisional" in opt else ""))
+    p(f"SCOPF, {len(names)} instances ({len(ref)} reference networks + {len(prot)} PGLIB networks), constr_viol_tol {cvtol:g}")
     cover = {t: sum(1 for n in names if n in data[configs[0]][t]) for t in tags}
     p(f"\n== summary table: per repetition (instances covered: {cover}), majority, gm factorizations")
     for c in configs:

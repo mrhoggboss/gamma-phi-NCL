@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tab_gpu_scopf_pglib — the 18 protocol SCOPF instances, per instance: a table of earlier manuscript versions, NOT a
+"""tab_gpu_scopf_pglib — the 18 PGLIB-network SCOPF instances, per instance: a table of earlier manuscript versions, NOT a
 float and not emitted (an unreported extra, runnable by hand; kept for instance_names, imported by the unreported extra
 tab_scopf_pglib_appendix.py; its parts and tex_name are common.pglib_scopf_parts and common.pglib_scopf_tex); protocol:
 benchmarks/scopf_protocol/README.md. 3 networks (case500_goc, case588_sdet, case793_goc) x K in {4, 8, 16}
@@ -36,7 +36,7 @@ def instance_names(data, configs):
             names |= set(rows)
     names = sorted(names, key=parts)
     if len(names) != 18:
-        print(f"  NOTE: {len(names)} instances in the results (the protocol set has 18)")
+        print(f"  NOTE: {len(names)} instances in the results (the PGLIB-network set has 18)")
     return names
 
 

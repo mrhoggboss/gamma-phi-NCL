@@ -3,7 +3,7 @@
 # figure into benchmarks/out/paper/figures/), each compiled at the manuscript's geometry (lib.sh compile_tables), then
 # the console summaries into benchmarks/out/paper/summaries/.
 #   emit.sh [suite ...]              (default: cutest opf scopf figure; scopf = the 41 SCOPF instances, from the scopf
-#                                    and scopf_pglib results; scopf_published, not a manuscript float, only when named)
+#                                    and scopf_pglib results)
 #   RES=<dir> emit.sh ...            read the results from <dir>/<suite>/ (default: the banked benchmarks/results/paper;
 #                                    benchmarks/out/paper/results after a rerun)
 #   REPRO_NOCOMPILE=1 emit.sh ...    skip the compile check (a machine without pdflatex/pdfinfo)

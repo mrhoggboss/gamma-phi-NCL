@@ -1,5 +1,5 @@
 #!/bin/bash
-# Case files of the 18 protocol SCOPF instances (benchmarks/instances/scopf_pglib18.csv), checked against
+# Case files of the 18 PGLIB-network SCOPF instances (benchmarks/instances/scopf_pglib18.csv), checked against
 # benchmarks/instances/scopf_pglib_data.sha256.
 #
 #   benchmarks/instances/fetch_pglib_scopf_data.sh <dest>      # then pass --data=<dest> to benchmarks/gpu.jl
@@ -10,8 +10,8 @@
 #                       Julia depot holds it, else extracted from the v23.07 release tarball (sha256 checked)
 #   pglib_opf_<net>_B.m byte copies of the three files: the order-B instances are keyed by their own case name in
 #                       benchmarks/instances/scopf_pglib_contingencies.jl, and gpu.jl reads <data>/pglib/<case>.m
-#   case118.m           MATPOWER 7.0 data/case118.m (the warm-up solve of gpu.jl: case118 with one contingency of the
-#                       campaign list); copied from <dest>/data/case118.m when fetch_scopf_data.sh has filled <dest>,
+#   case118.m           MATPOWER 7.0 data/case118.m (the warm-up solve of gpu.jl: case118 with the first contingency of
+#                       its list); copied from <dest>/data/case118.m when fetch_scopf_data.sh has filled <dest>,
 #                       else downloaded from github.com/MATPOWER/matpower
 set -eu
 DEST=${1:?usage: fetch_pglib_scopf_data.sh <dest>}
