@@ -56,8 +56,8 @@ informational there and the exit status is that of the emit.
 | SCOPF appendix, the 41 instances | `tab:scopf-appendix` | `tables/tab_scopf_all_appendix.tex` | `benchmarks/tables/tab_scopf_all_appendix.py` |
 | Figure 1, in the Introduction | `fig:example-degenerate` | `figures/fig_example_degenerate.tex` | `benchmarks/figures/make_fig_example_degenerate.py` |
 
-The manuscript `\input`s all five tables and the figure (checked 2026-11-13 against its Overleaf commit `4f65d06`: line
-67 of the manuscript's source for the figure, lines 801, 812, 842, 855 and 856 for the tables); `manuscript/` holds those six files. The
+The manuscript `\input`s all five tables and the figure (checked 2026-11-13 against its Overleaf commit `561c8b2`: line
+67 of the manuscript's source for the figure, lines 801, 812, 842, 856 and 857 for the tables); `manuscript/` holds those six files. The
 41 SCOPF instances are the 23 instances of the seven reference networks and the 18 of the three PGLIB networks. Not emitted by `emit.sh`, because
 they are no longer floats of the manuscript: the 41-row SCOPF table (`tab_gpu_scopf_all.py`; its module also supplies
 the loader of the appendix and summary emitters) and the separate tables of the two sets (`tab_gpu_scopf.py`,
@@ -76,10 +76,10 @@ benchmarks/paper/emit.sh        # all five tables and the figure, ~45 s; writes 
 
 That command writes exactly the six files above, every one of them compiles at the manuscript's page geometry
 (`lib.sh compile_tables`; its scaffolding goes to `benchmarks/out/paper/compile/`), all six are byte-identical to the
-manuscript's files (`manuscript/`, Overleaf commit `4f65d06`; `./reproduce.sh` makes that comparison), and the console
+manuscript's files (`manuscript/`, Overleaf commit `561c8b2`; `./reproduce.sh` makes that comparison), and the console
 summaries `cutest.txt`, `opf.txt`, `scopf.txt` and `scopf_pglib.txt` equal the banked
-`benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-12; the CUTEst summary was rewritten that day under
-the population rule); `scopf_all.txt` summarizes the 41 SCOPF instances (solved counts, nesting of the solved sets,
+`benchmarks/results/paper/<suite>/summary.txt` (checked 2026-11-13; the CUTEst summary was rewritten on 2026-11-12 under
+the population rule, the SCOPF one on 2026-11-13 with the rows of the rerun); `scopf_all.txt` summarizes the 41 SCOPF instances (solved counts, nesting of the solved sets,
 instances solved by exactly one configuration and by none, co-solved cost ratios over all 41 and for K ≤ 16 and
 K ≥ 32).
 
@@ -358,7 +358,7 @@ identical to their r2 echoes (only the tag and the warm-up time differ).
 | path | contents |
 |---|---|
 | `reproduce.sh` | the one command: emit every float and compare it with `manuscript/`; `rerun <suite>` reruns the solves first |
-| `manuscript/` | the five tables and the figure as the manuscript `\input`s them (Overleaf commit `4f65d06`), the reference of `reproduce.sh` |
+| `manuscript/` | the five tables and the figure as the manuscript `\input`s them (Overleaf commit `561c8b2`), the reference of `reproduce.sh` |
 | `src/`, `ext/` | the solver (MadNCL with per-row weights and penalty kernels) |
 | `benchmarks/arms.jl`, `liftedkkt.jl`, `common.jl` | the configurations and shared driver helpers |
 | `benchmarks/cutest.jl`, `benchmarks/gpu.jl` | the CPU (CUTEst) and GPU (`opf`, `scopf`) drivers; they take paths, devices and tags as arguments and read no environment variables |
@@ -437,4 +437,7 @@ identical to their r2 echoes (only the tag and the warm-up time differ).
   formulated as MPCCs"), carried into their emitters; `f2e9695` changes only the manuscript's source and bibliography
   (the floats are byte-unchanged); at `0e5d6bc` the PGLIB caption reads "PGLIB ACOPF instances" (OPF unified to ACOPF;
   carried into `tab_gpu_opf.py`); `4f65d06` inserts the list-generation algorithm (`alg:screen`) into the source (the
-  floats are byte-unchanged); all six floats are byte-identical (`manuscript/`, Overleaf `4f65d06`, 2026-11-13).
+  floats are byte-unchanged); at `561c8b2` the two SCOPF tables (`tab_gpu_scopf_summary`, `tab_scopf_all_appendix`)
+  carry the 12 instances on the protocol lists (case_ACTIVSg500 at K = 8 to 100, case1354pegase, case_ACTIVSg2000), three
+  repetitions each (this repository's `62ba00f`; the other 29 instances unchanged); all six floats are byte-identical
+  (`manuscript/`, Overleaf `561c8b2`, 2026-11-13).
