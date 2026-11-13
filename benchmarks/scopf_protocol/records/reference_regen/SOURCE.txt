@@ -2,8 +2,10 @@ The protocol of ../../README.md applied in order A to four networks of the refer
 case1354pegase, case2869pegase, case_ACTIVSg2000), run in this checkout on 2026-11-12, CPU (2 x Xeon Gold 6130),
 Julia 1.10.11, benchmarks/envs/screen (PowerModels 0.21.6, JuMP 1.32.1, Ipopt.jl 1.16.0 / Ipopt 3.14.19, licensed
 HSL_jll 2025.1.19), on the MATPOWER 7.0 case files of benchmarks/instances/fetch_scopf_data.sh <D> (<D>/data_mp70/; the
-sha256 of each file is in its screen's meta file and in ../../../instances/scopf_data.sha256). Nothing here changes an
-instance list: the published lists (benchmarks/instances/scopf_contingencies.jl) stay as they are.
+sha256 of each file is in its screen's meta file and in ../../../instances/scopf_data.sha256). The protocol lists derived
+from these records replaced the published lists of case_ACTIVSg500, case1354pegase and case_ACTIVSg2000 in
+benchmarks/instances/scopf_contingencies.jl on 2026-11-13 (../../reference_regen.py lists --write); the published file is
+kept as benchmarks/instances/scopf_contingencies_published.jl.
 
 screens/<net>_A.{csv,raw.csv,meta.txt}  julia/screen_run2.jl <D>/data_mp70/<net>.m A 64 <out>/screens/<net>_A 1e8, started
                      2026-11-12T01:21 (EST), the three in parallel: order A (increasing PowerModels branch key), penalty

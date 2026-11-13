@@ -46,7 +46,7 @@ LANDSCAPE_END = ["\\clearpage", "\\pdfpagewidth=\\paperwidth \\pdfpageheight=\\p
 # Instance names of the SCOPF tables (moved here from tab_gpu_scopf.py and tab_gpu_scopf_pglib.py, which re-export them
 # as tt, PAT, parts and tex_name): the reported SCOPF floats get their row order and printed names from these.
 def scopf_ref_tex(name):
-    """Short name of a reference-list instance: case118_nK100 -> \\texttt{case118}@100, case_ACTIVSg2000_nK16 ->
+    """Short name of a reference-network instance: case118_nK100 -> \\texttt{case118}@100, case_ACTIVSg2000_nK16 ->
     \\texttt{ACTIVSg2000}@16, case1354pegase_nK8 -> \\texttt{1354pegase}@8."""
     m = re.fullmatch(r"(.+?)_nK(\d+)", name)
     if not m:

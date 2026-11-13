@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""tab_gpu_scopf_all — the 41 SCOPF instances in one table, per instance: the 23 reference-list instances
-(tab_gpu_scopf.py) and the 18 protocol instances (tab_gpu_scopf_pglib.py), merged. NOT a float of the manuscript and not
+"""tab_gpu_scopf_all — the 41 SCOPF instances in one table, per instance: the 23 reference-network instances
+(tab_gpu_scopf.py) and the 18 PGLIB-network instances (tab_gpu_scopf_pglib.py), merged. NOT a float of the manuscript and not
 emitted by emit.sh or compared by reproduce.sh (an unreported extra, runnable by hand); its module also supplies load,
 is_pglib, kval, buses and tex to tab_gpu_scopf_summary.py, tab_scopf_all_appendix.py and summary_scopf_all.py. It
 writes the label tab:gpu-scopf, which the manuscript uses for tab_gpu_scopf_summary.tex: never \\input its output.
@@ -22,9 +22,8 @@ from common import (DEFAULT_OUT, assert_no_tokens, find, fmt, gm, group_header, 
                     pglib_scopf_tex as pglib_tex_name, read_cvtol, read_rows, scopf_ref_tex as tt, write)
 
 # Unreported extra (an earlier manuscript layout); not a float, no caption will be written.
-CAPTION = ("The 41 security-constrained complementarity problems, per instance: the reference networks "
-           "with their published contingency lists, then the PGLIB networks with the protocol lists (network, screening "
-           "order, number of contingencies $K$), majority of three repetitions. For each solve, the entry is the median "
+CAPTION = ("The 41 security-constrained complementarity problems, per instance: the reference networks, "
+           "then the PGLIB networks (network, screening order, number of contingencies $K$), majority of three repetitions. For each solve, the entry is the median "
            "interior-point iteration count and factorization count over the repetitions that succeed; a dash is a "
            "non-solve.")
 REF_NETS = ["case118", "case300", "case_ACTIVSg200", "case_ACTIVSg500", "case_ACTIVSg2000", "case1354pegase", "case2869pegase"]

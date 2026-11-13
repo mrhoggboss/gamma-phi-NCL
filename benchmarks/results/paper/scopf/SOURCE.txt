@@ -1,0 +1,59 @@
+benchmarks/results/paper/scopf/: the SCOPF runs of the 23 instances of the seven reference networks (benchmarks/instances/scopf23.csv;
+contingency lists benchmarks/instances/scopf_contingencies.jl), five configurations x three repetitions.
+
+Rows of 11 instances (case118 @10, @100; case300 @10, @50, @100; case_ACTIVSg200 @10, @50, @100; case_ACTIVSg500 @4;
+case2869pegase @8, @16): the campaign's (gamma-phi-ncl, /home/yifan_xu/MadNCL-public, benchmarks/out/paper/scopf/<cfg>_r<k>/,
+2026-11-03..05, the cells of WALLTIME_scopf.csv), as banked on gamma-phi-ncl; their lists are the published ones, which the
+protocol's screen reproduces (case_ACTIVSg500 @4: its first 4 outages are the same under the published and the protocol list).
+
+Rows of the other 12 instances (case_ACTIVSg500 @8, @10, @16, @32, @50, @64, @100; case1354pegase @8, @16, @32;
+case_ACTIVSg2000 @8, @16): the rerun on the protocol lists (Yifan 2026-11-13: "rerun them now"; the lists of
+case_ACTIVSg500, case1354pegase and case_ACTIVSg2000 were replaced by `benchmarks/scopf_protocol/reference_regen.py lists`),
+in the same campaign tree at HEAD f20e8d5 (src/ identical to this repository's), with the campaign command
+(benchmarks/paper/lib.sh run_gpu_cell: watch.sh stall 3300 s, gpu.jl scopf <cfg> <dir> --tag=r<k> --trace --data=... with
+--instances=<the 12, campaign order>, warm-up on; settings identical to the campaign's: every rerun config echo equals the
+banked echo of the same configuration and tag up to the tag, the warm-up time, the instance count and the configuration's
+paper label), output in MadNCL-public benchmarks/out/paper/scopf_rerun/<cfg>_r<k>/ (logs/, WALLTIME_scopf_rerun.csv,
+progress.txt there). Two devices (2 x Quadro GV100), 2026-11-12T18:15:10-05:00 to 2026-11-13T01:13:26-05:00 (6.97 h wall,
+13.06 GPU-hours of cells), launched on devices that carried other users' processes (GPU_DEVICE_NOGATE=1; logged as
+DEVICE_BUSY_IGNORED, sampled every 60 s as INTRUDER lines; nothing killed). Every cell ended rc 0 with no stall kill and no
+EXTERNAL_KILL, wall-time or error row. Each row line here is a byte copy of its line in the rerun's CSV; the other rows and
+the config echoes are unchanged (the echoes of the rerun are not copied: they differ from the banked ones only as above).
+
+cell (config, rep): device, elapsed s, intruder samples
+  U6A r1: GPU 1, 3181 s, 52
+  W r1: GPU 0, 3902 s, 64
+  liftedkkt r1: GPU 1, 3182 s, 52
+  SP r1: GPU 0, 3542 s, 58
+  SP r2: GPU 1, 3482 s, 57
+  S r1: GPU 0, 3122 s, 51
+  S r2: GPU 0, 1801 s, 29
+  W r2: GPU 1, 4143 s, 68
+  liftedkkt r2: GPU 0, 2881 s, 48
+  U6A r2: GPU 1, 3362 s, 55
+  W r3: GPU 0, 4143 s, 10
+  S r3: GPU 1, 2161 s, 35
+  liftedkkt r3: GPU 1, 2402 s, 39
+  U6A r3: GPU 0, 3182 s, 0
+  SP r3: GPU 0, 2523 s, 0
+
+The superseded rows of the 12 instances (the campaign's runs on the published lists) are kept as a dataset in
+benchmarks/results/paper/scopf_published/ (see its SOURCE.txt). summary.txt = benchmarks/tables/summary_gpu.py on this
+directory (rewritten with the swap).
+
+rerun file sha256 (MadNCL-public benchmarks/out/paper/scopf_rerun/)
+S_r1/scopf__S__r1.csv 31adc4b7bf8c035076c89c903d4cb67b8b1459c31bbb6a3c94de44f7dcdd291f
+S_r2/scopf__S__r2.csv 9874ff3b85675b658550996c9f24b6e2540072878527326f4bbbd4384c96680d
+S_r3/scopf__S__r3.csv 249f5f43f70b73f6d77a4b2abb607f12e94bd9e08862bb5d674aeb8df20f9e4f
+SP_r1/scopf__SP__r1.csv 6988e2e9ef287f51e5e32944d2d7f89028699b11f06a669903cd2070a56e296a
+SP_r2/scopf__SP__r2.csv 00b1526edf8c4380a9cb7bc7fc162ae2ca20b89b838aba7fde6531b9828809ed
+SP_r3/scopf__SP__r3.csv ba85de8bc32ab207cdf349210774b760cc4e09c5cca9106c59071bd304964318
+W_r1/scopf__W__r1.csv 03c99fd333fd680fb3bcd4ddebe1e6b10eab2080427719c9f830471670c3e3a5
+W_r2/scopf__W__r2.csv 1f420fcc74bf9a0069035abd4163ce1e842fc71a5a41c5f41fa4053fb496fb0f
+W_r3/scopf__W__r3.csv a9809886d3d17f0c9ff1670a88c68e8968c0e5f49dea80887d48199125b2bc43
+U6A_r1/scopf__U6A__r1.csv 9c634c7a28a494caba2f8e44e9cbd4b49d40cde101abd6cbcf846d556619619b
+U6A_r2/scopf__U6A__r2.csv c6d12aaf8d7e147181b3e7b1122e1f899105d7eda667b1e1321450ede32ec991
+U6A_r3/scopf__U6A__r3.csv 01be51f24c7db709de304e336f6e4ac912f22277b02aa4047ec84d2372c9c3dc
+liftedkkt_r1/scopf__liftedkkt__r1.csv 2059eae603136ff5740cdb7d1bc9a70d1e64221f1a9012dd275c7a5c1766490d
+liftedkkt_r2/scopf__liftedkkt__r2.csv c9a4cf086b917b4644cc6988b3ca49d129e02eff5a8ec83d24bae0c395e9df6b
+liftedkkt_r3/scopf__liftedkkt__r3.csv 8eaa9b7038102245deac7e52e0bcf4b1c6f9c915945096990bee069ffb39de14

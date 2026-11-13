@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tab_gpu_scopf — the 23 reference-list instances, per instance: a table of earlier manuscript versions, NOT a float and
+"""tab_gpu_scopf — the 23 reference-network instances, per instance: a table of earlier manuscript versions, NOT a float and
 not emitted (an unreported extra, runnable by hand; its tt() is common.scopf_ref_tex, which the reported SCOPF floats
 use); it writes tab:gpu-scopf, never \\input it.
 

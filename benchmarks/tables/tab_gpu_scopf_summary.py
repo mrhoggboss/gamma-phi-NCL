@@ -2,7 +2,7 @@
 """tab_gpu_scopf_summary — the 41 SCOPF instances, summary table (manuscript float tab:gpu-scopf), laid out exactly as
 tab_gpu_opf: per configuration the solved count of every repetition over the 41 instances, the per-instance majority
 over the repetitions, and the geometric mean over the majority-solved set of the median factorization count of the
-succeeding repetitions. The 41 are the 23 reference-list instances and the 18 protocol instances (the per-instance rows
+succeeding repetitions. The 41 are the 23 reference-network instances and the 18 PGLIB-network instances (the per-instance rows
 are the appendix table, tab_scopf_all_appendix). LiftedKKT (MadNLP) has no constraint-violation test: its successes count
 only if the returned point's raw violation (pr_res) is within the runs' constr_viol_tol (post-hoc guard; the unguarded
 count in parentheses when it differs).
@@ -71,7 +71,7 @@ def main(argv):
          f" & \\multicolumn{{{len(tags)}}}{{c}}{{repetition}} & & \\\\",
          f"\\cmidrule(lr){{2-{len(tags) + 1}}}",
          "configuration & " + " & ".join(labels) + " & solved & factorizations \\\\\\midrule"]
-    print(f"  {len(names)} instances ({len(ref)} reference-list + {len(names) - len(ref)} protocol)")
+    print(f"  {len(names)} instances ({len(ref)} reference-network + {len(names) - len(ref)} PGLIB-network)")
     for c in configs:
         sc = suite_scores(data[c], names, c, cvtol)
         per = [count_cell(*sc["per_rep"][t], c) if t in sc["per_rep"] else "--" for t in tags]

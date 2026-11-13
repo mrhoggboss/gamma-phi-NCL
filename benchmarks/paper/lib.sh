@@ -47,9 +47,9 @@ device_busy() {   # device_busy <dev>: prints the compute processes on that devi
 
 # run_gpu_cell <dev> <suite> <config> <k> <walltime_csv>: one GPU cell, with the campaign's command:
 #   opf          gpu.jl opf <config> <dir> --tag=r<k> --trace          (PGLIB 66 cases, max_iter 1000, wall 1800 s)
-#   scopf        gpu.jl scopf ... --data=$SCOPF_DATA                    (the 23 reference-list instances, max_iter 3000)
+#   scopf        gpu.jl scopf ... --data=$SCOPF_DATA                    (the 23 reference-network instances, max_iter 3000)
 #   scopf_pglib  gpu.jl scopf ... --instances=scopf_pglib18.csv --data=$SCOPF_PGLIB_DATA
-#                --contingencies=scopf_pglib_contingencies.jl           (the 18 protocol instances, max_iter 3000)
+#                --contingencies=scopf_pglib_contingencies.jl           (the 18 PGLIB-network instances, max_iter 3000)
 #   scopf_published  gpu.jl scopf ... --instances=scopf_published12.csv --data=$SCOPF_DATA
 #                --contingencies=scopf_contingencies_published.jl       (the 12 instances of case_ACTIVSg500,
 #                case1354pegase and case_ACTIVSg2000 whose published contingency list differs from the protocol list)
@@ -189,7 +189,7 @@ compile_tables() {
 # The floats of each suite (the files the manuscript \inputs: tables/<name>.tex, figures/<name>.tex).
 FLOATS_cutest="tab_cutest_ma57"
 FLOATS_opf="tab_gpu_opf tab_pglib_appendix"
-# scopf: the 41 SCOPF instances (the 23 reference-list and the 18 protocol instances, from the scopf and scopf_pglib
+# scopf: the 41 SCOPF instances (the 23 reference-network and the 18 PGLIB-network instances, from the scopf and scopf_pglib
 # results): the summary table (tab_gpu_scopf_summary, the layout of tab_gpu_opf) and the per-instance appendix table.
 # Not emitted here (no longer floats; the scripts remain, runnable by hand): the 41-row main table tab_gpu_scopf_all
 # (its module also serves the appendix and summary emitters) and the separate 23- and 18-instance tables of earlier

@@ -3,8 +3,8 @@
 # configuration first). Results land in benchmarks/out/paper/results/<suite>/ (see lib.sh); the banked
 # benchmarks/results/paper/<suite>/ is not touched. Resumable: run the same command again after a crash.
 #   chain_gpu.sh <device> <suite> [reps] [configs]
-#     suite   opf (Tables tab:gpu-opf, tab:pglib-appendix) | scopf, scopf_pglib (the 23 reference-list and the 18
-#             protocol instances, together in Tables tab:gpu-scopf and tab:scopf-appendix) | scopf_published (the 12
+#     suite   opf (Tables tab:gpu-opf, tab:pglib-appendix) | scopf, scopf_pglib (the 23 instances of the reference networks
+#             and the 18 of the PGLIB networks, together in Tables tab:gpu-scopf and tab:scopf-appendix) | scopf_published (the 12
 #             instances of three reference networks on their published lists; not a manuscript float)
 #     reps    default "1 2 3"; configs default "S SP W U6A liftedkkt"
 #   env: SCOPF_DATA (scopf) / SCOPF_PGLIB_DATA (scopf_pglib): the data directories of the fetch scripts;

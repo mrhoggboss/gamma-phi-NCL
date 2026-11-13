@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Console summary of the 41 SCOPF instances (the 23 reference-list instances and the 18 protocol instances; the
+"""Console summary of the 41 SCOPF instances (the 23 reference-network instances and the 18 PGLIB-network instances; the
 scoring of tab_gpu_scopf_summary (common.suite_scores): majority of the repetitions, median factorizations of the
 succeeding repetitions, LiftedKKT within the runs' constr_viol_tol). Prints: the solved counts (per repetition, by majority, and by group);
 the nesting of the majority-solved sets; the instances solved by exactly one configuration and by none; and the
@@ -29,7 +29,7 @@ def main(argv):
     prot = [n for n in names if is_pglib(n)]
     groups = [("all 41", names), ("reference 23", ref), ("protocol 18", prot),
               ("K <= 16", [n for n in names if kval(n) <= 16]), ("K >= 32", [n for n in names if kval(n) >= 32])]
-    print(f"SCOPF, 41 instances ({len(ref)} reference-list + {len(prot)} protocol), majority of the repetitions, "
+    print(f"SCOPF, 41 instances ({len(ref)} reference-network + {len(prot)} PGLIB-network), majority of the repetitions, "
           f"constr_viol_tol {cvtol:g}; K <= 16: {len(groups[3][1])} instances, K >= 32: {len(groups[4][1])}")
     print()
     print("solved counts (majority; per repetition guarded(raw) over all 41; gm factorizations over the own solved set)")

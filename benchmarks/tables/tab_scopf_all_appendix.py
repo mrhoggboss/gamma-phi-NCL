@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tab_scopf_all_appendix — the 41 SCOPF instances, one row each (manuscript float tab:scopf-appendix, the appendix
-table; the summary over the 41 is tab_gpu_scopf_summary): the 23 reference-list instances and the 18 protocol
+table; the summary over the 41 is tab_gpu_scopf_summary): the 23 reference-network instances and the 18 protocol
 instances.
 
 Reads <scopf resdir>/scopf__<config>__<tag>.csv and <scopf_pglib resdir>/scopf_pglib__<config>__<tag>.csv. Rows: the

@@ -14,7 +14,7 @@
 #       kept for reference and not part of `all`, whose table is not a float of manuscript/), fetching the
 #       SCOPF case files first when their sha256 check does not already pass; then emit those floats from the rerun
 #       (benchmarks/out/paper/results) and compare them with manuscript/ in the same way. The SCOPF floats need both
-#       SCOPF result sets (scopf: the 23 reference-list instances, scopf_pglib: the 18 protocol instances); a set that was
+#       SCOPF result sets (scopf: the 23 reference-network instances, scopf_pglib: the 18 PGLIB-network instances); a set that was
 #       not rerun is read from the banked results. The comparison is informational there; the exit code is the emit's.
 #       Hours to days: see README.md, "One command".
 #

@@ -39,7 +39,8 @@ from the rerun's results (`benchmarks/out/paper/results/`) and compares with `ma
 tables cover both SCOPF suites; a suite not rerun is read from the banked results). It needs
 the Julia environments of "Hardware and software" below, a licensed HSL MA57 for the CPU suite and a CUDA GPU for the
 others. Compute, from the campaign's logs: CUTEst 20.6 h at 30 workers for six of the seven configurations, plus SP
-(its per-solve times sum to 0.96 h of 30 workers, a lower bound); PGLIB 4.0 h; SCOPF on the reference lists 21.7 h;
+(its per-solve times sum to 0.96 h of 30 workers, a lower bound); PGLIB 4.0 h; SCOPF on the reference networks 21.7 h
+(plus 13.1 GPU-hours for the 2026-11-13 rerun of the 12 instances whose lists were regenerated, 7.0 h on two devices);
 the protocol SCOPF set 4518–5887 s per (configuration, repetition), 15 of them, in the campaign's one-instance-per-process
 mode (solve and build alone 515–1562 s per (configuration, repetition)); the GPU suites on one device. A CPU rerun is
 expected to reproduce the result CSVs in every column but the timing columns, so its table is expected to be
@@ -57,7 +58,7 @@ informational there and the exit status is that of the emit.
 
 The manuscript `\input`s all five tables and the figure (checked 2026-11-13 against its Overleaf commit `4f65d06`: line
 67 of the manuscript's source for the figure, lines 801, 812, 842, 855 and 856 for the tables); `manuscript/` holds those six files. The
-41 SCOPF instances are the 23 reference-list instances and the 18 protocol instances. Not emitted by `emit.sh`, because
+41 SCOPF instances are the 23 instances of the seven reference networks and the 18 of the three PGLIB networks. Not emitted by `emit.sh`, because
 they are no longer floats of the manuscript: the 41-row SCOPF table (`tab_gpu_scopf_all.py`; its module also supplies
 the loader of the appendix and summary emitters) and the separate tables of the two sets (`tab_gpu_scopf.py`,
 `tab_gpu_scopf_pglib.py`, `tab_scopf_pglib_appendix.py`). The scripts remain and can be run by hand; `tab_gpu_scopf_all.py`
@@ -86,7 +87,8 @@ Rerunning the solves reproduces the CSVs **bitwise on the CPU** in every column 
 are deterministic; a solve that ends at its wall-time cap can stop at a different iteration) and **to within GPU
 nondeterminism on the GPU, ±2 solves**: cuDSS's device reductions are not bitwise reproducible, so single repetitions
 differ (spread of the per-repetition solve counts in the banked data, `benchmarks/results/paper/<suite>/summary.txt`:
-PGLIB at most 2 per configuration, SCOPF reference lists up to 3, protocol set up to 4, between r1 and r2 of φ-NCL);
+PGLIB at most 2 per configuration, SCOPF reference networks up to 5 (MadNCL 9/6/4, MadNCL + parameters 7/12/8),
+protocol set up to 4, between r1 and r2 of φ-NCL);
 every GPU suite is therefore run three times and scored by majority of three, and the manuscript makes no robustness
 claim about GPU solve-count differences of two instances or fewer (Section 5, "Budgets and scoring"). The CPU claim was checked on the protocol records (one K = 1 verification and two screened outages,
 identical but for their time columns, and the island table, byte-identical) and on the CUTEst smoke run of the CUTEst
@@ -175,15 +177,17 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   (`dual_feas`); ρ comes from the campaign's per-outer traces, which are not in this repository
   (`derived_sp_losses_SOURCE.txt` gives their sha256 and the derivation).
 
-## SCOPF runs: the 23 reference-list instances
+## SCOPF runs: the 23 instances of the reference networks
 
 - Data: the MATPOWER case files, downloaded and checked against `benchmarks/instances/scopf_data.sha256`:
   `benchmarks/instances/fetch_scopf_data.sh <dir>` (`<dir>/data`, `<dir>/data_mp70`); the instance list is
-  `benchmarks/instances/scopf23.csv`, the contingency lists `benchmarks/instances/scopf_contingencies.jl` (from the
-  reference benchmark's harness), used as published. How they relate to the protocol of the 18 is recorded in
-  `benchmarks/scopf_protocol/README.md` ("The reference lists under the protocol"): the screens reproduce the published
-  lists of `case118`, `case300`, `case_ACTIVSg200` and `case2869pegase`, not those of `case_ACTIVSg500`,
-  `case1354pegase` and `case_ACTIVSg2000`; every published entry was verified alone (K = 1).
+  `benchmarks/instances/scopf23.csv`, the contingency lists `benchmarks/instances/scopf_contingencies.jl`. All 41 SCOPF
+  instances are protocol-generated (`benchmarks/scopf_protocol/README.md`): on the seven reference networks the
+  protocol's screening step reproduces the reference benchmark's published lists exactly for `case118`, `case300`,
+  `case_ACTIVSg200` and `case2869pegase`, and the lists of `case_ACTIVSg500`, `case1354pegase` and `case_ACTIVSg2000` are
+  the protocol's own (regenerated on 2026-11-13, `benchmarks/scopf_protocol/reference_regen.py lists`; the published
+  lists are kept in `benchmarks/instances/scopf_contingencies_published.jl`); the 18 instances of the three PGLIB
+  networks are described below.
 - Run (five configurations x three repetitions, 3000 iterations, 1800 s per solve; the SCOPF model and solver settings
   of every cell are in its configuration echo, `benchmarks/results/paper/scopf/config_scopf__<config>__r<k>.txt`):
 
@@ -192,7 +196,11 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
   julia +1.11.2 --project=benchmarks/envs/gpu benchmarks/gpu.jl scopf W benchmarks/out/paper/scopf/W_r1 --tag=r1 --trace --data=<dir>
   ```
 
-  Campaign elapsed per cell 3182–7804 s, 21.7 h for the 15 (`WALLTIME_scopf.csv`).
+  Campaign elapsed per cell 3182–7804 s, 21.7 h for the 15 (`WALLTIME_scopf.csv`). The 12 instances whose lists were
+  regenerated (ACTIVSg500 K = 8 … 100, 1354pegase K = 8, 16, 32, ACTIVSg2000 K = 8, 16) were rerun with the same command
+  restricted to them (`--instances=`), 15 cells of 1801–4143 s on two devices, 2026-11-12/13; their rows replace the
+  campaign's (`benchmarks/results/paper/scopf/SOURCE.txt`), and the campaign's runs of them on the published lists are
+  kept in `benchmarks/results/paper/scopf_published/`.
 - Emit: the SCOPF tables below (`emit.sh scopf`).
 
 ## SCOPF runs: the 18 protocol instances
@@ -223,8 +231,8 @@ that `filesize(HSL_jll.libhsl_path)` is megabytes (the registry HSL_jll is a stu
 
 ## Tables `tab:gpu-scopf` and `tab:scopf-appendix` — SCOPF, the 41 instances
 
-`benchmarks/paper/emit.sh scopf` (seconds) writes the two SCOPF floats over the 41 instances (the 23 reference-list and
-the 18 protocol instances), from both result sets with the scoring of the other GPU tables (majority of three, medians
+`benchmarks/paper/emit.sh scopf` (seconds) writes the two SCOPF floats over the 41 instances (the 23 of the reference
+networks and the 18 of the PGLIB networks), from both result sets with the scoring of the other GPU tables (majority of three, medians
 over the succeeding repetitions, LiftedKKT within constr_viol_tol): `tab_gpu_scopf_summary.tex`
 (`tab_gpu_scopf_summary.py`, label `tab:gpu-scopf`; the layout of the PGLIB table: per configuration the solved count of
 each repetition, the majority count and the geometric mean of factorizations) and `tab_scopf_all_appendix.tex`
@@ -382,7 +390,10 @@ identical to their r2 echoes (only the tag and the warm-up time differ).
   ablation and one-sided configurations, the identity gates, the campaign scheduler). The solver source `src/` and
   `ext/` is byte-identical to `gamma-phi-ncl` (`src/` unchanged since `10238f9`).
 - `benchmarks/results/paper/{cutest,opf,scopf}/` are the campaign's results as banked on `gamma-phi-ncl`: every file is
-  identical to its counterpart there (whose directories also hold the removed configurations' files).
+  identical to its counterpart there (whose directories also hold the removed configurations' files), except that in
+  `scopf/` the rows of the 12 instances whose contingency lists were regenerated come from the rerun of 2026-11-12/13 on
+  `gamma-phi-ncl` (HEAD `f20e8d5`; `scopf/SOURCE.txt`), and the summary is rewritten accordingly; the campaign's rows of
+  those instances are in `scopf_published/`.
   `benchmarks/results/paper/scopf_pglib/` was copied from `scopf-pool` (`results/pilot` as committed at `76a53fe`)
   after the protocol block ended on 2026-11-11; its rows and echoes are identical to those banked on `gamma-phi-ncl`
   (commit `835508a`); `SOURCE.txt` there lists every source file with its sha256.
