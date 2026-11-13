@@ -221,9 +221,19 @@ def count_cell(guarded, raw, config):
     return f"{guarded} ({raw})" if config in GUARDED and guarded != raw else str(guarded)
 
 
+# Provisional scoring (Yifan 2026-11-13, the SCOPF rerun exported before all repetitions are in): when True, a repetition
+# without a row for an instance does not count, so an instance with rows in one repetition only is scored by that one
+# (majority of the repetitions that exist; median = its value), and the appendix prints "--" for the missing cells.
+# Set by the --provisional option of tab_gpu_scopf_summary.py, tab_scopf_all_appendix.py and scopf_results_numbers.py;
+# False (the default) leaves every table and number as it is.
+PROVISIONAL = False
+
+
 def majority(rows_by_tag, name, config=None, cvtol=None):
     """(solved by majority?, median factorization count over the succeeding repetitions, median iterations)."""
     rs = [rows.get(name) for rows in rows_by_tag.values()]
+    if PROVISIONAL:
+        rs = [r for r in rs if r is not None]
     ok = [r for r in rs if success(r, config, None, cvtol)]
     maj = len(ok) * 2 > len(rs)
     if not ok:
@@ -300,6 +310,8 @@ def rep_cell(r, c, cvtol):
     post-hoc guard for the GUARDED solvers), else \\textit{<reason>} (FAIL_WORD; "error" for any other status). A missing
     row or a solve removed by the guard has no word: it raises, so that the vocabulary is extended first."""
     if r is None:
+        if PROVISIONAL:
+            return "--"
         raise SystemExit(f"rep_cell: no row for {c}; the failure codes of the caption have none for a missing run")
     if success(r, c, None, cvtol):
         return f"{float(r['nfact']):.0f}"
