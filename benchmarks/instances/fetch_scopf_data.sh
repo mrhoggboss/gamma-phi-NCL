@@ -1,0 +1,29 @@
+#!/bin/bash
+# Fetch the MATPOWER case files of the SCOPF benchmark and verify them against scopf_data.sha256.
+#
+#   benchmarks/instances/fetch_scopf_data.sh <dest>
+#
+# Creates <dest>/data (the case files of the 8 rows of scopf41.csv whose data column is `data`) and <dest>/data_mp70
+# (those of the 15 rows whose data column is `data_mp70`); fetch_pglib_scopf_data.sh writes <dest>/pglib next to them,
+# and benchmarks/gpu.jl takes --data=<dest>. The files come from tagged MATPOWER releases
+# (github.com/MATPOWER/matpower; the tags are in the commands below):
+#   data_mp70/  all seven files from one release
+#   data/       case118, case1354pegase, case2869pegase, case_ACTIVSg200: the same files as in data_mp70/; case300
+#               from a later MATPOWER release, which differs only in the TAP column of 22 transformer branches and
+#               builds the same SCOPF model
+set -eu
+DEST=${1:?usage: fetch_scopf_data.sh <dest>}
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+URL=https://raw.githubusercontent.com/MATPOWER/matpower
+get() {  # get <tag> <file> <dir>
+    mkdir -p "$DEST/$3"
+    curl -fsSL "$URL/$1/data/$2" -o "$DEST/$3/$2"
+}
+for f in case118.m case300.m case_ACTIVSg200.m case_ACTIVSg500.m case1354pegase.m case_ACTIVSg2000.m case2869pegase.m; do
+    get 7.0 "$f" data_mp70
+done
+for f in case118.m case_ACTIVSg200.m case1354pegase.m case2869pegase.m; do
+    get 7.0 "$f" data
+done
+get 8.1 case300.m data
+(cd "$DEST" && sha256sum -c "$HERE/scopf_data.sha256")
